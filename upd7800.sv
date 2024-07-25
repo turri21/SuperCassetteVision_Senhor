@@ -29,6 +29,13 @@ module upd7800
    output        M1 // opcode fetch cycle
    );
 
+`define psw_z  psw[6]           // Zero
+`define psw_sk psw[5]           // Skip
+`define psw_hc psw[4]           // Half Carry
+`define psw_l1 psw[3]           // Byte instruction string effect
+`define psw_l0 psw[2]           // Word instruction string effect
+`define psw_cy psw[0]           // Carry
+
 wire         resp;
 wire         cp1p, cp2p, cp2n;
 wire         t0;                // next machine cycle
@@ -39,16 +46,23 @@ wire [2:0]   ui;
 reg          resg;
 reg          cp2;
 reg          t1, t2, t3, t4;    // machine cycle (step)
-reg [15:0]   pc;
-reg [15:0]   ab;
-reg [15:0]   aor;
-reg [7:0]    idb;
-reg [7:0]    dor;
+reg [1:0]    tx;
+reg [7:0]    psw;
+reg [15:0]   pc, upc, npc;
 reg [10:0]   ir;
+reg          ie;                // interrupt enable flag
+reg [15:0]   aor;
+reg [7:0]    dor;
+reg [7:0]    idb;
+reg [15:0]   ab;
 
 reg          cl_db_idb;
+reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_ui_ir;
+reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
+reg          cl_pc_inc;
+reg          cl_uc_final;
 
 //////////////////////////////////////////////////////////////////////
 // Clocking
@@ -68,12 +82,22 @@ always_ff @(posedge CLK) begin
     t1 <= 1'b1;
     {t2, t3, t4} <= 0;
   end
-  else if (cp1p) begin
+  else if (cp2n) begin
     t1 <= t0;
     t2 <= t1;
     t3 <= t2;
     t4 <= t3 & ~t0;
   end
+end
+
+always_comb begin
+  case (1'b1)
+    t1: tx = 2'd0;
+    t2: tx = 2'd1;
+    t3: tx = 2'd2;
+    t4: tx = 2'd3;
+    default: tx = 2'dx;
+  endcase
 end
 
 assign t0 = resg | (t3 & ~cl_idb_ir) | t4;
@@ -104,18 +128,86 @@ assign A = aor;
 //////////////////////////////////////////////////////////////////////
 // Registers
 
+// psw: processor status word
+always @(posedge CLK) begin
+  if (resg) begin
+    psw <= 0;
+  end
+  else if (cp2n) begin
+/* -----\/----- EXCLUDED -----\/-----
+    if (cl_idb_psw)
+      psw <= idb;
+
+    if (cl_idbz_z)
+      `psw_z <= ~|idb;
+
+    if (cl_cco_c)
+      `psw_c <= cco;
+    if (cl_zero_c)
+      `psw_c <= 1'b0;
+    if (cl_one_c)
+      `psw_c <= 1'b1;
+ -----/\----- EXCLUDED -----/\----- */
+  end
+end
+
 // pc: program ("P") counter
 always @(posedge CLK) begin
   if (resg) begin
     pc <= 0;
   end
   else if (cp2p) begin
-    //pc <= npc;
+    if (cl_pc_inc)
+      pc <= npc;
   end
 end
 
 assign pcl = pc[7:0];
 assign pch = pc[15:8];
+
+// "updated" pc (change part or all)
+always @(posedge CLK) begin
+  if (cp1p) begin
+    upc <= pc;
+
+    if (cl_idb_pcl)
+      upc[7:0] <= idb;
+    if (cl_idb_pch)
+      upc[15:8] <= idb;
+  end
+end
+
+// "next" pc (increment)
+always @* begin
+  npc = upc;
+
+  if (cl_pc_inc)
+    npc = npc + 1;
+end
+
+// ir: instruction register
+always @(posedge CLK) begin
+  if (cp2n) begin
+    if (cl_idb_ir) begin
+      ir[7:0] <= idb;
+    end
+    if (cl_ui_ir) begin
+      ir[10:8] <= ui[2:0];
+    end
+  end
+end
+
+// ie: interrupt enable flag
+always @(posedge CLK) begin
+  if (resg) begin
+    ie <= 1'b0;
+  end
+  else if (cp2n) begin
+    if (cl_ui_ie) begin
+      ie <= ui[0];
+    end
+  end
+end
 
 // aor: address bus output register
 // register latches on cp1p
@@ -135,18 +227,6 @@ end
 always @(posedge CLK) begin
   if (cp1p) begin
     dor <= idb;
-  end
-end
-
-// ir: instruction register
-always @(posedge CLK) begin
-  if (cp2n) begin
-    if (cl_idb_ir) begin
-      ir[7:0] <= idb;
-    end
-    if (cl_ui_ir) begin
-      ir[10:8] <= ui[2:0];
-    end
   end
 end
 
@@ -177,18 +257,44 @@ typedef enum reg [1:0]
 
 typedef enum reg [6:0]
 {
- UA_FETCH_IR1,
+ UA_FETCH_IR1 = 7'b000000,
  UA_OP48_FETCH_IR2,
- UA_DI,
+ UA_OP_DI,
+ UA_OP_EI,
  UA_UNDEF // just a placeholder
 } e_uaddr;                      // microcode address
 
+typedef enum reg [3:0]
+{
+ URS_A,
+ URS_V,
+ URS_B,
+ URS_C,
+ URS_D,
+ URS_E,
+ URS_H,
+ URS_L,
+ URS_SP,
+ URS_PC,
+ URS_IE
+} e_urs;                        // register select
+
+// _ in uram.mem align with //_ in comments below
 typedef struct packed
 {
-  reg [2:0] idx;                // index
-  reg irl;                      // ir load
-  e_ubm bm;                     // branch mode
   e_uaddr nua;                  // next address
+  //_
+  e_ubm bm;                     // branch mode _
+  //_
+reg [1:0] tx;                   // final uc cycle _
+  //_
+reg [2:0] idx;                  // index _
+  //_
+reg       irl;                  // ir load _
+  //_
+  e_urs srs;                    // source reg select
+  //_
+  e_urs drs;                    // dest reg select
 } s_uc;
 
 s_uc    uram [64];
@@ -197,12 +303,13 @@ e_uaddr uptr, uptr_next;
 e_uaddr at;
 
 initial begin
-  uram[UA_FETCH_IR1] = { 3'd0, 1'b1, UBM_AT, UA_UNDEF };
-  uram[UA_OP48_FETCH_IR2] = { 3'd1, 1'b1, UBM_AT, UA_UNDEF };
+  $readmemb("uram.mem", uram);
 end
 
 always_ff @(posedge CLK) begin
-  uc <= uram[uptr];
+  if (cp2n) begin
+    uc <= uram[uptr];
+  end
 end
 
 always @* begin
@@ -218,7 +325,7 @@ always_ff @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_FETCH_IR1;
   end
-  else if (cp1p & t4) begin
+  else if (cp1p & cl_uc_final) begin
     uptr <= uptr_next;
   end
 end
@@ -240,10 +347,11 @@ int i;
 
   at_lut['h048] = UA_OP48_FETCH_IR2;
 
-  at_lut['h124] = UA_DI;
+  at_lut['h120] = UA_OP_EI;
+  at_lut['h124] = UA_OP_DI;
 end
 
-// redundant typecast makes iverilog happy
+// seemingly redundant typecast makes iverilog happy
 always @* at = e_uaddr'(at_lut[ir]);
 
 
@@ -252,9 +360,14 @@ always @* at = e_uaddr'(at_lut[ir]);
 
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
-always @* cl_ab_aor = t0;
+always @* cl_ab_aor = t1;
+initial cl_idb_pcl = 0;
+initial cl_idb_pch = 0;
 always @* cl_idb_ir = uc.irl & t3;
 always @* cl_ui_ir = uc.irl & t3;
+always @* cl_ui_ie = (uc.drs == URS_IE);
 always @* cl_db_idb = t3;
+always @* cl_pc_inc = uc.irl & t2;
+always @* cl_uc_final = (uc.tx == tx);
 
 endmodule

@@ -20,7 +20,7 @@ wire        rom_ncs;
 initial begin
   $timeformat(-6, 0, " us", 1);
 
-  $dumpfile("bootrom_tb.vcd");
+  $dumpfile("tb/bootrom_tb.vcd");
   $dumpvars();
 end
 
@@ -80,7 +80,7 @@ wire cp2 = dut.cp2;
 initial #0 begin
   #3 @(posedge clk) ;
   res = 0;
-  #11 @(posedge clk) ;
+  #20 @(posedge clk) ;
 
   $finish;
 end
@@ -100,7 +100,7 @@ module bootrom
 logic [7:0] mem [1 << 12];
 
 initial begin
-  $readmemh("bootrom.hex", mem);
+  $readmemh("tb/bootrom.hex", mem);
 end
 
 always_comb begin
@@ -111,5 +111,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s bootrom_tb -o bootrom_tb.vvp ../upd7800.sv bootrom_tb.sv && ./bootrom_tb.vvp"
+// compile-command: "cd .. && iverilog -g2012 -grelative-include -s bootrom_tb -o tb/bootrom_tb.vvp upd7800.sv tb/bootrom_tb.sv && tb/bootrom_tb.vvp"
 // End:

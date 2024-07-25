@@ -18,7 +18,7 @@ wire [7:0]  dout;
 initial begin
   $timeformat(-6, 0, " us", 1);
 
-  $dumpfile("reset_tb.vcd");
+  $dumpfile("tb/reset_tb.vcd");
   $dumpvars();
 end
 
@@ -72,5 +72,5 @@ end
 endmodule
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s reset_tb -o reset_tb.vvp ../upd7800.sv reset_tb.sv && ./reset_tb.vvp"
+// compile-command: "cd .. && iverilog -g2012 -grelative-include -s reset_tb -o reset_tb.vvp upd7800.sv tb/reset_tb.sv && tb/reset_tb.vvp"
 // End:
