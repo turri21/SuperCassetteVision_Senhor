@@ -1,0 +1,105 @@
+# Microcode RAM data description
+#
+# Copyright (c) 2024 David Hunter
+#
+# This program is GPL licensed. See COPYING for the full license.
+
+types:
+  - name: e_uaddr
+    desc: ucode address
+    type: enum
+    width: 7
+    prefix: UA_
+    # values will come from the rows list
+
+  - name: e_ubm
+    desc: branch mode
+    type: enum
+    width: 2
+    prefix: UBM_
+    values:
+      - DA
+      - AT
+
+  - name: e_mcy
+    desc: machine cycle
+    type: enum
+    width: 2
+    prefix: UTX_
+    values:
+      - T1
+      - T2
+      - T3
+      - T4
+
+  - name: e_urs
+    desc: register select
+    type: enum
+    width: 4
+    prefix: URS_
+    values:
+      - A
+      - V
+      - B
+      - C
+      - D
+      - E
+      - H
+      - L
+      - SP
+      - PC
+      - IE
+
+columns:
+  - name: bm
+    type: e_ubm
+    desc: branch mode
+  - name: nua
+    type: e_uaddr
+    desc: next address
+  - name: fcy
+    type: e_mcy
+    desc: final ucode cycle
+  - name: idx
+    width: 3
+    desc: general-purpose data
+  - name: irl
+    width: 1
+    desc: IR load
+  - name: srs
+    type: e_urs
+    desc: source reg select
+  - name: drs
+    type: e_urs
+    desc: dest reg select
+
+rows:
+  - addr: FETCH_IR1
+    fcy: T4
+    bm: AT
+    idx: 0
+    irl: 1
+
+  - addr: OP48_FETCH_IR2
+    # Set IR[:8] = 1, fetch IR[7:0]
+    at: 0x48
+    fcy: T4
+    bm: AT
+    idx: 1
+    irl: 1
+
+  - addr: DI
+    at: 0x124
+    fcy: T1
+    bm: DA
+    nua: FETCH_IR1
+    idx: 0
+    drs: IE
+
+  - addr: EI
+    at: 0x120
+    fcy: T1
+    bm: DA
+    nua: FETCH_IR1
+    idx: 1
+    drs: IE

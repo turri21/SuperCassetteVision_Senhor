@@ -36,12 +36,13 @@ module upd7800
 `define psw_l0 psw[2]           // Word instruction string effect
 `define psw_cy psw[0]           // Carry
 
+`include "uc-types.svh"
+
 wire         resp;
 wire         cp1p, cp2p, cp2n;
 wire         t0;                // next machine cycle
 wire [15:0]  pcl, pch;
 wire [7:0]   db;
-wire [2:0]   ui;
 
 reg          resg;
 reg          cp2;
@@ -55,6 +56,8 @@ reg [15:0]   aor;
 reg [7:0]    dor;
 reg [7:0]    idb;
 reg [15:0]   ab;
+
+s_uc         uc;
 
 reg          cl_db_idb;
 reg          cl_idb_pcl, cl_idb_pch;
@@ -192,7 +195,7 @@ always @(posedge CLK) begin
       ir[7:0] <= idb;
     end
     if (cl_ui_ir) begin
-      ir[10:8] <= ui[2:0];
+      ir[10:8] <= uc.idx[2:0];
     end
   end
 end
@@ -204,7 +207,7 @@ always @(posedge CLK) begin
   end
   else if (cp2n) begin
     if (cl_ui_ie) begin
-      ie <= ui[0];
+      ie <= uc.idx[0];
     end
   end
 end
@@ -249,56 +252,7 @@ always @* ab = pc;
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-typedef enum reg [1:0]
-{
- UBM_DA,
- UBM_AT
-} e_ubm;                        // branch mode
-
-typedef enum reg [6:0]
-{
- UA_FETCH_IR1 = 7'b000000,
- UA_OP48_FETCH_IR2,
- UA_OP_DI,
- UA_OP_EI,
- UA_UNDEF // just a placeholder
-} e_uaddr;                      // microcode address
-
-typedef enum reg [3:0]
-{
- URS_A,
- URS_V,
- URS_B,
- URS_C,
- URS_D,
- URS_E,
- URS_H,
- URS_L,
- URS_SP,
- URS_PC,
- URS_IE
-} e_urs;                        // register select
-
-// _ in uram.mem align with //_ in comments below
-typedef struct packed
-{
-  e_uaddr nua;                  // next address
-  //_
-  e_ubm bm;                     // branch mode _
-  //_
-reg [1:0] tx;                   // final uc cycle _
-  //_
-reg [2:0] idx;                  // index _
-  //_
-reg       irl;                  // ir load _
-  //_
-  e_urs srs;                    // source reg select
-  //_
-  e_urs drs;                    // dest reg select
-} s_uc;
-
 s_uc    uram [64];
-s_uc    uc;
 e_uaddr uptr, uptr_next;
 e_uaddr at;
 
@@ -330,8 +284,6 @@ always_ff @(posedge CLK) begin
   end
 end
 
-assign ui = uc.idx;
-
 
 //////////////////////////////////////////////////////////////////////
 // Microcode address generator
@@ -345,10 +297,7 @@ int i;
   for (i = 0; i < 2048; i++)
     at_lut[i] = UA_FETCH_IR1;
 
-  at_lut['h048] = UA_OP48_FETCH_IR2;
-
-  at_lut['h120] = UA_OP_EI;
-  at_lut['h124] = UA_OP_DI;
+`include "uc-at.svh"
 end
 
 // seemingly redundant typecast makes iverilog happy
@@ -368,6 +317,6 @@ always @* cl_ui_ir = uc.irl & t3;
 always @* cl_ui_ie = (uc.drs == URS_IE);
 always @* cl_db_idb = t3;
 always @* cl_pc_inc = uc.irl & t2;
-always @* cl_uc_final = (uc.tx == tx);
+always @* cl_uc_final = (uc.fcy == tx);
 
 endmodule
