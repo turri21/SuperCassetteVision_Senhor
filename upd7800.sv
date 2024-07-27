@@ -45,6 +45,7 @@ wire [7:0]   db;
 
 reg          resg;
 reg          cp2;
+reg [7:0]    a, v, b, c, d, e, h, l;
 reg [7:0]    psw;
 reg [15:0]   pc, upc, npc;
 reg [10:0]   ir;
@@ -112,6 +113,25 @@ assign M1 = uc.m1;
 
 //////////////////////////////////////////////////////////////////////
 // Registers
+
+// General-purpose registers
+always @(posedge CLK) begin
+  if (cp2n) begin
+    if (uc.lts == ULTS_RF) begin
+      case (uc.rfs)
+        URFS_A: a <= idb;
+        URFS_V: v <= idb;
+        URFS_B: b <= idb;
+        URFS_C: c <= idb;
+        URFS_D: d <= idb;
+        URFS_E: e <= idb;
+        URFS_H: h <= idb;
+        URFS_L: l <= idb;
+        default: ;
+      endcase
+    end
+  end
+end
 
 // psw: processor status word
 always @(posedge CLK) begin
@@ -221,6 +241,14 @@ end
 // rfo: register file output
 always @* begin
   case (uc.rfs)
+    URFS_A: rfo = a;
+    URFS_V: rfo = v;
+    URFS_B: rfo = b;
+    URFS_C: rfo = c;
+    URFS_D: rfo = d;
+    URFS_E: rfo = e;
+    URFS_H: rfo = h;
+    URFS_L: rfo = l;
     URFS_PCL: rfo = pcl;
     URFS_PCH: rfo = pch;
     default: rfo = 8'hxx;

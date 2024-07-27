@@ -193,43 +193,65 @@ rows:
     idx: 1
     lts: IE
 
-  - addr: JR1_T1
+  - addr: JR_C1_T1
     at: [ 0xC0, 0xDF ]
     # PCL -> idb -> AI
     rfs: PCL
     idbs: RF
     lts: AI
-  - addr: JR1_T2
+  - addr: JR_C1_T2
     # IR[4:0] -> idb -> BI
     idbs: IR5
     lts: BI
-  - addr: JR1_T3
+  - addr: JR_C1_T3
     # AI + BI -> CO
     aluop: SUM
     cis: 0
-  - addr: JR2_T1
+  - addr: JR_C2_T1
     # CO -> idb -> PCL
     idbs: CO
     lts: RF
     rfs: PCL
-  - addr: JR2_T2
+  - addr: JR_C2_T2
     # PCH -> idb -> AI
     rfs: PCH
     idbs: RF
     lts: AI
-  - addr: JR2_T3
+  - addr: JR_C2_T3
     # 0 -> idb -> BI
     idbs: 0
     lts: BI
-  - addr: JR3_T1
+  - addr: JR_C3_T1
     # AI + BI -> CO
     aluop: SUM
     cis: 0
-  - addr: JR3_T2
+  - addr: JR_C3_T2
     # CO -> idb -> PCH
     idbs: CO
     lts: RF
     rfs: PCH
-  - addr: JR3_T3
+  - addr: JR_C3_T3
+    bm: DA
+    nua: FETCH_IR1_T1
+
+  - addr: LXI_B_C1_T1
+    at: 0x14                    # LXI BC, bbaa
+    pc_ab: 1
+  - addr: LXI_B_C1_T2
+  - addr: LXI_B_C1_T3
+    # DB -> idb -> B
+    idbs: DB
+    rfs: B
+    lts: RF
+    pc_inc: 1
+  - addr: LXI_B_C2_T1
+    pc_ab: 1
+  - addr: LXI_B_C2_T2
+  - addr: LXI_B_C2_T3
+    # DB -> idb -> C
+    idbs: DB
+    rfs: C
+    lts: RF
+    pc_inc: 1
     bm: DA
     nua: FETCH_IR1_T1
