@@ -33,11 +33,11 @@ types:
       - T3
       - T4
 
-  - name: e_urs
-    desc: register select
+  - name: e_urfs
+    desc: register file select
     type: enum
     width: 4
-    prefix: URS_
+    prefix: URFS_
     values:
       - A
       - V
@@ -47,9 +47,61 @@ types:
       - E
       - H
       - L
-      - SP
-      - PC
+      - SPL
+      - SPH
+      - PCL
+      - PCH
+
+  - name: e_idbs
+    desc: idb select
+    type: enum
+    width: 3
+    prefix: UIDBS_
+    values:
+      - 0                       # zero
+      - RF                      # register file: A, B, etc.
+      - DB                      # external data bus
+      - IR5                     # IR[4:0] (for JR)
+      - CO                      # ALU output
+
+  - name: e_lts
+    desc: load target select
+    type: enum
+    width: 4
+    prefix: ULTS_
+    values:
+      - NONE                    # (default) no load
+      - RF
+      - DOR
+      - AI
+      - BI
       - IE
+
+  - name: e_aluop
+    desc: ALU operation
+    type: enum
+    width: 3
+    prefix: UAO_
+    values:
+      - SUM
+      - OR
+      - AND
+      - EOR
+      - ASL
+      - ROL
+      - LSR
+      - ROR
+
+  - name: e_cis
+    desc: ALU carry in select
+    type: enum
+    width: 2
+    prefix: UCIS_
+    values:
+      - 0
+      - 1
+      - CO
+      - PSW_CY
 
 columns:
   - name: bm
@@ -64,25 +116,41 @@ columns:
   - name: irl
     width: 1
     desc: IR load
-  - name: srs
-    type: e_urs
-    desc: source reg select
-  - name: drs
-    type: e_urs
-    desc: dest reg select
+  - name: rfs
+    type: e_urfs
+    desc: register file select
+  - name: idbs
+    type: e_idbs
+    desc: idb select
+  - name: lts
+    type: e_lts
+    desc: load target select
+  - name: m1
+    width: 1
+    desc: Raise M1 (opcode fetch)
   - name: pc_inc
     width: 1
     desc: increment PC
   - name: pc_ab
     width: 1
     desc: pc -> ab
+  - name: aluop
+    type: e_aluop
+    desc: ALU operation
+  - name: cis
+    type: e_cis
+    desc: ALU carry in select
 
 rows:
   - addr: FETCH_IR1_T1
+    m1: 1
     pc_ab: 1
   - addr: FETCH_IR1_T2
+    m1: 1
   - addr: FETCH_IR1_T3
-    # Clear ir[:8], fetch ir[7:0]
+    # Clear IR[:8], fetch IR[7:0]
+    m1: 1
+    idbs: DB
     idx: 0
     irl: 1
   - addr: FETCH_IR1_T4
@@ -92,10 +160,14 @@ rows:
 
   - addr: OP48_FETCH_IR2_T1
     at: 0x48
+    m1: 1
     pc_ab: 1
   - addr: OP48_FETCH_IR2_T2
+    m1: 1
   - addr: OP48_FETCH_IR2_T3
-    # Set ir[:8] = 1, fetch ir[7:0]
+    # Set IR[:8] = 1, fetch IR[7:0]
+    m1: 1
+    idbs: DB
     idx: 1
     irl: 1
   - addr: OP48_FETCH_IR2_T4
@@ -105,16 +177,59 @@ rows:
 
   - addr: DI
     at: 0x124
+    m1: 1
     pc_ab: 1
     bm: DA
     nua: FETCH_IR1_T2
     idx: 0
-    drs: IE
+    lts: IE
 
   - addr: EI
     at: 0x120
-    fcy: T1
+    m1: 1
+    pc_ab: 1
     bm: DA
     nua: FETCH_IR1_T2
     idx: 1
-    drs: IE
+    lts: IE
+
+  - addr: JR1_T1
+    at: [ 0xC0, 0xDF ]
+    # PCL -> idb -> AI
+    rfs: PCL
+    idbs: RF
+    lts: AI
+  - addr: JR1_T2
+    # IR[4:0] -> idb -> BI
+    idbs: IR5
+    lts: BI
+  - addr: JR1_T3
+    # AI + BI -> CO
+    aluop: SUM
+    cis: 0
+  - addr: JR2_T1
+    # CO -> idb -> PCL
+    idbs: CO
+    lts: RF
+    rfs: PCL
+  - addr: JR2_T2
+    # PCH -> idb -> AI
+    rfs: PCH
+    idbs: RF
+    lts: AI
+  - addr: JR2_T3
+    # 0 -> idb -> BI
+    idbs: 0
+    lts: BI
+  - addr: JR3_T1
+    # AI + BI -> CO
+    aluop: SUM
+    cis: 0
+  - addr: JR3_T2
+    # CO -> idb -> PCH
+    idbs: CO
+    lts: RF
+    rfs: PCH
+  - addr: JR3_T3
+    bm: DA
+    nua: FETCH_IR1_T1

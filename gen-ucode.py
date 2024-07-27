@@ -72,11 +72,19 @@ with open('uc-at.svh', 'w') as f:
     prefix = get_type('e_uaddr')['prefix']
     for r in doc['rows']:
         if 'at' in r:
-            f.write(f"    at_lut['h{r['at']:03x}] = {prefix}{r['addr']};\n")
+            at = r['at']
+            ua = r['addr']
+            if isinstance(at, list):
+                at = range(at[0], at[1] + 1)
+            else:
+                at = [at]
+            for a in at:
+                f.write(f"    at_lut['h{a:03x}] = {prefix}{ua};\n")
 
 
 with open('uram.mem', 'w') as f:
     for r in doc['rows']:
+        #print(r['addr'])
         bs = '0' * ram_w
         for k, v in r.items():
             c = get_column(k)

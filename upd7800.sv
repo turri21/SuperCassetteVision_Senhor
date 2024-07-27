@@ -51,18 +51,23 @@ reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
 reg [7:0]    dor;
-reg [7:0]    idb;
+reg [7:0]    rfo, idb;
 reg [15:0]   ab;
+reg [7:0]    ai, bi, ibi, co;
+reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 
 s_uc         uc;
 
-reg          cl_db_idb;
 reg          cl_pc_ab;
 reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_ui_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_pc_inc;
+reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
+             cl_bi_dah, cl_bi_dal, cl_pdas;
+reg          cl_clrs, cl_sums, cl_ors, cl_ands, cl_eors, cl_asls, cl_rols,
+             cl_lsrs, cl_rors;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -102,6 +107,8 @@ end
 
 assign A = aor;
 
+assign M1 = uc.m1;
+
 
 //////////////////////////////////////////////////////////////////////
 // Registers
@@ -135,8 +142,7 @@ always @(posedge CLK) begin
     pc <= 0;
   end
   else if (cp2p) begin
-    if (cl_pc_inc)
-      pc <= npc;
+    pc <= npc;
   end
 end
 
@@ -212,10 +218,23 @@ end
 //////////////////////////////////////////////////////////////////////
 // Internal buses
 
+// rfo: register file output
+always @* begin
+  case (uc.rfs)
+    URFS_PCL: rfo = pcl;
+    URFS_PCH: rfo = pch;
+    default: rfo = 8'hxx;
+  endcase
+end
+
 // idb: internal data bus
-always_comb begin
-  case ({cl_db_idb})
-    'b1: idb = DB_I;
+always @* begin
+  case (uc.idbs)
+    UIDBS_0: idb = 0;
+    UIDBS_RF: idb = rfo;
+    UIDBS_DB: idb = DB_I;
+    UIDBS_IR5: idb = {3'b000, ir[4:0]};
+    UIDBS_CO: idb = co;
     default: idb = 8'hxx;
   endcase
 end
@@ -226,6 +245,60 @@ always_comb begin
     'b1: ab = pc;
     default: ab = 16'hxxxx;
   endcase
+end
+
+
+//////////////////////////////////////////////////////////////////////
+// ALU
+
+// Inputs
+always @(posedge CLK) begin
+  if (uc.lts == ULTS_AI) begin
+    ai <= idb;
+  end
+  if (uc.lts == ULTS_BI) begin
+    bi <= idb;
+  end
+end
+
+always @* addc = (cl_carry & cco) | cl_one_addc | (cl_c_addc & `psw_cy);
+always @* notbi = cl_bi_not;
+always @* pdah = (`psw_cy ^ cl_pdas) | (ai > 8'h99);
+always @* pdal = (`psw_hc ^ cl_pdas) | (ai[3:0] > 4'h9);
+always @* pdac = (~cl_pdas & (`psw_cy | pdah)) | (cl_pdas & `psw_cy & ~pdah);
+
+always @* begin
+  ibi = bi;
+  // DAA/DAS adjust constants
+  if (cl_bi_dah & pdah)
+    ibi = 8'h60;
+  if (cl_bi_dal & pdal)
+    ibi = 8'h06;
+  ibi = ibi ^ {8{notbi}};
+end
+
+// Maths
+always @(posedge CLK) if (cp2n) begin
+  if (cl_sums) begin :sums
+  reg [4:0] hsum, lsum;
+    lsum = ai[3:0] + ibi[3:0] + {3'b0, addc};
+    hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
+    co <= {hsum[3:0], lsum[3:0]};
+    if (cl_sums_cco)
+      cco <= (cl_bi_dah) ? pdac : hsum[4];
+    //cvo <= (ai[7] == ibi[7]) & (ai[7] != hsum[3]);
+    cho <= lsum > 5'd9;
+  end
+  else if (cl_ors)
+    co <= ai | ibi;
+  else if (cl_ands)
+    co <= ai & ibi;
+  else if (cl_eors)
+    co <= ai ^ ibi;
+  else if (cl_asls | cl_rols)
+    {cco, co} <= {ai[7:0], addc & cl_rols};
+  else if (cl_lsrs | cl_rors)
+    {co, cco} <= {addc & cl_rors, ai[7:0]};
 end
 
 
@@ -292,13 +365,29 @@ always @* at = e_uaddr'(at_lut[ir]);
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = uc.pc_ab;
-initial cl_idb_pcl = 0;
-initial cl_idb_pch = 0;
+always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
+always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
 always @* cl_idb_ir = uc.irl;
 always @* cl_ui_ir = uc.irl;
-always @* cl_ui_ie = (uc.drs == URS_IE);
-always @* cl_db_idb = uc.irl;
+always @* cl_ui_ie = uc.lts == ULTS_IE;
 always @* cl_pc_ab = uc.pc_ab;
 always @* cl_pc_inc = uc.pc_inc;
+initial cl_sums_cco = 1'b1;
+always @* cl_carry = uc.cis == UCIS_CO;
+always @* cl_one_addc = uc.cis == UCIS_1;
+always @* cl_c_addc = uc.cis == UCIS_PSW_CY;
+initial cl_bi_not = 0;
+initial cl_bi_dah = 0;
+initial cl_bi_dal = 0;
+initial cl_pdas = 0;
+initial cl_clrs = 0;
+always @* cl_sums = uc.aluop == UAO_SUM;
+initial cl_ors = 0;
+initial cl_ands = 0;
+initial cl_eors = 0;
+initial cl_asls = 0;
+initial cl_rols = 0;
+initial cl_lsrs = 0;
+initial cl_rors = 0;
 
 endmodule

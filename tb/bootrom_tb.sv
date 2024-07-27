@@ -80,7 +80,7 @@ wire cp2 = dut.cp2;
 initial #0 begin
   #3 @(posedge clk) ;
   res = 0;
-  #20 @(posedge clk) ;
+  #100 @(posedge clk) ;
 
   $finish;
 end
