@@ -40,14 +40,11 @@ module upd7800
 
 wire         resp;
 wire         cp1p, cp2p, cp2n;
-wire         t0;                // next machine cycle
 wire [15:0]  pcl, pch;
 wire [7:0]   db;
 
 reg          resg;
 reg          cp2;
-reg          t1, t2, t3, t4;    // machine cycle (step)
-reg [1:0]    tx;
 reg [7:0]    psw;
 reg [15:0]   pc, upc, npc;
 reg [10:0]   ir;
@@ -60,12 +57,13 @@ reg [15:0]   ab;
 s_uc         uc;
 
 reg          cl_db_idb;
+reg          cl_pc_ab;
 reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_ui_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_pc_inc;
-reg          cl_uc_final;
+
 
 //////////////////////////////////////////////////////////////////////
 // Clocking
@@ -80,30 +78,7 @@ end
 
 always_ff @(posedge CLK) begin
   cp2 <= (cp2 & ~cp2n) | cp2p;
-
-  if (resg) begin
-    t1 <= 1'b1;
-    {t2, t3, t4} <= 0;
-  end
-  else if (cp2n) begin
-    t1 <= t0;
-    t2 <= t1;
-    t3 <= t2;
-    t4 <= t3 & ~t0;
-  end
 end
-
-always_comb begin
-  case (1'b1)
-    t1: tx = 2'd0;
-    t2: tx = 2'd1;
-    t3: tx = 2'd2;
-    t4: tx = 2'd3;
-    default: tx = 2'dx;
-  endcase
-end
-
-assign t0 = resg | (t3 & ~cl_idb_ir) | t4;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -246,7 +221,12 @@ always_comb begin
 end
 
 // ab: (internal) address bus
-always @* ab = pc;
+always_comb begin
+  case ({cl_pc_ab})
+    'b1: ab = pc;
+    default: ab = 16'hxxxx;
+  endcase
+end
 
 
 //////////////////////////////////////////////////////////////////////
@@ -267,9 +247,11 @@ always_ff @(posedge CLK) begin
 end
 
 always @* begin
-  uptr_next = UA_FETCH_IR1;
+  uptr_next = uptr;
 
   case (uc.bm)
+    UBM_ADV: uptr_next = e_uaddr'(uptr_next + 1'd1);
+    UBM_DA: uptr_next = uc.nua;
     UBM_AT: uptr_next = e_uaddr'(at);
     default: ;
   endcase
@@ -277,9 +259,9 @@ end
 
 always_ff @(posedge CLK) begin
   if (resg) begin
-    uptr <= UA_FETCH_IR1;
+    uptr <= UA_FETCH_IR1_T1;
   end
-  else if (cp1p & cl_uc_final) begin
+  else if (cp2p) begin
     uptr <= uptr_next;
   end
 end
@@ -295,7 +277,7 @@ initial begin
 int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++)
-    at_lut[i] = UA_FETCH_IR1;
+    at_lut[i] = UA_FETCH_IR1_T1;
 
 `include "uc-at.svh"
 end
@@ -309,14 +291,14 @@ always @* at = e_uaddr'(at_lut[ir]);
 
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
-always @* cl_ab_aor = t1;
+always @* cl_ab_aor = uc.pc_ab;
 initial cl_idb_pcl = 0;
 initial cl_idb_pch = 0;
-always @* cl_idb_ir = uc.irl & t3;
-always @* cl_ui_ir = uc.irl & t3;
+always @* cl_idb_ir = uc.irl;
+always @* cl_ui_ir = uc.irl;
 always @* cl_ui_ie = (uc.drs == URS_IE);
-always @* cl_db_idb = t3;
-always @* cl_pc_inc = uc.irl & t2;
-always @* cl_uc_final = (uc.fcy == tx);
+always @* cl_db_idb = uc.irl;
+always @* cl_pc_ab = uc.pc_ab;
+always @* cl_pc_inc = uc.pc_inc;
 
 endmodule

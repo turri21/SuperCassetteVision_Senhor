@@ -18,8 +18,9 @@ types:
     width: 2
     prefix: UBM_
     values:
-      - DA
-      - AT
+      - ADV                     # advance (default)
+      - DA                      # direct address
+      - AT                      # at table lookup
 
   - name: e_mcy
     desc: machine cycle
@@ -57,9 +58,6 @@ columns:
   - name: nua
     type: e_uaddr
     desc: next address
-  - name: fcy
-    type: e_mcy
-    desc: final ucode cycle
   - name: idx
     width: 3
     desc: general-purpose data
@@ -72,27 +70,44 @@ columns:
   - name: drs
     type: e_urs
     desc: dest reg select
+  - name: pc_inc
+    width: 1
+    desc: increment PC
+  - name: pc_ab
+    width: 1
+    desc: pc -> ab
 
 rows:
-  - addr: FETCH_IR1
-    fcy: T4
-    bm: AT
+  - addr: FETCH_IR1_T1
+    pc_ab: 1
+  - addr: FETCH_IR1_T2
+  - addr: FETCH_IR1_T3
+    # Clear ir[:8], fetch ir[7:0]
     idx: 0
     irl: 1
-
-  - addr: OP48_FETCH_IR2
-    # Set IR[:8] = 1, fetch IR[7:0]
-    at: 0x48
-    fcy: T4
+  - addr: FETCH_IR1_T4
+    # Increment PC
+    pc_inc: 1
     bm: AT
+
+  - addr: OP48_FETCH_IR2_T1
+    at: 0x48
+    pc_ab: 1
+  - addr: OP48_FETCH_IR2_T2
+  - addr: OP48_FETCH_IR2_T3
+    # Set ir[:8] = 1, fetch ir[7:0]
     idx: 1
     irl: 1
+  - addr: OP48_FETCH_IR2_T4
+    # Increment PC
+    pc_inc: 1
+    bm: AT
 
   - addr: DI
     at: 0x124
-    fcy: T1
+    pc_ab: 1
     bm: DA
-    nua: FETCH_IR1
+    nua: FETCH_IR1_T2
     idx: 0
     drs: IE
 
@@ -100,6 +115,6 @@ rows:
     at: 0x120
     fcy: T1
     bm: DA
-    nua: FETCH_IR1
+    nua: FETCH_IR1_T2
     idx: 1
     drs: IE
