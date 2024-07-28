@@ -404,7 +404,7 @@ end
 
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_overlap = of_done & ird.m1_overlap;
-assign m1_skip = `psw_sk & ird.m1_skip;
+assign m1_skip = of_done & (`psw_sk & (ird.skipn == 0));
 assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap | m1_skip)));
 
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
@@ -437,7 +437,7 @@ int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++) begin
     // default for illegal opcodes
-    ird_lut[i] = { UA_IDLE, 1'b1, 1'b0 };
+    ird_lut[i] = { UA_IDLE, 1'd1, 2'd0 };
   end
 
 `include "uc-ird.svh"
@@ -465,7 +465,17 @@ always @* begin
   uptr_next = uptr;
 
   if (of_done) begin
-    uptr_next = ird.addr;
+    if (`psw_sk) begin
+      case (ird.skipn)
+        2'd0: uptr_next = UA_IDLE;
+        2'd1: uptr_next = UA_SKIP_OP1_T1;
+        2'd2: uptr_next = UA_SKIP_OP2_T1;
+        default: ;
+      endcase
+    end
+    else begin
+      uptr_next = ird.addr;
+    end
   end
   else begin
     case (uc.bm)
@@ -481,7 +491,7 @@ always_ff @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_IDLE;
   end
-  else if (cp2p & ~m1_skip) begin
+  else if (cp2p) begin
     uptr <= uptr_next;
   end
 end

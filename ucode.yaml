@@ -131,9 +131,9 @@ columns_ird:
   - name: m1_overlap
     width: 1
     desc: New M1 starts immediately
-  - name: m1_skip
-    width: 1
-    desc: New M1 starts immediately on skip
+  - name: skipn
+    width: 2
+    desc: Number of operands to skip when ins. is skipped
 
 
 # Microcode RAM structure
@@ -190,6 +190,15 @@ rows:
     bm: DA
     nua: IDLE
 
+    # Idle cycles for skipping instructions w/ 1-2 operands
+  - addr: SKIP_OP2_T1
+  - addr: SKIP_OP2_T2
+  - addr: SKIP_OP2_T3
+  - addr: SKIP_OP1_T1
+  - addr: SKIP_OP1_T2
+  - addr: SKIP_OP1_T3
+    bm: END
+
   - addr: DI
     at: 0x124                   # prefix 0x48
     m1_overlap: 1
@@ -206,7 +215,6 @@ rows:
 
   - addr: JR_C1_T1
     at: [ 0xC0, 0xFF ]
-    m1_skip: 1
     # PCL -> idb -> AI
     rfs: PCL
     idbs: RF
@@ -249,6 +257,7 @@ rows:
 
   - addr: LXI_B_C1_T1
     at: 0x14                    # LXI BC, bbaa
+    skipn: 2
     pc_ab: 1
   - addr: LXI_B_C1_T2
   - addr: LXI_B_C1_T3
@@ -308,6 +317,7 @@ rows:
 
   - addr: MVI_IMM_C1_T1
     at: [ 0x68, 0x6F ]          # MVI r, byte
+    skipn: 1
     pc_ab: 1
   - addr: MVI_IMM_C1_T2
   - addr: MVI_IMM_C1_T3
