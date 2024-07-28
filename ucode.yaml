@@ -60,7 +60,7 @@ types:
     values:
       - 0                       # zero
       - RF                      # register file: A, B, etc.
-      - IDL                     # internal data latch
+      - DB                      # external data bus
       - IR5                     # IR[4:0] (for JR)
       - CO                      # ALU output
 
@@ -203,8 +203,8 @@ rows:
     pc_ab: 1
   - addr: LXI_B_C1_T2
   - addr: LXI_B_C1_T3
-    # IDL -> idb -> B
-    idbs: IDL
+    # DB -> idb -> B
+    idbs: DB
     rfs: B
     lts: RF
     pc_inc: 1
@@ -212,8 +212,8 @@ rows:
     pc_ab: 1
   - addr: LXI_B_C2_T2
   - addr: LXI_B_C2_T3
-    # IDL -> idb -> C
-    idbs: IDL
+    # DB -> idb -> C
+    idbs: DB
     rfs: C
     lts: RF
     pc_inc: 1

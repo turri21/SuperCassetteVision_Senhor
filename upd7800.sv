@@ -47,8 +47,7 @@ reg          cp2;
 reg [7:0]    a, v, b, c, d, e, h, l;
 reg [7:0]    psw;
 reg [15:0]   pc, upc, npc;
-reg [7:0]    idl, idld;
-reg [10:0]   ir, ir_pre;
+reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
 reg [7:0]    dor;
@@ -71,7 +70,6 @@ reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
-reg          cl_db_idl;
 e_idbs       cl_idbs;
 reg          cl_pc_inc;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
@@ -205,7 +203,7 @@ always @(posedge CLK) begin
   end
   if (cp2n) begin
     if (cl_idb_ir) begin
-      ir[7:0] <= ir_pre[7:0];
+      ir[7:0] <= idb;
     end
     if (cl_of_prefix_ir) begin
       ir[10:8] <= of_prefix;
@@ -246,20 +244,6 @@ always @(posedge CLK) begin
   end
 end
 
-// idl: input data transparent latch
-// latch open during cp2
-always @* begin
-  idl = idld;
-  if (cp2) begin
-    if (cl_db_idl)
-      idl = DB_I;
-  end
-end
-
-always @(posedge CLK) begin
-  idld <= idl;
-end
-
 
 //////////////////////////////////////////////////////////////////////
 // Internal buses
@@ -286,7 +270,7 @@ always @* begin
   case (cl_idbs)
     UIDBS_0: idb = 0;
     UIDBS_RF: idb = rfo;
-    UIDBS_IDL: idb = idl;
+    UIDBS_DB: idb = DB_I;
     UIDBS_IR5: idb = {3'b000, ir[4:0]};
     UIDBS_CO: idb = co;
     default: idb = 8'hxx;
@@ -390,15 +374,11 @@ end
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap)));
 
-// ir_pre is valid only @ oft[3]
-always_comb ir_pre[7:0] = idb;  // IDB carries the opcode
-always @* ir_pre[10:8] = m1 ? 8'h0 : ir[10:8]; // carry prefix from M1
-
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
 always @* begin
   of_prefix = 0;
-  if (m1 & oft[3] & ~|ir[10:8]) begin
-    case (ir_pre[7:0])
+  if (~|ir[10:8]) begin
+    case (ir[7:0])
       8'h48: of_prefix = 3'd1;
       8'h4C: of_prefix = 3'd2;
       8'h4D: of_prefix = 3'd3;
@@ -421,7 +401,7 @@ int i;
 `include "uc-m1-overlap.svh"
 end
 
-assign m1_overlap = of_done & m1_overlap_lut[ir_pre];
+assign m1_overlap = of_done & m1_overlap_lut[ir];
 
 
 //////////////////////////////////////////////////////////////////////
@@ -483,7 +463,7 @@ int i;
 end
 
 // seemingly redundant typecast makes iverilog happy
-always @* at = e_uaddr'(at_lut[ir_pre]);
+always @* at = e_uaddr'(at_lut[ir]);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -492,12 +472,11 @@ always @* at = e_uaddr'(at_lut[ir_pre]);
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | uc.pc_ab;
-initial cl_db_idl = 1'b1;
-always @* cl_idbs = e_idbs'(oft[3] ? UIDBS_IDL : uc.idbs);
+always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
-always @* cl_idb_ir = oft[3];
-always @* cl_of_prefix_ir = m1 & oft[3];
+always @* cl_idb_ir = oft[2];
+always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = uc.lts == ULTS_IE;
 always @* cl_pc_ab = oft[0] | uc.pc_ab;
 always @* cl_pc_inc = oft[3] | uc.pc_inc;
