@@ -80,7 +80,10 @@ wire cp2 = dut.cp2;
 initial #0 begin
   #3 @(posedge clk) ;
   res = 0;
-  #100 @(posedge clk) ;
+  #80 @(posedge clk) ;
+  // We're looping until C reaches 0.
+  dut.c = 1;
+  #80 @(posedge clk) ;
 
   $finish;
 end

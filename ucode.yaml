@@ -107,6 +107,20 @@ types:
       - CCO
       - PSW_CY
 
+  - name: e_sks
+    desc: SKip flag source
+    type: enum
+    width: 3
+    prefix: USKS_
+    values:
+      - NONE                    # (default) no change
+      - 0                       # reset
+      - 1                       # set (for RETS)
+      - C
+      - NC
+      - Z
+      - NZ
+
 columns:
   - name: bm
     type: e_ubm
@@ -144,6 +158,15 @@ columns:
   - name: bin
     width: 1
     desc: Negate BI
+  - name: pswz
+    width: 1
+    desc: (idb == 0) -> PSW.Z
+  - name: pswhc
+    width: 1
+    desc: CHO -> PSW.HC
+  - name: pswsk
+    type: e_sks
+    desc: Update PSW.SK
 
 rows:
   - addr: IDLE
@@ -162,6 +185,7 @@ rows:
     m1_overlap: 1
     idx: 1
     lts: IE
+    pswsk: 0                    # 0 -> PSW.SK
     bm: END
 
   - addr: JR_C1_T1
@@ -202,6 +226,7 @@ rows:
     lts: RF
     rfs: PCH
   - addr: JR_C3_T3
+    pswsk: 0                    # 0 -> PSW.SK
     bm: END
     m1: 1
 
@@ -224,6 +249,7 @@ rows:
     rfs: C
     lts: RF
     pc_inc: 1
+    pswsk: 0                    # 0 -> PSW.SK
     bm: END
     m1: 1
 
@@ -240,4 +266,7 @@ rows:
     rfs: C
     idbs: CO
     lts: RF
+    pswz: 1                     # Update PSW.Z
+    pswhc: 1                    # Update PSW.HC
+    pswsk: NC                   # !CCO -> PSW.SK
     bm: END

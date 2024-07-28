@@ -55,6 +55,7 @@ reg [7:0]    rfo, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
+reg          skso;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
@@ -65,6 +66,8 @@ wire         m1_overlap;
 
 s_uc         uc;
 
+reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
+reg          cl_sks_sk;
 reg          cl_pc_ab;
 reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_of_prefix_ir;
@@ -146,7 +149,6 @@ always @(posedge CLK) begin
     psw <= 0;
   end
   else if (cp2n) begin
-/* -----\/----- EXCLUDED -----\/-----
     if (cl_idb_psw)
       psw <= idb;
 
@@ -154,12 +156,17 @@ always @(posedge CLK) begin
       `psw_z <= ~|idb;
 
     if (cl_cco_c)
-      `psw_c <= cco;
+      `psw_cy <= cco;
     if (cl_zero_c)
-      `psw_c <= 1'b0;
+      `psw_cy <= 1'b0;
     if (cl_one_c)
-      `psw_c <= 1'b1;
- -----/\----- EXCLUDED -----/\----- */
+      `psw_cy <= 1'b1;
+
+    if (cl_cho_hc)
+      `psw_hc <= cho;
+
+    if (cl_sks_sk)
+      `psw_sk <= skso;
   end
 end
 
@@ -344,6 +351,23 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
+// Skip flag source
+
+always @* begin
+  skso = `psw_sk;
+  case (uc.pswsk)
+    USKS_0: skso = 1'b0;
+    USKS_1: skso = 1'b1;
+    USKS_C: skso = cco;
+    USKS_NC: skso = ~cco;
+    USKS_Z: skso = ~|idb;
+    USKS_NZ: skso = |idb;
+    default: skso = 1'bx;
+  endcase
+end
+
+
+//////////////////////////////////////////////////////////////////////
 // Opcode fetch
 //
 // Instruction execution and opcode fetch can sometimes overlap.
@@ -472,6 +496,13 @@ always @* at = e_uaddr'(at_lut[ir]);
 //////////////////////////////////////////////////////////////////////
 // Control logic
 
+initial cl_idb_psw = 0;
+initial cl_idbz_z = uc.pswz;
+initial cl_cco_c = 0;
+initial cl_zero_c = 0;
+initial cl_one_c = 0;
+initial cl_cho_hc = 0;
+always @* cl_sks_sk = |uc.pswsk;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | uc.pc_ab;
