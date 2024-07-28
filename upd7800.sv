@@ -41,7 +41,6 @@ module upd7800
 wire         resp;
 wire         cp1p, cp2p, cp2n;
 wire [15:0]  pcl, pch;
-wire [7:0]   db;
 
 reg          resg;
 reg          cp2;
@@ -57,13 +56,21 @@ reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 
+reg [3:0]    oft;
+reg [2:0]    of_prefix;
+wire         of_done;
+reg          m1, m1ext;
+wire         m1_next, oft0_next;
+wire         m1_overlap;
+
 s_uc         uc;
 
 reg          cl_pc_ab;
 reg          cl_idb_pcl, cl_idb_pch;
-reg          cl_idb_ir, cl_ui_ir;
+reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
+e_idbs       cl_idbs;
 reg          cl_pc_inc;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
              cl_bi_dah, cl_bi_dal, cl_pdas;
@@ -91,13 +98,13 @@ end
 // Reset and interrupts
 
 initial begin
-  resg = 0;
+  resg = 1'b1;
 end
 
 assign resp = ~RESETB;
 
 always_ff @(posedge CLK) begin
-  if (cp1p) begin
+  if (cp2n) begin
     resg <= resp;
   end
 end
@@ -108,7 +115,7 @@ end
 
 assign A = aor;
 
-assign M1 = uc.m1;
+assign M1 = m1ext;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -189,14 +196,17 @@ always @* begin
     npc = npc + 1;
 end
 
-// ir: instruction register
+// ir: instruction (opcode) register
 always @(posedge CLK) begin
+  if (resg) begin
+    ir <= 0;
+  end
   if (cp2n) begin
     if (cl_idb_ir) begin
       ir[7:0] <= idb;
     end
-    if (cl_ui_ir) begin
-      ir[10:8] <= uc.idx[2:0];
+    if (cl_of_prefix_ir) begin
+      ir[10:8] <= of_prefix;
     end
   end
 end
@@ -257,7 +267,7 @@ end
 
 // idb: internal data bus
 always @* begin
-  case (uc.idbs)
+  case (cl_idbs)
     UIDBS_0: idb = 0;
     UIDBS_RF: idb = rfo;
     UIDBS_DB: idb = DB_I;
@@ -331,6 +341,70 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
+// Opcode fetch
+//
+// Instruction execution and opcode fetch can sometimes overlap.
+
+// Ugly hack to get the ball rolling...
+reg m1_overlap_lut [2048];
+
+always_ff @(posedge CLK) begin
+  if (resg) begin
+    oft[3:1] <= 0;
+    m1ext <= 0;
+  end
+  else begin
+    if (cp2n) begin
+      oft[3:1] <= oft[2:0];
+    end
+    if (cp1p) begin
+      m1ext <= m1 & |oft[2:0];
+    end
+  end
+end
+
+// M1 cycle should start as soon as resg clears.
+always_ff @(posedge CLK) begin
+  if (cp2n) begin
+    oft[0] <= oft0_next;
+    m1 <= m1_next;
+  end
+end  
+
+assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
+assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap)));
+
+// Handle fetching a prefix opcode (1st of 2-byte opcode)
+always @* begin
+  of_prefix = 0;
+  if (~|ir[10:8]) begin
+    case (ir[7:0])
+      8'h48: of_prefix = 3'd1;
+      8'h4C: of_prefix = 3'd2;
+      8'h4D: of_prefix = 3'd3;
+      8'h60: of_prefix = 3'd4;
+      8'h64: of_prefix = 3'd5;
+      8'h70: of_prefix = 3'd6;
+      default: ;
+    endcase
+  end
+end
+
+assign of_done = oft[3] & ~(m1 & |of_prefix);
+
+// Handle M1 starting immediately following opcode fetch
+initial begin
+int i;
+  for (i = 0; i < 2048; i++)
+    m1_overlap_lut[i] = 1'b1; // default for illegal opcodes
+
+`include "uc-m1-overlap.svh"
+end
+
+assign m1_overlap = of_done & m1_overlap_lut[ir];
+
+
+//////////////////////////////////////////////////////////////////////
 // Microcode
 
 s_uc    uram [64];
@@ -350,17 +424,22 @@ end
 always @* begin
   uptr_next = uptr;
 
-  case (uc.bm)
-    UBM_ADV: uptr_next = e_uaddr'(uptr_next + 1'd1);
-    UBM_DA: uptr_next = uc.nua;
-    UBM_AT: uptr_next = e_uaddr'(at);
-    default: ;
-  endcase
+  if (of_done) begin
+    uptr_next = e_uaddr'(at);
+  end
+  else begin
+    case (uc.bm)
+      UBM_ADV: uptr_next = e_uaddr'(uptr_next + 1'd1);
+      UBM_END: uptr_next = UA_IDLE;
+      UBM_DA: uptr_next = uc.nua;
+      default: ;
+    endcase
+  end
 end
 
 always_ff @(posedge CLK) begin
   if (resg) begin
-    uptr <= UA_FETCH_IR1_T1;
+    uptr <= UA_IDLE;
   end
   else if (cp2p) begin
     uptr <= uptr_next;
@@ -378,7 +457,7 @@ initial begin
 int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++)
-    at_lut[i] = UA_FETCH_IR1_T1;
+    at_lut[i] = UA_IDLE;
 
 `include "uc-at.svh"
 end
@@ -392,14 +471,15 @@ always @* at = e_uaddr'(at_lut[ir]);
 
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
-always @* cl_ab_aor = uc.pc_ab;
+always @* cl_ab_aor = oft[0] | uc.pc_ab;
+always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
-always @* cl_idb_ir = uc.irl;
-always @* cl_ui_ir = uc.irl;
+always @* cl_idb_ir = oft[2];
+always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = uc.lts == ULTS_IE;
-always @* cl_pc_ab = uc.pc_ab;
-always @* cl_pc_inc = uc.pc_inc;
+always @* cl_pc_ab = oft[0] | uc.pc_ab;
+always @* cl_pc_inc = oft[3] | uc.pc_inc;
 initial cl_sums_cco = 1'b1;
 always @* cl_carry = uc.cis == UCIS_CO;
 always @* cl_one_addc = uc.cis == UCIS_1;

@@ -81,6 +81,18 @@ with open('uc-at.svh', 'w') as f:
             for a in at:
                 f.write(f"    at_lut['h{a:03x}] = {prefix}{ua};\n")
 
+with open('uc-m1-overlap.svh', 'w') as f:
+    for r in doc['rows']:
+        if 'at' in r:
+            at = r['at']
+            m1o = "1'b1" if 'm1_overlap' in r else '0'
+            if isinstance(at, list):
+                at = range(at[0], at[1] + 1)
+            else:
+                at = [at]
+            for a in at:
+                f.write(f"    m1_overlap_lut['h{a:03x}] = {m1o};\n")
+
 
 with open('uram.mem', 'w') as f:
     for r in doc['rows']:

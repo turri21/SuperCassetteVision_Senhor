@@ -19,8 +19,8 @@ types:
     prefix: UBM_
     values:
       - ADV                     # advance (default)
+      - END                     # return to IDLE
       - DA                      # direct address
-      - AT                      # at table lookup
 
   - name: e_mcy
     desc: machine cycle
@@ -113,9 +113,6 @@ columns:
   - name: idx
     width: 3
     desc: general-purpose data
-  - name: irl
-    width: 1
-    desc: IR load
   - name: rfs
     type: e_urfs
     desc: register file select
@@ -127,7 +124,7 @@ columns:
     desc: load target select
   - name: m1
     width: 1
-    desc: Raise M1 (opcode fetch)
+    desc: Fetch next opcode (start M1)
   - name: pc_inc
     width: 1
     desc: increment PC
@@ -142,56 +139,23 @@ columns:
     desc: ALU carry in select
 
 rows:
-  - addr: FETCH_IR1_T1
-    m1: 1
-    pc_ab: 1
-  - addr: FETCH_IR1_T2
-    m1: 1
-  - addr: FETCH_IR1_T3
-    # Clear IR[:8], fetch IR[7:0]
-    m1: 1
-    idbs: DB
-    idx: 0
-    irl: 1
-  - addr: FETCH_IR1_T4
-    # Increment PC
-    pc_inc: 1
-    bm: AT
-
-  - addr: OP48_FETCH_IR2_T1
-    at: 0x48
-    m1: 1
-    pc_ab: 1
-  - addr: OP48_FETCH_IR2_T2
-    m1: 1
-  - addr: OP48_FETCH_IR2_T3
-    # Set IR[:8] = 1, fetch IR[7:0]
-    m1: 1
-    idbs: DB
-    idx: 1
-    irl: 1
-  - addr: OP48_FETCH_IR2_T4
-    # Increment PC
-    pc_inc: 1
-    bm: AT
+  - addr: IDLE
+    bm: DA
+    nua: IDLE
 
   - addr: DI
-    at: 0x124
-    m1: 1
-    pc_ab: 1
-    bm: DA
-    nua: FETCH_IR1_T2
+    at: 0x124                   # prefix 0x48
+    m1_overlap: 1
     idx: 0
     lts: IE
+    bm: END
 
   - addr: EI
-    at: 0x120
-    m1: 1
-    pc_ab: 1
-    bm: DA
-    nua: FETCH_IR1_T2
+    at: 0x120                   # prefix 0x48
+    m1_overlap: 1
     idx: 1
     lts: IE
+    bm: END
 
   - addr: JR_C1_T1
     at: [ 0xC0, 0xDF ]
@@ -231,8 +195,8 @@ rows:
     lts: RF
     rfs: PCH
   - addr: JR_C3_T3
-    bm: DA
-    nua: FETCH_IR1_T1
+    bm: END
+    m1: 1
 
   - addr: LXI_B_C1_T1
     at: 0x14                    # LXI BC, bbaa
@@ -253,5 +217,5 @@ rows:
     rfs: C
     lts: RF
     pc_inc: 1
-    bm: DA
-    nua: FETCH_IR1_T1
+    bm: END
+    m1: 1

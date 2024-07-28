@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Jul 27 20:43:59 2024
+[*] Sun Jul 28 05:12:03 2024
 [*]
 [dumpfile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.vcd"
-[dumpfile_mtime] "Sat Jul 27 18:20:24 2024"
-[dumpfile_size] 26689
+[dumpfile_mtime] "Sun Jul 28 00:17:36 2024"
+[dumpfile_size] 25597
 [savefile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.gtkw"
-[timestart] 0
+[timestart] 19860
 [size] 1288 687
 [pos] -1 -1
-*-13.211157 34250 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-13.211157 24500 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -38,7 +38,7 @@
 [markername] ZZ
 [treeopen] bootrom_tb.
 [sst_width] 253
-[signals_width] 170
+[signals_width] 181
 [sst_expanded] 1
 [sst_vpaned_height] 198
 @28
@@ -53,6 +53,7 @@ bootrom_tb.dut.DB_I[7:0]
 @200
 -
 @28
+bootrom_tb.dut.resp
 bootrom_tb.dut.resg
 @200
 -
@@ -73,9 +74,8 @@ bootrom_tb.dut.ir[10:0]
 bootrom_tb.dut.ie
 @200
 -
-@23
-bootrom_tb.dut.rfo[7:0]
 @22
+bootrom_tb.dut.rfo[7:0]
 bootrom_tb.dut.idb[7:0]
 @200
 -
@@ -88,6 +88,18 @@ bootrom_tb.dut.addc
 bootrom_tb.dut.co[7:0]
 @28
 bootrom_tb.dut.cco
+@200
+-
+@28
+bootrom_tb.dut.oft0_next
+@22
+bootrom_tb.dut.oft[3:0]
+@28
+bootrom_tb.dut.of_prefix[2:0]
+bootrom_tb.dut.of_done
+bootrom_tb.dut.m1_overlap
+bootrom_tb.dut.m1_next
+bootrom_tb.dut.m1
 @200
 -
 @22
@@ -111,6 +123,7 @@ bootrom_tb.dut.cl_idb_ir
 bootrom_tb.dut.cl_idb_pch
 bootrom_tb.dut.cl_idb_pcl
 bootrom_tb.dut.cl_lsrs
+bootrom_tb.dut.cl_of_prefix_ir
 bootrom_tb.dut.cl_one_addc
 bootrom_tb.dut.cl_ors
 bootrom_tb.dut.cl_pc_ab
@@ -121,6 +134,5 @@ bootrom_tb.dut.cl_rors
 bootrom_tb.dut.cl_sums
 bootrom_tb.dut.cl_sums_cco
 bootrom_tb.dut.cl_ui_ie
-bootrom_tb.dut.cl_ui_ir
 [pattern_trace] 1
 [pattern_trace] 0
