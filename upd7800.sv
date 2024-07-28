@@ -74,8 +74,8 @@ e_idbs       cl_idbs;
 reg          cl_pc_inc;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
              cl_bi_dah, cl_bi_dal, cl_pdas;
-reg          cl_clrs, cl_sums, cl_ors, cl_ands, cl_eors, cl_asls, cl_rols,
-             cl_lsrs, cl_rors;
+reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
+             cl_asls, cl_rols, cl_lsrs, cl_rors;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -271,7 +271,8 @@ always @* begin
     UIDBS_0: idb = 0;
     UIDBS_RF: idb = rfo;
     UIDBS_DB: idb = DB_I;
-    UIDBS_IR5: idb = {3'b000, ir[4:0]};
+    UIDBS_JRL: idb = {{3{ir[5]}}, ir[4:0]};
+    UIDBS_JRH: idb = {8{ir[5]}};
     UIDBS_CO: idb = co;
     default: idb = 8'hxx;
   endcase
@@ -299,14 +300,16 @@ always @(posedge CLK) begin
   end
 end
 
-always @* addc = (cl_carry & cco) | cl_one_addc | (cl_c_addc & `psw_cy);
-always @* notbi = cl_bi_not;
+always @* addc = (cl_carry & cco) | (cl_one_addc | cl_incs) | (cl_c_addc & `psw_cy);
+always @* notbi = cl_bi_not | cl_decs;
 always @* pdah = (`psw_cy ^ cl_pdas) | (ai > 8'h99);
 always @* pdal = (`psw_hc ^ cl_pdas) | (ai[3:0] > 4'h9);
 always @* pdac = (~cl_pdas & (`psw_cy | pdah)) | (cl_pdas & `psw_cy & ~pdah);
 
 always @* begin
   ibi = bi;
+  if (cl_incs | cl_decs)
+    ibi = 8'h00;
   // DAA/DAS adjust constants
   if (cl_bi_dah & pdah)
     ibi = 8'h60;
@@ -317,7 +320,7 @@ end
 
 // Maths
 always @(posedge CLK) if (cp2n) begin
-  if (cl_sums) begin :sums
+  if (cl_sums | cl_incs | cl_decs) begin :sums
   reg [4:0] hsum, lsum;
     lsum = ai[3:0] + ibi[3:0] + {3'b0, addc};
     hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
@@ -481,15 +484,17 @@ always @* cl_ui_ie = uc.lts == ULTS_IE;
 always @* cl_pc_ab = oft[0] | uc.pc_ab;
 always @* cl_pc_inc = oft[3] | uc.pc_inc;
 initial cl_sums_cco = 1'b1;
-always @* cl_carry = uc.cis == UCIS_CO;
+always @* cl_carry = uc.cis == UCIS_CCO;
 always @* cl_one_addc = uc.cis == UCIS_1;
 always @* cl_c_addc = uc.cis == UCIS_PSW_CY;
-initial cl_bi_not = 0;
+always @* cl_bi_not = uc.bin;
 initial cl_bi_dah = 0;
 initial cl_bi_dal = 0;
 initial cl_pdas = 0;
 initial cl_clrs = 0;
 always @* cl_sums = uc.aluop == UAO_SUM;
+always @* cl_incs = uc.aluop == UAO_INC;
+always @* cl_decs = uc.aluop == UAO_DEC;
 initial cl_ors = 0;
 initial cl_ands = 0;
 initial cl_eors = 0;

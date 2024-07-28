@@ -61,7 +61,8 @@ types:
       - 0                       # zero
       - RF                      # register file: A, B, etc.
       - DB                      # external data bus
-      - IR5                     # IR[4:0] (for JR)
+      - JRL                     # sign-ext. IR[5:0] (for JR)
+      - JRH                     # sign-ext. IR[5] (for JR)
       - CO                      # ALU output
 
   - name: e_lts
@@ -80,10 +81,13 @@ types:
   - name: e_aluop
     desc: ALU operation
     type: enum
-    width: 3
+    width: 4
     prefix: UAO_
     values:
+      - NOP
       - SUM
+      - INC
+      - DEC
       - OR
       - AND
       - EOR
@@ -100,7 +104,7 @@ types:
     values:
       - 0
       - 1
-      - CO
+      - CCO
       - PSW_CY
 
 columns:
@@ -137,6 +141,9 @@ columns:
   - name: cis
     type: e_cis
     desc: ALU carry in select
+  - name: bin
+    width: 1
+    desc: Negate BI
 
 rows:
   - addr: IDLE
@@ -158,14 +165,14 @@ rows:
     bm: END
 
   - addr: JR_C1_T1
-    at: [ 0xC0, 0xDF ]
+    at: [ 0xC0, 0xFF ]
     # PCL -> idb -> AI
     rfs: PCL
     idbs: RF
     lts: AI
   - addr: JR_C1_T2
-    # IR[4:0] -> idb -> BI
-    idbs: IR5
+    # IR[5:0] -> idb -> BI
+    idbs: JRL
     lts: BI
   - addr: JR_C1_T3
     # AI + BI -> CO
@@ -182,13 +189,13 @@ rows:
     idbs: RF
     lts: AI
   - addr: JR_C2_T3
-    # 0 -> idb -> BI
-    idbs: 0
+    # sign-ext. IR[5] -> idb -> BI
+    idbs: JRH
     lts: BI
   - addr: JR_C3_T1
-    # AI + BI -> CO
+    # AI + BI + CCO -> CO
     aluop: SUM
-    cis: 0
+    cis: CCO
   - addr: JR_C3_T2
     # CO -> idb -> PCH
     idbs: CO
@@ -219,3 +226,18 @@ rows:
     pc_inc: 1
     bm: END
     m1: 1
+
+  - addr: DCR_C_C1_T1
+    at: 0x53                    # DCR C
+    m1_overlap: 1
+    # B -> idb -> AI, AI - 1 -> CO
+    rfs: C
+    idbs: RF
+    lts: AI
+    aluop: DEC
+  - addr: DCR_C_C1_T2
+    # CO -> idb -> C
+    rfs: C
+    idbs: CO
+    lts: RF
+    bm: END
