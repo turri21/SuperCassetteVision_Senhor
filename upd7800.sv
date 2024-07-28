@@ -359,7 +359,6 @@ end
 
 always @* begin
   case (uc.pswsk)
-    USKS_NONE: skso = `psw_sk;
     USKS_0: skso = 1'b0;
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
@@ -497,7 +496,7 @@ initial cl_cco_c = 0;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
 initial cl_cho_hc = 0;
-always @* cl_sks_sk = |uc.pswsk | m1_skip;
+always @* cl_sks_sk = (uc.bm == UBM_END) | m1_skip;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | uc.pc_ab;

@@ -114,8 +114,7 @@ types:
     width: 3
     prefix: USKS_
     values:
-      - NONE                    # (default) no change
-      - 0                       # reset
+      - 0                       # (default) reset
       - 1                       # set (for RETS)
       - C
       - NC
@@ -183,7 +182,7 @@ columns:
     desc: CHO -> PSW.HC
   - name: pswsk
     type: e_sks
-    desc: Update PSW.SK
+    desc: PSW.SK source
 
 
 rows:
@@ -203,7 +202,6 @@ rows:
     m1_overlap: 1
     idx: 1
     lts: IE
-    pswsk: 0                    # 0 -> PSW.SK
     bm: END
 
   - addr: JR_C1_T1
