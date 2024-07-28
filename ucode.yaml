@@ -121,6 +121,19 @@ types:
       - Z
       - NZ
 
+
+# Instruction decode LUT (ird_lut) structure
+# LUT rows populated by rows with 'at' fields
+columns_ird:
+  - name: addr
+    type: e_uaddr
+    desc: microcode entry point
+  - name: m1_overlap
+    width: 1
+    desc: New M1 starts immediately
+
+
+# Microcode RAM structure
 columns:
   - name: bm
     type: e_ubm

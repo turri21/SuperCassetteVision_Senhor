@@ -19,8 +19,8 @@ def get_type(name):
     return KeyError
 
 
-def get_column(name):
-    for t in doc['columns']:
+def get_column(name, tbl='columns'):
+    for t in doc[tbl]:
         if t['name'] == name:
             return t
     return None
@@ -37,6 +37,26 @@ def type_to_int(te, val):
 get_type('e_uaddr')['values'] = list(r['addr'] for r in doc['rows'])
 
 
+def gen_struct(f, stname, cols):
+    f.write("typedef struct packed\n")
+    f.write("{\n")
+
+    stw = 0
+    for c in doc[cols]:
+        if 'type' in c:
+            te = get_type(c['type'])
+            (t, w) = (te['name'], te['width'])
+        else:
+            w = c['width']
+            t = f'reg [{w-1}:0]'
+        f.write(f"    {t} {c['name']};    // {c['desc']}\n")
+        c['start'] = stw
+        stw += w
+    f.write(f"}} {stname};\n")
+    f.write("\n")
+    return stw
+
+
 with open('uc-types.svh', 'w') as f:
     for t in doc['types']:
         if t['type'] == 'enum':
@@ -51,47 +71,31 @@ with open('uc-types.svh', 'w') as f:
             f.write(f"}} {name};    // {t['desc']}\n")
             f.write("\n")
 
-    f.write("typedef struct packed\n")
-    f.write("{\n")
-
-    ram_w = 0
-    for c in doc['columns']:
-        if 'type' in c:
-            te = get_type(c['type'])
-            (t, w) = (te['name'], te['width'])
-        else:
-            w = c['width']
-            t = f'reg [{w-1}:0]'
-        f.write(f"    {t} {c['name']};    // {c['desc']}\n")
-        c['start'] = ram_w
-        ram_w += w
-    f.write("} s_uc;\n")
+    gen_struct(f, 's_ird', 'columns_ird')
+    ram_w = gen_struct(f, 's_uc', 'columns')
 
 
-with open('uc-at.svh', 'w') as f:
-    prefix = get_type('e_uaddr')['prefix']
+with open('uc-ird.svh', 'w') as f:
     for r in doc['rows']:
         if 'at' in r:
             at = r['at']
-            ua = r['addr']
             if isinstance(at, list):
                 at = range(at[0], at[1] + 1)
             else:
                 at = [at]
             for a in at:
-                f.write(f"    at_lut['h{a:03x}] = {prefix}{ua};\n")
-
-with open('uc-m1-overlap.svh', 'w') as f:
-    for r in doc['rows']:
-        if 'at' in r:
-            at = r['at']
-            m1o = "1'b1" if 'm1_overlap' in r else '0'
-            if isinstance(at, list):
-                at = range(at[0], at[1] + 1)
-            else:
-                at = [at]
-            for a in at:
-                f.write(f"    m1_overlap_lut['h{a:03x}] = {m1o};\n")
+                st = []
+                for c in doc['columns_ird']:
+                    name = c['name']
+                    v = r[name] if name in r else '0'
+                    if 'type' in c:
+                        te = get_type(c['type'])
+                        v = f"{te['prefix']}{v}"
+                    else:
+                        v = f"{c['width']}'d{v}"
+                    st.append(v)
+                v = '{' + ', '.join(st) + '}'
+                f.write(f"    ird_lut['h{a:03x}] = {v};\n")
 
 
 with open('uram.mem', 'w') as f:

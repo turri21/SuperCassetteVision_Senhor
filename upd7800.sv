@@ -64,7 +64,10 @@ reg          m1, m1ext;
 wire         m1_next, oft0_next;
 wire         m1_overlap;
 
+s_ird        ird;
+
 s_uc         uc;
+e_uaddr      uptr, uptr_next;
 
 reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
@@ -372,9 +375,6 @@ end
 //
 // Instruction execution and opcode fetch can sometimes overlap.
 
-// Ugly hack to get the ball rolling...
-reg m1_overlap_lut [2048];
-
 always_ff @(posedge CLK) begin
   if (resg) begin
     oft[3:1] <= 0;
@@ -399,6 +399,7 @@ always_ff @(posedge CLK) begin
 end  
 
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
+assign m1_overlap = of_done & ird.m1_overlap;
 assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap)));
 
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
@@ -419,24 +420,31 @@ end
 
 assign of_done = oft[3] & ~(m1 & |of_prefix);
 
-// Handle M1 starting immediately following opcode fetch
+
+//////////////////////////////////////////////////////////////////////
+// Instruction decode
+
+// Ugly hack to get the ball rolling...
+s_ird ird_lut [2048];
+
 initial begin
 int i;
-  for (i = 0; i < 2048; i++)
-    m1_overlap_lut[i] = 1'b1; // default for illegal opcodes
+  // Illegal opcode default: fetch new opcode
+  for (i = 0; i < 2048; i++) begin
+    // default for illegal opcodes
+    ird_lut[i] = { UA_IDLE, 1'b1 };
+  end
 
-`include "uc-m1-overlap.svh"
+`include "uc-ird.svh"
 end
 
-assign m1_overlap = of_done & m1_overlap_lut[ir];
+always @* ird = ird_lut[ir];
 
 
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
 s_uc    uram [64];
-e_uaddr uptr, uptr_next;
-e_uaddr at;
 
 initial begin
   $readmemb("uram.mem", uram);
@@ -452,7 +460,7 @@ always @* begin
   uptr_next = uptr;
 
   if (of_done) begin
-    uptr_next = e_uaddr'(at);
+    uptr_next = ird.addr;
   end
   else begin
     case (uc.bm)
@@ -472,25 +480,6 @@ always_ff @(posedge CLK) begin
     uptr <= uptr_next;
   end
 end
-
-
-//////////////////////////////////////////////////////////////////////
-// Microcode address generator
-
-// Ugly hack to get the ball rolling...
-e_uaddr at_lut [2048];
-
-initial begin
-int i;
-  // Illegal opcode default: fetch new opcode
-  for (i = 0; i < 2048; i++)
-    at_lut[i] = UA_IDLE;
-
-`include "uc-at.svh"
-end
-
-// seemingly redundant typecast makes iverilog happy
-always @* at = e_uaddr'(at_lut[ir]);
 
 
 //////////////////////////////////////////////////////////////////////
