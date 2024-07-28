@@ -39,8 +39,8 @@ types:
     width: 4
     prefix: URFS_
     values:
-      - A
       - V
+      - A
       - B
       - C
       - D
@@ -51,6 +51,7 @@ types:
       - SPH
       - PCL
       - PCH
+      - IR210                   # IR[2:0] encodes V,A,B...L
 
   - name: e_idbs
     desc: idb select
@@ -306,3 +307,16 @@ rows:
     pswhc: 1                    # Update PSW.HC
     pswsk: NC                   # !CCO -> PSW.SK
     bm: END
+
+  - addr: MVI_IMM_C1_T1
+    at: [ 0x68, 0x6F ]          # MVI r, byte
+    pc_ab: 1
+  - addr: MVI_IMM_C1_T2
+  - addr: MVI_IMM_C1_T3
+    # DB -> idb -> r
+    idbs: DB
+    rfs: IR210
+    lts: RF
+    pc_inc: 1
+    bm: END
+    m1: 1

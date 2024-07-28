@@ -76,6 +76,7 @@ reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
+e_urfs       cl_rfs;
 e_idbs       cl_idbs;
 reg          cl_pc_inc;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
@@ -131,9 +132,9 @@ assign M1 = m1ext;
 always @(posedge CLK) begin
   if (cp2n) begin
     if (uc.lts == ULTS_RF) begin
-      case (uc.rfs)
-        URFS_A: a <= idb;
+      case (cl_rfs)
         URFS_V: v <= idb;
+        URFS_A: a <= idb;
         URFS_B: b <= idb;
         URFS_C: c <= idb;
         URFS_D: d <= idb;
@@ -260,9 +261,9 @@ end
 
 // rfo: register file output
 always @* begin
-  case (uc.rfs)
-    URFS_A: rfo = a;
+  case (cl_rfs)
     URFS_V: rfo = v;
+    URFS_A: rfo = a;
     URFS_B: rfo = b;
     URFS_C: rfo = c;
     URFS_D: rfo = d;
@@ -527,5 +528,14 @@ initial cl_asls = 0;
 initial cl_rols = 0;
 initial cl_lsrs = 0;
 initial cl_rors = 0;
+
+always @* begin
+  cl_rfs = uc.rfs;
+  if (uc.rfs == URFS_IR210) begin
+    // IR[2:0] encodes V,A,B...L
+    cl_rfs = e_urfs'({2'b00, ir[2:0]});
+  end
+end
+
 
 endmodule
