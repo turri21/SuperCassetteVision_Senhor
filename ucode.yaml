@@ -131,6 +131,9 @@ columns_ird:
   - name: m1_overlap
     width: 1
     desc: New M1 starts immediately
+  - name: m1_skip
+    width: 1
+    desc: New M1 starts immediately on skip
 
 
 # Microcode RAM structure
@@ -181,6 +184,7 @@ columns:
     type: e_sks
     desc: Update PSW.SK
 
+
 rows:
   - addr: IDLE
     bm: DA
@@ -203,6 +207,7 @@ rows:
 
   - addr: JR_C1_T1
     at: [ 0xC0, 0xFF ]
+    m1_skip: 1
     # PCL -> idb -> AI
     rfs: PCL
     idbs: RF
@@ -266,10 +271,28 @@ rows:
     bm: END
     m1: 1
 
+  - addr: DCR_B_C1_T1
+    at: 0x52                    # DCR B
+    m1_overlap: 1
+    # B -> idb -> AI, AI - 1 -> CO
+    rfs: B
+    idbs: RF
+    lts: AI
+    aluop: DEC
+  - addr: DCR_B_C1_T2
+    # CO -> idb -> B
+    rfs: B
+    idbs: CO
+    lts: RF
+    pswz: 1                     # Update PSW.Z
+    pswhc: 1                    # Update PSW.HC
+    pswsk: NC                   # !CCO -> PSW.SK
+    bm: END
+
   - addr: DCR_C_C1_T1
     at: 0x53                    # DCR C
     m1_overlap: 1
-    # B -> idb -> AI, AI - 1 -> CO
+    # C -> idb -> AI, AI - 1 -> CO
     rfs: C
     idbs: RF
     lts: AI

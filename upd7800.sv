@@ -62,7 +62,7 @@ reg [2:0]    of_prefix;
 wire         of_done;
 reg          m1, m1ext;
 wire         m1_next, oft0_next;
-wire         m1_overlap;
+wire         m1_overlap, m1_skip;
 
 s_ird        ird;
 
@@ -357,8 +357,8 @@ end
 // Skip flag source
 
 always @* begin
-  skso = `psw_sk;
   case (uc.pswsk)
+    USKS_NONE: skso = `psw_sk;
     USKS_0: skso = 1'b0;
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
@@ -367,6 +367,10 @@ always @* begin
     USKS_NZ: skso = |idb;
     default: skso = 1'bx;
   endcase
+
+  // A skipped instruction resets SK.
+  if (m1_skip)
+    skso = 1'b0;
 end
 
 
@@ -400,7 +404,8 @@ end
 
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_overlap = of_done & ird.m1_overlap;
-assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap)));
+assign m1_skip = `psw_sk & ird.m1_skip;
+assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap | m1_skip)));
 
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
 always @* begin
@@ -432,7 +437,7 @@ int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++) begin
     // default for illegal opcodes
-    ird_lut[i] = { UA_IDLE, 1'b1 };
+    ird_lut[i] = { UA_IDLE, 1'b1, 1'b0 };
   end
 
 `include "uc-ird.svh"
@@ -476,7 +481,7 @@ always_ff @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_IDLE;
   end
-  else if (cp2p) begin
+  else if (cp2p & ~m1_skip) begin
     uptr <= uptr_next;
   end
 end
@@ -491,7 +496,7 @@ initial cl_cco_c = 0;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
 initial cl_cho_hc = 0;
-always @* cl_sks_sk = |uc.pswsk;
+always @* cl_sks_sk = |uc.pswsk | m1_skip;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | uc.pc_ab;

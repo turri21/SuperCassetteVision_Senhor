@@ -80,9 +80,16 @@ wire cp2 = dut.cp2;
 initial #0 begin
   #3 @(posedge clk) ;
   res = 0;
+
+  // We're looping until C reaches 0 (inner loop).
   #80 @(posedge clk) ;
-  // We're looping until C reaches 0.
   dut.c = 1;
+
+  // We're also looping until B reaches 0 (outer loop).
+  #90 @(posedge clk) ;
+  dut.b = 0;
+  dut.c = 1;
+
   #80 @(posedge clk) ;
 
   $finish;

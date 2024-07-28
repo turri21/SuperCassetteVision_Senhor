@@ -102,6 +102,7 @@ bootrom_tb.dut.oft[3:0]
 bootrom_tb.dut.of_prefix[2:0]
 bootrom_tb.dut.of_done
 bootrom_tb.dut.m1_overlap
+bootrom_tb.dut.m1_skip
 bootrom_tb.dut.m1_next
 bootrom_tb.dut.m1
 @200
