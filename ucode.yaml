@@ -171,6 +171,9 @@ columns:
   - name: cis
     type: e_cis
     desc: ALU carry in select
+  - name: bi0
+    width: 1
+    desc: Zero BI
   - name: bin
     width: 1
     desc: Negate BI
@@ -251,7 +254,45 @@ rows:
     lts: RF
     rfs: PCH
   - addr: JR_C3_T3
-    pswsk: 0                    # 0 -> PSW.SK
+    bm: END
+    m1: 1
+
+  - addr: JRE_C1_T1
+    at: 0x4E                    # JRE +jdisp
+    # Fetch jdisp
+    pc_ab: 1
+    pc_inc: 1
+  - addr: JRE_C1_T2
+    # PCL -> idb -> AI
+    rfs: PCL
+    idbs: RF
+    lts: AI
+  - addr: JRE_C1_T3
+    # DB -> idb -> BI
+    idbs: DB
+    lts: BI
+    # AI + BI -> CO
+    aluop: SUM
+    cis: 0
+  - addr: JRE_C2_T1
+    # CO -> idb -> PCL
+    idbs: CO
+    lts: RF
+    rfs: PCL
+  - addr: JRE_C2_T2
+    # PCH -> idb -> AI, 0 -> BI
+    rfs: PCH
+    idbs: RF
+    lts: AI
+    bi0: 1
+    # AI + BI + CCO -> CO
+    aluop: SUM
+    cis: CCO
+  - addr: JRE_C2_T3
+    # CO -> idb -> PCH
+    idbs: CO
+    lts: RF
+    rfs: PCH
     bm: END
     m1: 1
 
@@ -275,7 +316,6 @@ rows:
     rfs: C
     lts: RF
     pc_inc: 1
-    pswsk: 0                    # 0 -> PSW.SK
     bm: END
     m1: 1
 

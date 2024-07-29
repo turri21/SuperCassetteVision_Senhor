@@ -79,8 +79,8 @@ reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 e_urfs       cl_rfs;
 e_idbs       cl_idbs;
 reg          cl_pc_inc;
-reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_bi_not,
-             cl_bi_dah, cl_bi_dal, cl_pdas;
+reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
+             cl_bi_not, cl_bi_dah, cl_bi_dal, cl_pdas;
 reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
              cl_asls, cl_rols, cl_lsrs, cl_rors;
 
@@ -309,6 +309,9 @@ always @(posedge CLK) begin
   if (uc.lts == ULTS_BI) begin
     bi <= idb;
   end
+  if (cl_zero_bi) begin
+    bi <= 0;
+  end
 end
 
 always @* addc = (cl_carry & cco) | (cl_one_addc | cl_incs) | (cl_c_addc & `psw_cy);
@@ -522,6 +525,7 @@ initial cl_sums_cco = 1'b1;
 always @* cl_carry = uc.cis == UCIS_CCO;
 always @* cl_one_addc = uc.cis == UCIS_1;
 always @* cl_c_addc = uc.cis == UCIS_PSW_CY;
+always @* cl_zero_bi = uc.bi0;
 always @* cl_bi_not = uc.bin;
 initial cl_bi_dah = 0;
 initial cl_bi_dal = 0;
