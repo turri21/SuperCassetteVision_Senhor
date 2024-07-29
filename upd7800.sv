@@ -26,7 +26,9 @@ module upd7800
    input [7:0]   DB_I,
    output [7:0]  DB_O,
    output        DB_OE,
-   output        M1 // opcode fetch cycle
+   output        M1, // opcode fetch cycle
+   output        RDB, // read
+   output        WRB  // write
    );
 
 `define psw_z  psw[6]           // Zero
@@ -51,6 +53,7 @@ reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
 reg [7:0]    dor;
+reg          wr_ext;
 reg [7:0]    rfo, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
@@ -71,11 +74,12 @@ e_uaddr      uptr, uptr_next;
 
 reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
-reg          cl_pc_ab;
+e_abs        cl_abs;
 reg          cl_idb_pcl, cl_idb_pch;
 reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
+reg          cl_idb_dor, cl_store_dor;
 e_urfs       cl_rfs;
 e_idbs       cl_idbs;
 reg          cl_pc_inc;
@@ -120,7 +124,25 @@ end
 //////////////////////////////////////////////////////////////////////
 // External interface
 
+always_ff @(posedge CLK) begin
+  if (resg) begin
+    wr_ext <= 0;
+  end
+  else begin
+    // WRB asserts in T2 @ CP1 rising, de-asserts in T3 @ CP2 rising
+    if (cp1p & cl_store_dor) begin
+      wr_ext <= 1'b1;
+    end
+    else if (cp2p & ~cl_store_dor & wr_ext) begin
+      wr_ext <= 1'b0;
+    end
+  end
+end
+
+assign DB_O = dor;
+assign DB_OE = ~WRB;
 assign A = aor;
+assign WRB = ~wr_ext;
 
 assign M1 = m1ext;
 
@@ -251,7 +273,9 @@ end
 // register latches on cp1p
 always @(posedge CLK) begin
   if (cp1p) begin
-    dor <= idb;
+    if (cl_idb_dor) begin
+      dor <= idb;
+    end
   end
 end
 
@@ -290,9 +314,12 @@ always @* begin
 end
 
 // ab: (internal) address bus
-always_comb begin
-  case ({cl_pc_ab})
-    'b1: ab = pc;
+always @* begin
+  case (cl_abs)
+    UABS_PC: ab = pc;
+    //UABS_SP: ab = sp;
+    UABS_BC: ab = {b, c};
+    UABS_HL: ab = {h, l};
     default: ab = 16'hxxxx;
   endcase
 end
@@ -512,14 +539,16 @@ initial cl_cho_hc = 0;
 always @* cl_sks_sk = (uc.bm == UBM_END) | m1_skip;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
-always @* cl_ab_aor = oft[0] | uc.pc_ab;
+always @* cl_ab_aor = oft[0] | uc.aout;
+always @* cl_idb_dor = (uc.lts == ULTS_DOR);
+always @* cl_store_dor = uc.store;
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = uc.lts == ULTS_IE;
-always @* cl_pc_ab = oft[0] | uc.pc_ab;
+always @* cl_abs = e_abs'(oft[0] ? UABS_PC : uc.abs);
 always @* cl_pc_inc = oft[3] | uc.pc_inc;
 initial cl_sums_cco = 1'b1;
 always @* cl_carry = uc.cis == UCIS_CCO;

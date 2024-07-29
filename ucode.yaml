@@ -80,6 +80,17 @@ types:
       - IE
       - SPR                     # special reg.
 
+  - name: e_abs
+    desc: ab select
+    type: enum
+    width: 2
+    prefix: UABS_
+    values:
+      - PC                      # (default)
+      - SP
+      - BC
+      - HL
+
   - name: e_aluop
     desc: ALU operation
     type: enum
@@ -157,15 +168,21 @@ columns:
   - name: lts
     type: e_lts
     desc: load target select
+  - name: abs
+    type: e_abs
+    desc: ab select
   - name: m1
     width: 1
     desc: Fetch next opcode (start M1)
   - name: pc_inc
     width: 1
     desc: increment PC
-  - name: pc_ab
+  - name: aout
     width: 1
-    desc: pc -> ab
+    desc: ab -> AOR
+  - name: store
+    width: 1
+    desc: dor -> DB
   - name: aluop
     type: e_aluop
     desc: ALU operation
@@ -261,7 +278,7 @@ rows:
   - addr: JRE_C1_T1
     at: 0x4E                    # JRE +jdisp
     # Fetch jdisp
-    pc_ab: 1
+    aout: 1
     pc_inc: 1
   - addr: JRE_C1_T2
     # PCL -> idb -> AI
@@ -300,7 +317,7 @@ rows:
   - addr: LXI_B_C1_T1
     at: 0x14                    # LXI BC, bbaa
     skipn: 2
-    pc_ab: 1
+    aout: 1
   - addr: LXI_B_C1_T2
   - addr: LXI_B_C1_T3
     # DB -> idb -> C
@@ -309,7 +326,7 @@ rows:
     lts: RF
     pc_inc: 1
   - addr: LXI_B_C2_T1
-    pc_ab: 1
+    aout: 1
   - addr: LXI_B_C2_T2
   - addr: LXI_B_C2_T3
     # DB -> idb -> B
@@ -323,7 +340,7 @@ rows:
   - addr: LXI_H_C1_T1
     at: 0x34                    # LXI HL, bbaa
     skipn: 2
-    pc_ab: 1
+    aout: 1
   - addr: LXI_H_C1_T2
   - addr: LXI_H_C1_T3
     # DB -> idb -> L
@@ -332,7 +349,7 @@ rows:
     lts: RF
     pc_inc: 1
   - addr: LXI_H_C2_T1
-    pc_ab: 1
+    aout: 1
   - addr: LXI_H_C2_T2
   - addr: LXI_H_C2_T3
     # DB -> idb -> H
@@ -382,7 +399,7 @@ rows:
   - addr: MVI_IMM_C1_T1
     at: [ 0x68, 0x6F ]          # MVI r, byte
     skipn: 1
-    pc_ab: 1
+    aout: 1
   - addr: MVI_IMM_C1_T2
   - addr: MVI_IMM_C1_T3
     # DB -> idb -> r
@@ -404,3 +421,58 @@ rows:
   - addr: MOV_SR_A_C1_T3
     bm: END
     m1: 1
+
+  - addr: STAX_H_C1_T1
+    at: 0x3b                    # STAX H
+    # HL -> ab -> aor
+    abs: HL
+    aout: 1
+    # A -> idb -> dor
+    rfs: A
+    idbs: RF
+    lts: DOR
+  - addr: STAX_H_C1_T2
+    # dor -> DB
+    store: 1
+  - addr: STAX_H_C1_T3
+    m1: 1
+    bm: END
+
+  - addr: STAX_HP_C1_T1
+    at: 0x3d                    # STAX H+
+    # HL -> ab -> aor
+    abs: HL
+    aout: 1
+    # A -> idb -> dor
+    rfs: A
+    idbs: RF
+    lts: DOR
+  - addr: STAX_HP_C1_T2
+    # dor -> DB
+    store: 1
+    # L -> idb -> AI
+    # AI + 1 -> CO
+    rfs: L
+    idbs: RF
+    lts: AI
+    aluop: INC
+  - addr: STAX_HP_C1_T3
+    # CO -> idb -> L
+    rfs: L
+    idbs: CO
+    lts: RF
+    m1: 1
+  - addr: STAX_HP_C2_T1
+    # H -> idb -> AI, 0 -> BI
+    # AI + BI + CCO -> CO
+    rfs: H
+    idbs: RF
+    lts: AI
+    bi0: 1
+    aluop: SUM
+  - addr: STAX_HP_C2_T2
+    # CO -> idb -> H
+    rfs: H
+    idbs: CO
+    lts: RF
+    bm: END
