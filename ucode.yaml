@@ -303,18 +303,18 @@ rows:
     pc_ab: 1
   - addr: LXI_B_C1_T2
   - addr: LXI_B_C1_T3
-    # DB -> idb -> B
+    # DB -> idb -> C
     idbs: DB
-    rfs: B
+    rfs: C
     lts: RF
     pc_inc: 1
   - addr: LXI_B_C2_T1
     pc_ab: 1
   - addr: LXI_B_C2_T2
   - addr: LXI_B_C2_T3
-    # DB -> idb -> C
+    # DB -> idb -> B
     idbs: DB
-    rfs: C
+    rfs: B
     lts: RF
     pc_inc: 1
     bm: END
@@ -326,18 +326,18 @@ rows:
     pc_ab: 1
   - addr: LXI_H_C1_T2
   - addr: LXI_H_C1_T3
-    # DB -> idb -> H
+    # DB -> idb -> L
     idbs: DB
-    rfs: H
+    rfs: L
     lts: RF
     pc_inc: 1
   - addr: LXI_H_C2_T1
     pc_ab: 1
   - addr: LXI_H_C2_T2
   - addr: LXI_H_C2_T3
-    # DB -> idb -> L
+    # DB -> idb -> H
     idbs: DB
-    rfs: L
+    rfs: H
     lts: RF
     pc_inc: 1
     bm: END
