@@ -337,6 +337,30 @@ rows:
     bm: END
     m1: 1
 
+    # LXI SP, bbaa
+  - addr: LXI_SP_C1_T1
+    at: 0x04
+    skipn: 2
+    aout: 1
+  - addr: LXI_SP_C1_T2
+  - addr: LXI_SP_C1_T3
+    # DB -> idb -> SPL
+    idbs: DB
+    rfs: SPL
+    lts: RF
+    pc_inc: 1
+  - addr: LXI_SP_C2_T1
+    aout: 1
+  - addr: LXI_SP_C2_T2
+  - addr: LXI_SP_C2_T3
+    # DB -> idb -> SPH
+    idbs: DB
+    rfs: SPH
+    lts: RF
+    pc_inc: 1
+    bm: END
+    m1: 1
+
   - addr: LXI_B_C1_T1
     at: 0x14                    # LXI BC, bbaa
     skipn: 2

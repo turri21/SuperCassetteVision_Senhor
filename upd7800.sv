@@ -48,7 +48,7 @@ reg          resg;
 reg          cp2;
 reg [7:0]    v, a, b, c, d, e, h, l, w;
 reg [7:0]    psw;
-reg [15:0]   pc;
+reg [15:0]   sp, pc;
 reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
@@ -77,7 +77,7 @@ reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_abs        cl_abs;
 reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
-reg          cl_abi_pc;
+reg          cl_abi_sp, cl_abi_pc;
 reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
@@ -216,6 +216,25 @@ always @(posedge CLK) begin
   end
 end
 
+// sp: stack pointer
+always @(posedge CLK) begin
+  if (resg) begin
+    sp <= 0;
+  end
+  else if (cp2p) begin
+    if (uc.lts == ULTS_RF) begin
+      case (cl_rfs)
+        URFS_SPL: sp[7:0] <= idb;
+        URFS_SPH: sp[15:8] <= idb;
+        default: ;
+      endcase
+    end
+    if (uc.abits == UABS_SP) begin
+      sp <= nabi;
+    end
+  end
+end
+
 // pc: program ("P") counter
 always @(posedge CLK) begin
   if (resg) begin
@@ -320,7 +339,7 @@ end
 always @* begin
   case (cl_abs)
     UABS_PC: ab = pc;
-    //UABS_SP: ab = sp;
+    UABS_SP: ab = sp;
     UABS_BC: ab = {b, c};
     UABS_DE: ab = {d, e};
     UABS_HL: ab = {h, l};
