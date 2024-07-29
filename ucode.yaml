@@ -230,6 +230,7 @@ rows:
   - addr: SKIP_OP1_T1
   - addr: SKIP_OP1_T2
   - addr: SKIP_OP1_T3
+    m1: 1
     bm: END
 
   - addr: DI
