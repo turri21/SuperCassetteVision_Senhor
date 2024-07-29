@@ -66,6 +66,7 @@ types:
       - JRL                     # sign-ext. IR[5:0] (for JR)
       - JRH                     # sign-ext. IR[5] (for JR)
       - CO                      # ALU output
+      - SPR                     # special reg.
 
   - name: e_lts
     desc: load target select
@@ -92,6 +93,15 @@ types:
       - BC
       - HL
       - VW
+
+  - name: e_sprs
+    desc: special register select
+    type: enum
+    width: 1
+    prefix: USRS_
+    values:
+      - IR2                     # IR[2:0]
+      - IR3                     # IR[3:0]
 
   - name: e_aluop
     desc: ALU operation
@@ -339,6 +349,30 @@ rows:
     bm: END
     m1: 1
 
+    # LXI DE, bbaa
+  - addr: LXI_D_C1_T1
+    at: 0x24
+    skipn: 2
+    aout: 1
+  - addr: LXI_D_C1_T2
+  - addr: LXI_D_C1_T3
+    # DB -> idb -> E
+    idbs: DB
+    rfs: E
+    lts: RF
+    pc_inc: 1
+  - addr: LXI_D_C2_T1
+    aout: 1
+  - addr: LXI_D_C2_T2
+  - addr: LXI_D_C2_T3
+    # DB -> idb -> D
+    idbs: DB
+    rfs: D
+    lts: RF
+    pc_inc: 1
+    bm: END
+    m1: 1
+
   - addr: LXI_H_C1_T1
     at: 0x34                    # LXI HL, bbaa
     skipn: 2
@@ -418,7 +452,7 @@ rows:
     rfs: A
     idbs: RF
     lts: SPR
-    # TODO: Select the target SPR
+    sprs: IR3
   - addr: MOV_SR_A_C1_T2
   - addr: MOV_SR_A_C1_T3
     bm: END
@@ -502,5 +536,37 @@ rows:
     # dor -> DB
     store: 1
   - addr: STAW_C2_T3
+    m1: 1
+    bm: END
+
+    # ORI sr2, byte
+  - addr: ORI_SR_IMM_C1_T1
+    at: [ 0x59a, 0x59f ]        # prefix 0x64
+    skipn: 1
+    aout: 1
+  - addr: ORI_SR_IMM_C1_T2
+  - addr: ORI_SR_IMM_C1_T3
+    # DB -> idb -> BI
+    idbs: DB
+    lts: BI
+    pc_inc: 1
+  - addr: ORI_SR_IMM_C2_T1
+  - addr: ORI_SR_IMM_C2_T2
+  - addr: ORI_SR_IMM_C2_T3
+    # spr -> idb -> AI
+    sprs: IR2
+    idbs: SPR
+  - addr: ORI_SR_IMM_C3_T1
+  - addr: ORI_SR_IMM_C3_T2
+  - addr: ORI_SR_IMM_C3_T3
+    # AI | BI -> CO
+    aluop: OR
+  - addr: ORI_SR_IMM_C4_T1
+  - addr: ORI_SR_IMM_C4_T2
+  - addr: ORI_SR_IMM_C4_T3
+    # CO -> idb -> spr
+    idbs: CO
+    lts: SPR
+    sprs: IR2
     m1: 1
     bm: END

@@ -489,7 +489,7 @@ always @* ird = ird_lut[ir];
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-s_uc    uram [64];
+s_uc    uram [256];
 
 initial begin
   $readmemb("uram.mem", uram);
