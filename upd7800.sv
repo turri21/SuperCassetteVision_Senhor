@@ -82,7 +82,7 @@ reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_idb_dor, cl_store_dor;
-e_urfs       cl_rfs;
+e_urfs       cl_rfts;
 e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
 reg          cl_idb_abil, cl_idb_abih;
@@ -157,7 +157,7 @@ assign M1 = m1ext;
 always @(posedge CLK) begin
   if (cp2n) begin
     if (uc.lts == ULTS_RF) begin
-      case (cl_rfs)
+      case (cl_rfts)
         URFS_V: v <= idb;
         URFS_A: a <= idb;
         URFS_B: b <= idb;
@@ -183,7 +183,7 @@ end
 // Working register
 always @(posedge CLK) begin
   if (cp2n) begin
-    if ((uc.lts == ULTS_RF) & (uc.rfs == URFS_W)) begin
+    if ((uc.lts == ULTS_RF) & (uc.rfts == URFS_W)) begin
       w <= idb;
     end
   end
@@ -223,7 +223,7 @@ always @(posedge CLK) begin
   end
   else if (cp2p) begin
     if (uc.lts == ULTS_RF) begin
-      case (cl_rfs)
+      case (cl_rfts)
         URFS_SPL: sp[7:0] <= idb;
         URFS_SPH: sp[15:8] <= idb;
         default: ;
@@ -306,7 +306,7 @@ end
 
 // rfo: register file output
 always @* begin
-  case (cl_rfs)
+  case (uc.rfos)
     URFS_V: rfo = v;
     URFS_A: rfo = a;
     URFS_B: rfo = b;
@@ -593,8 +593,8 @@ always @* cl_ab_aor = oft[0] | uc.aout;
 always @* cl_idb_dor = (uc.lts == ULTS_DOR);
 always @* cl_store_dor = uc.store;
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
-always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
-always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
+always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCL);
+always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCH);
 always @* cl_pc_inc = uc.pc_inc;
 always @* cl_pc_dec = (uc.abs == UABS_PC) & cl_abi_dec;
 always @* cl_abi_pc = oft[3] | cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
@@ -628,10 +628,10 @@ initial cl_lsrs = 0;
 initial cl_rors = 0;
 
 always @* begin
-  cl_rfs = uc.rfs;
-  if (uc.rfs == URFS_IR210) begin
+  cl_rfts = uc.rfts;
+  if (uc.rfts == URFS_IR210) begin
     // IR[2:0] encodes V,A,B...L
-    cl_rfs = e_urfs'({2'b00, ir[2:0]});
+    cl_rfts = e_urfs'({2'b00, ir[2:0]});
   end
 end
 
