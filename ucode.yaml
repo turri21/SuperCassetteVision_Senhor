@@ -91,6 +91,7 @@ types:
       - PC                      # (default)
       - SP
       - BC
+      - DE
       - HL
       - VW
 
@@ -183,12 +184,21 @@ columns:
   - name: abs
     type: e_abs
     desc: ab select
+  - name: abits
+    type: e_abs
+    desc: abi target select
   - name: m1
     width: 1
     desc: Fetch next opcode (start M1)
   - name: pc_inc
     width: 1
     desc: increment PC
+  - name: ab_inc
+    width: 1
+    desc: increment ab
+  - name: ab_dec
+    width: 1
+    desc: decrement ab
   - name: aout
     width: 1
     desc: ab -> AOR
@@ -487,31 +497,12 @@ rows:
   - addr: STAX_HP_C1_T2
     # dor -> DB
     store: 1
-    # L -> idb -> AI
-    # AI + 1 -> CO
-    rfs: L
-    idbs: RF
-    lts: AI
-    aluop: INC
+    # HL + 1 -> HL
+    abs: HL
+    ab_inc: 1
+    abits: HL
   - addr: STAX_HP_C1_T3
-    # CO -> idb -> L
-    rfs: L
-    idbs: CO
-    lts: RF
     m1: 1
-  - addr: STAX_HP_C2_T1
-    # H -> idb -> AI, 0 -> BI
-    # AI + BI + CCO -> CO
-    rfs: H
-    idbs: RF
-    lts: AI
-    bi0: 1
-    aluop: SUM
-  - addr: STAX_HP_C2_T2
-    # CO -> idb -> H
-    rfs: H
-    idbs: CO
-    lts: RF
     bm: END
 
   - addr: STAW_C1_T1
@@ -569,5 +560,55 @@ rows:
     idbs: CO
     lts: SPR
     sprs: IR2
+    m1: 1
+    bm: END
+
+    # BLOCK: (DE)+ <- (HL)+, C <- C - 1, end if borrow
+  - addr: BLOCK_C1_T1
+    at: 0x31
+    # HL -> ab -> aor
+    abs: HL
+    aout: 1
+  - addr: BLOCK_C1_T2
+    # HL + 1 -> HL
+    abs: HL
+    ab_inc: 1
+    abits: HL
+  - addr: BLOCK_C1_T3
+    # DB -> idb -> W
+    idbs: DB
+    rfs: W
+    lts: RF
+  - addr: BLOCK_C2_T1
+    # W -> idb -> dor
+    rfs: W
+    idbs: RF
+    lts: DOR
+    # DE -> ab -> aor
+    abs: DE
+    aout: 1
+  - addr: BLOCK_C2_T2
+    # dor -> DB
+    store: 1
+    # DE + 1 -> DE
+    abs: DE
+    ab_inc: 1
+    abits: DE
+  - addr: BLOCK_C2_T3
+  - addr: BLOCK_C3_T1
+    # C -> idb -> AI, AI - 1 -> CO
+    rfs: C
+    idbs: RF
+    lts: AI
+    aluop: DEC
+  - addr: BLOCK_C3_T2
+    # CO -> idb -> C
+    rfs: C
+    idbs: CO
+    lts: RF
+  - addr: BLOCK_C3_T3
+    pswsk: NC                   # !CCO -> PSW.SK
+    abs: PC
+    ab_dec: 1                   # repeat ins. until skipped
     m1: 1
     bm: END

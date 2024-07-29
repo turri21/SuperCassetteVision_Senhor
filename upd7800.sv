@@ -48,7 +48,7 @@ reg          resg;
 reg          cp2;
 reg [7:0]    v, a, b, c, d, e, h, l, w;
 reg [7:0]    psw;
-reg [15:0]   pc, upc, npc;
+reg [15:0]   pc;
 reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
@@ -58,6 +58,7 @@ reg [7:0]    rfo, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
+reg [15:0]   uabi, nabi;
 reg          skso;
 
 reg [3:0]    oft;
@@ -75,14 +76,16 @@ e_uaddr      uptr, uptr_next;
 reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_abs        cl_abs;
-reg          cl_idb_pcl, cl_idb_pch;
+reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
+reg          cl_abi_pc;
 reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_idb_dor, cl_store_dor;
 e_urfs       cl_rfs;
 e_idbs       cl_idbs;
-reg          cl_pc_inc;
+reg          cl_abi_inc, cl_abi_dec;
+reg          cl_idb_abil, cl_idb_abih;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
              cl_bi_not, cl_bi_dah, cl_bi_dal, cl_pdas;
 reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
@@ -166,6 +169,14 @@ always @(posedge CLK) begin
         default: ;
       endcase
     end
+    if (uc.abits != UABS_PC) begin
+      case (uc.abits)
+        UABS_BC: {b, c} <= nabi;
+        UABS_DE: {d, e} <= nabi;
+        UABS_HL: {h, l} <= nabi;
+        default: ;
+      endcase
+    end
   end
 end
 
@@ -211,32 +222,14 @@ always @(posedge CLK) begin
     pc <= 0;
   end
   else if (cp2p) begin
-    pc <= npc;
+    if (cl_abi_pc) begin
+      pc <= nabi;
+    end
   end
 end
 
 assign pcl = pc[7:0];
 assign pch = pc[15:8];
-
-// "updated" pc (change part or all)
-always @(posedge CLK) begin
-  if (cp1p) begin
-    upc <= pc;
-
-    if (cl_idb_pcl)
-      upc[7:0] <= idb;
-    if (cl_idb_pch)
-      upc[15:8] <= idb;
-  end
-end
-
-// "next" pc (increment)
-always @* begin
-  npc = upc;
-
-  if (cl_pc_inc)
-    npc = npc + 1;
-end
 
 // ir: instruction (opcode) register
 always @(posedge CLK) begin
@@ -305,6 +298,7 @@ always @* begin
     URFS_L: rfo = l;
     URFS_PCL: rfo = pcl;
     URFS_PCH: rfo = pch;
+    URFS_W: rfo = w;
     default: rfo = 8'hxx;
   endcase
 end
@@ -328,6 +322,7 @@ always @* begin
     UABS_PC: ab = pc;
     //UABS_SP: ab = sp;
     UABS_BC: ab = {b, c};
+    UABS_DE: ab = {d, e};
     UABS_HL: ab = {h, l};
     UABS_VW: ab = {v, w};
     default: ab = 16'hxxxx;
@@ -391,6 +386,32 @@ always @(posedge CLK) if (cp2n) begin
     {cco, co} <= {ai[7:0], addc & cl_rols};
   else if (cl_lsrs | cl_rors)
     {co, cco} <= {addc & cl_rors, ai[7:0]};
+end
+
+
+//////////////////////////////////////////////////////////////////////
+// Address bus incrementer / decrementer
+
+// update: change part or all
+always @(posedge CLK) begin
+  if (cp1p) begin
+    uabi <= ab;
+
+    if (cl_idb_abil)
+      uabi[7:0] <= idb;
+    if (cl_idb_abih)
+      uabi[15:8] <= idb;
+  end
+end
+
+// next: increment/decrement
+always @* begin
+  nabi = uabi;
+
+  if (cl_abi_inc)
+    nabi = nabi + 1;
+  else if (cl_abi_dec)
+    nabi = nabi - 1;
 end
 
 
@@ -555,11 +576,17 @@ always @* cl_store_dor = uc.store;
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfs == URFS_PCH);
+always @* cl_pc_inc = uc.pc_inc;
+always @* cl_pc_dec = (uc.abs == UABS_PC) & cl_abi_dec;
+always @* cl_abi_pc = oft[3] | cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = uc.lts == ULTS_IE;
 always @* cl_abs = e_abs'(oft[0] ? UABS_PC : uc.abs);
-always @* cl_pc_inc = oft[3] | uc.pc_inc;
+always @* cl_idb_abil = cl_idb_pcl;
+always @* cl_idb_abih = cl_idb_pch;
+always @* cl_abi_inc = oft[3] | cl_pc_inc | uc.ab_inc;
+always @* cl_abi_dec = uc.ab_dec;
 initial cl_sums_cco = 1'b1;
 always @* cl_carry = uc.cis == UCIS_CCO;
 always @* cl_one_addc = uc.cis == UCIS_1;
