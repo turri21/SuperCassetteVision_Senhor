@@ -320,6 +320,29 @@ rows:
     bm: END
     m1: 1
 
+  - addr: LXI_H_C1_T1
+    at: 0x34                    # LXI HL, bbaa
+    skipn: 2
+    pc_ab: 1
+  - addr: LXI_H_C1_T2
+  - addr: LXI_H_C1_T3
+    # DB -> idb -> H
+    idbs: DB
+    rfs: H
+    lts: RF
+    pc_inc: 1
+  - addr: LXI_H_C2_T1
+    pc_ab: 1
+  - addr: LXI_H_C2_T2
+  - addr: LXI_H_C2_T3
+    # DB -> idb -> L
+    idbs: DB
+    rfs: L
+    lts: RF
+    pc_inc: 1
+    bm: END
+    m1: 1
+
   - addr: DCR_B_C1_T1
     at: 0x52                    # DCR B
     m1_overlap: 1
