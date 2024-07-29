@@ -46,7 +46,7 @@ wire [15:0]  pcl, pch;
 
 reg          resg;
 reg          cp2;
-reg [7:0]    a, v, b, c, d, e, h, l;
+reg [7:0]    v, a, b, c, d, e, h, l, w;
 reg [7:0]    psw;
 reg [15:0]   pc, upc, npc;
 reg [10:0]   ir;
@@ -165,6 +165,15 @@ always @(posedge CLK) begin
         URFS_L: l <= idb;
         default: ;
       endcase
+    end
+  end
+end
+
+// Working register
+always @(posedge CLK) begin
+  if (cp2n) begin
+    if ((uc.lts == ULTS_RF) & (uc.rfs == URFS_W)) begin
+      w <= idb;
     end
   end
 end
@@ -320,6 +329,7 @@ always @* begin
     //UABS_SP: ab = sp;
     UABS_BC: ab = {b, c};
     UABS_HL: ab = {h, l};
+    UABS_VW: ab = {v, w};
     default: ab = 16'hxxxx;
   endcase
 end

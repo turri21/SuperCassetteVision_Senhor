@@ -52,6 +52,7 @@ types:
       - PCL
       - PCH
       - IR210                   # IR[2:0] encodes V,A,B...L
+      - W                       # working address
 
   - name: e_idbs
     desc: idb select
@@ -83,13 +84,14 @@ types:
   - name: e_abs
     desc: ab select
     type: enum
-    width: 2
+    width: 3
     prefix: UABS_
     values:
       - PC                      # (default)
       - SP
       - BC
       - HL
+      - VW
 
   - name: e_aluop
     desc: ALU operation
@@ -475,4 +477,30 @@ rows:
     rfs: H
     idbs: CO
     lts: RF
+    bm: END
+
+  - addr: STAW_C1_T1
+    at: 0x38                    # STAW wa
+    skipn: 1
+    aout: 1
+  - addr: STAW_C1_T2
+  - addr: STAW_C1_T3
+    # DB -> idb -> W
+    idbs: DB
+    rfs: W
+    lts: RF
+    pc_inc: 1
+  - addr: STAW_C2_T1
+    # A -> idb -> dor
+    rfs: A
+    idbs: RF
+    lts: DOR
+    # VW -> ab -> aor
+    abs: VW
+    aout: 1
+  - addr: STAW_C2_T2
+    # dor -> DB
+    store: 1
+  - addr: STAW_C2_T3
+    m1: 1
     bm: END

@@ -90,7 +90,7 @@ initial #0 begin
   dut.b = 0;
   dut.c = 1;
 
-  #200 @(posedge clk) ;
+  #400 @(posedge clk) ;
 
   $finish;
 end
