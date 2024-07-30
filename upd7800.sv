@@ -75,7 +75,7 @@ e_uaddr      uptr, uptr_next;
 
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
-e_abs        cl_abs;
+e_abs        cl_abs, cl_abits;
 reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
 reg          cl_abi_sp, cl_abi_pc;
 reg          cl_idb_ir, cl_of_prefix_ir;
@@ -179,8 +179,8 @@ always @(posedge CLK) begin
         default: ;
       endcase
     end
-    if (uc.abits != UABS_PC) begin
-      case (uc.abits)
+    if (cl_abits != UABS_PC) begin
+      case (cl_abits)
         UABS_BC: {b, c} <= nabi;
         UABS_DE: {d, e} <= nabi;
         UABS_HL: {h, l} <= nabi;
@@ -239,7 +239,7 @@ always @(posedge CLK) begin
         default: ;
       endcase
     end
-    if (uc.abits == UABS_SP) begin
+    if (cl_abits == UABS_SP) begin
       sp <= nabi;
     end
   end
@@ -341,6 +341,7 @@ always @* begin
     UIDBS_JRL: idb = {{3{ir[5]}}, ir[4:0]};
     UIDBS_JRH: idb = {8{ir[5]}};
     UIDBS_CO: idb = co;
+    UIDBS_CALT: idb = {1'b1, ir[5:0], uc.idx[0]};
     default: idb = 8'hxx;
   endcase
 end
@@ -591,6 +592,34 @@ end
 //////////////////////////////////////////////////////////////////////
 // Control logic
 
+function e_urfs resolve_rfs_ir(e_urfs in);
+  e_urfs out;
+  begin
+    out = in;
+    if (in == URFS_IR210) begin
+      // IR[2:0] encodes V,A,B...L
+      out = e_urfs'({2'b00, ir[2:0]});
+    end
+    resolve_rfs_ir = out;
+  end
+endfunction
+
+function e_abs resolve_abs_ir(e_abs in);
+  e_abs out;
+  begin
+    out = in;
+    if (in == UABS_IR10) begin
+      case (ir[1:0])
+        2'd1: out = UABS_BC;
+        2'd2: out = UABS_DE;
+        2'd3: out = UABS_HL;
+        default: ;
+      endcase
+    end
+    resolve_abs_ir = out;
+  end
+endfunction
+
 initial cl_idb_psw = 0;
 initial cl_co_z = uc.pswz;
 always @* cl_cco_c = uc.pswcy;
@@ -604,6 +633,7 @@ always @* cl_ab_aor = oft[0] | uc.aout;
 always @* cl_idb_dor = (uc.lts == ULTS_DOR);
 always @* cl_store_dor = uc.store;
 always @* cl_load_db = oft[1] | uc.load;
+always @* cl_rfts = resolve_rfs_ir(uc.rfts);
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCH);
@@ -613,7 +643,8 @@ always @* cl_abi_pc = oft[3] | cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = uc.lts == ULTS_IE;
-always @* cl_abs = e_abs'(oft[0] ? UABS_PC : uc.abs);
+always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(uc.abs));
+always @* cl_abits = resolve_abs_ir(uc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
 always @* cl_abi_inc = oft[3] | cl_pc_inc | uc.ab_inc;
@@ -631,21 +662,13 @@ initial cl_clrs = 0;
 always @* cl_sums = uc.aluop == UAO_SUM;
 always @* cl_incs = uc.aluop == UAO_INC;
 always @* cl_decs = uc.aluop == UAO_DEC;
-initial cl_ors = 0;
-initial cl_ands = 0;
-initial cl_eors = 0;
-initial cl_asls = 0;
-initial cl_rols = 0;
-initial cl_lsrs = 0;
-initial cl_rors = 0;
-
-always @* begin
-  cl_rfts = uc.rfts;
-  if (uc.rfts == URFS_IR210) begin
-    // IR[2:0] encodes V,A,B...L
-    cl_rfts = e_urfs'({2'b00, ir[2:0]});
-  end
-end
+always @* cl_ors =  uc.aluop == UAO_OR;
+always @* cl_ands = uc.aluop == UAO_AND;
+always @* cl_eors = uc.aluop == UAO_EOR;
+always @* cl_asls = uc.aluop == UAO_ASL;
+always @* cl_rols = uc.aluop == UAO_ROL;
+always @* cl_lsrs = uc.aluop == UAO_LSR;
+always @* cl_rors = uc.aluop == UAO_ROR;
 
 
 endmodule

@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 7
+    width: 8
     prefix: UA_
     # values will come from the rows list
 
@@ -67,6 +67,7 @@ types:
       - JRH                     # sign-ext. IR[5] (for JR)
       - CO                      # ALU output
       - SPR                     # special reg.
+      - CALT                    # EA for CALT
 
   - name: e_lts
     desc: load target select
@@ -95,6 +96,7 @@ types:
       - HL
       - VW
       - IDB_W
+      - IR10                    # IR[1:0] encodes BC, DE, HL
 
   - name: e_sprs
     desc: special register select
@@ -767,4 +769,110 @@ rows:
     pswcy: 1                    # Update PSW.CY
     pswhc: 1                    # Update PSW.HC
     pswsk: NZ                   # Update PSW.SK
+    bm: END
+
+    # MVIX rpa1, byte (Move Imm. to Memory address by Reg Pair)
+  - addr: MVIX_IMM_C1_T1
+    at: [ 0x48, 0x4b ]
+    skipn: 1
+    # Fetch byte
+    aout: 1
+    pc_inc: 1
+  - addr: MVIX_IMM_C1_T2
+    load: 1
+  - addr: MVIX_IMM_C1_T3
+    # DB -> idb -> W
+    idbs: DB
+    rfts: W
+    lts: RF
+  - addr: MVIX_IMM_C2_T1
+    # W -> idb -> dor
+    rfos: W
+    idbs: RF
+    lts: DOR
+    # DE -> ab -> aor
+    abs: IR10
+    aout: 1
+  - addr: MVIX_IMM_C2_T2
+    # dor -> DB
+    store: 1
+  - addr: MVIX_IMM_C2_T3
+    m1: 1
+    bm: END
+
+    # CALT (Call Table Address)
+  - addr: CALT_C1_T1            # SP <- SP-1
+    at: [ 0x80, 0xBF ]
+    # IR[5:0] -> idb -> AI
+    idbs: JRL
+    lts: AI
+  - addr: CALT_C1_T2
+  - addr: CALT_C1_T3
+    # SP - 1 -> SP
+    abs: SP
+    ab_dec: 1
+    abits: SP
+  - addr: CALT_C2_T1            # (SP) <- PCH, SP <- SP-1
+    # PCH -> idb -> dor
+    rfos: PCH
+    idbs: RF
+    lts: DOR
+    # SP -> ab -> aor
+    abs: SP
+    aout: 1
+  - addr: CALT_C2_T2
+    # dor -> DB
+    store: 1
+  - addr: CALT_C2_T3
+    # SP - 1 -> SP
+    abs: SP
+    ab_dec: 1
+    abits: SP
+  - addr: CALT_C3_T1            # (SP) <- PCL
+    # PCL -> idb -> dor
+    rfos: PCL
+    idbs: RF
+    lts: DOR
+    # SP -> ab -> aor
+    abs: SP
+    aout: 1
+  - addr: CALT_C3_T2
+    # dor -> DB
+    store: 1
+  - addr: CALT_C3_T3
+    # effective addr lo. -> idb -> W
+    idx: 0
+    idbs: CALT
+    lts: RF
+    rfts: W
+  - addr: CALT_C4_T1            # PCL <- (128 + 2ta)
+    # W -> abl -> aorl, 0 -> idb -> abh -> aorh
+    idbs: 0
+    abs: IDB_W
+    aout: 1
+  - addr: CALT_C4_T2
+    load: 1
+    # effective addr hi. -> idb -> W
+    idx: 1
+    idbs: CALT
+    lts: RF
+    rfts: W
+  - addr: CALT_C4_T3
+    # DB -> idb -> PCL
+    idbs: DB
+    lts: RF
+    rfts: PCL
+  - addr: CALT_C5_T1            # PCH <- (129 + 2ta)
+    # W -> abl -> aorl, 0 -> idb -> abh -> aorh
+    idbs: 0
+    abs: IDB_W
+    aout: 1
+  - addr: CALT_C5_T2
+    load: 1
+  - addr: CALT_C5_T3
+    # DB -> idb -> PCH
+    idbs: DB
+    lts: RF
+    rfts: PCH
+    m1: 1
     bm: END

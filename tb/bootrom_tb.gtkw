@@ -113,8 +113,8 @@ bootrom_tb.dut.m1_next
 bootrom_tb.dut.m1
 @200
 -
-@22
-bootrom_tb.dut.uptr[6:0]
+@23
+bootrom_tb.dut.uptr[7:0]
 @200
 -
 @28
