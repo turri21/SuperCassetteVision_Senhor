@@ -14,8 +14,9 @@ reg [7:0]   din;
 reg [7:0]   dut_db_i;
 
 wire [15:0] a;
-wire [7:0]  dut_db_o, rom_db;
-wire        rom_ncs, cart_ncs;
+wire [7:0]  dut_db_o, rom_db, ram_db;
+wire        dut_rdb, dut_wrb;
+wire        rom_ncs, ram_ncs, cart_ncs;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -36,26 +37,42 @@ upd7800 dut
    .DB_I(dut_db_i),
    .DB_O(dut_db_o),
    .DB_OE(),
-   .M1()
+   .M1(),
+   .RDB(dut_rdb),
+   .WRB(dut_wrb)
    );
 
 bootrom rom
   (
    .A(a[11:0]),
    .DB(rom_db),
-   .nCS(rom_ncs)
+   .nCS(rom_ncs | dut_rdb)
+   );
+
+ram #(7, 8) ram
+  (
+   .CLK(clk),
+   .nCE(ram_ncs),
+   .nWE(dut_wrb),
+   .nOE(ram_ncs | ~dut_wrb),
+   .A(a[6:0]),
+   .DI(dut_db_o),
+   .DO(ram_db)
    );
 
 always_comb begin
   dut_db_i = 8'hxx;
   if (~rom_ncs)
     dut_db_i = rom_db;
+  else if (~ram_ncs)
+    dut_db_i = ram_db;
   else if (~cart_ncs)
     dut_db_i = 8'hFF;           // cart is absent
 end
 
 assign rom_ncs = |a[15:12];
-assign cart_ncs = ~a[15];
+assign ram_ncs = ~&a[15:7];    // 'hFF80-'hFFFF
+assign cart_ncs = ~a[15] | ~ram_ncs;
 
 
 initial begin
@@ -118,6 +135,39 @@ end
 
 always_comb begin
   DB = nCS ? 8'hzz : mem[A];
+end
+
+endmodule
+
+
+//////////////////////////////////////////////////////////////////////
+
+module ram
+  #(parameter AW,
+    parameter DW)
+  (
+   input           CLK,
+   input           nCE,
+   input           nWE,
+   input           nOE,
+   input [AW-1:0]  A,
+   input [DW-1:0]  DI,
+   output [DW-1:0] DO
+   );
+
+reg [DW-1:0] ram [0:((1 << AW) - 1)];
+reg [DW-1:0] dor;
+
+always @(posedge CLK)
+  dor <= ram[A];
+
+assign DO = ~(nCE | nOE) ? dor : {DW{1'bz}};
+
+always @(negedge CLK) begin
+  if (~(nCE | nWE)) begin
+    //$display("ram[%x] <= %x", A, D);
+    ram[A] <= DI;
+  end
 end
 
 endmodule

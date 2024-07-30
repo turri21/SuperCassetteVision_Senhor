@@ -53,7 +53,7 @@ reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [15:0]   aor;
 reg [7:0]    dor;
-reg          wr_ext;
+reg          rd_ext, wr_ext;
 reg [7:0]    rfo, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
@@ -82,6 +82,7 @@ reg          cl_idb_ir, cl_of_prefix_ir;
 reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_idb_dor, cl_store_dor;
+reg          cl_load_db;
 e_urfs       cl_rfts;
 e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
@@ -127,17 +128,25 @@ end
 //////////////////////////////////////////////////////////////////////
 // External interface
 
+initial begin
+  rd_ext = 1'b1;
+  wr_ext = 1'b1;
+end
+
 always_ff @(posedge CLK) begin
   if (resg) begin
+    rd_ext <= 0;
     wr_ext <= 0;
   end
   else begin
-    // WRB asserts in T2 @ CP1 rising, de-asserts in T3 @ CP2 rising
-    if (cp1p & cl_store_dor) begin
-      wr_ext <= 1'b1;
+    // RDB/WRB asserts in T2 @ CP1 rising, de-asserts in T3 @ CP2 falling
+    if (cp1p) begin
+      rd_ext <= rd_ext | cl_load_db;
+      wr_ext <= wr_ext | cl_store_dor;
     end
-    else if (cp2p & ~cl_store_dor & wr_ext) begin
-      wr_ext <= 1'b0;
+    else if (cp2n) begin
+      rd_ext <= rd_ext & cl_load_db;
+      wr_ext <= wr_ext & cl_store_dor;
     end
   end
 end
@@ -145,6 +154,7 @@ end
 assign DB_O = dor;
 assign DB_OE = ~WRB;
 assign A = aor;
+assign RDB = ~rd_ext;
 assign WRB = ~wr_ext;
 
 assign M1 = m1ext;
@@ -593,6 +603,7 @@ initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | uc.aout;
 always @* cl_idb_dor = (uc.lts == ULTS_DOR);
 always @* cl_store_dor = uc.store;
+always @* cl_load_db = oft[1] | uc.load;
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
 always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCL);
 always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCH);

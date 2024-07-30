@@ -206,6 +206,9 @@ columns:
   - name: aout
     width: 1
     desc: ab -> AOR
+  - name: load
+    width: 1
+    desc: assert RDB (read operation)
   - name: store
     width: 1
     desc: dor -> DB
@@ -245,11 +248,13 @@ rows:
     aout: 1
     pc_inc: 1
   - addr: SKIP_OP2_T2
+    load: 1
   - addr: SKIP_OP2_T3
   - addr: SKIP_OP1_T1
     aout: 1
     pc_inc: 1
   - addr: SKIP_OP1_T2
+    load: 1
   - addr: SKIP_OP1_T3
     m1: 1
     bm: END
@@ -319,6 +324,7 @@ rows:
     rfos: PCL
     idbs: RF
     lts: AI
+    load: 1
   - addr: JRE_C1_T3
     # DB -> idb -> BI
     idbs: DB
@@ -354,6 +360,7 @@ rows:
     skipn: 2
     aout: 1
   - addr: LXI_SP_C1_T2
+    load: 1
   - addr: LXI_SP_C1_T3
     # DB -> idb -> SPL
     idbs: DB
@@ -363,6 +370,7 @@ rows:
   - addr: LXI_SP_C2_T1
     aout: 1
   - addr: LXI_SP_C2_T2
+    load: 1
   - addr: LXI_SP_C2_T3
     # DB -> idb -> SPH
     idbs: DB
@@ -377,6 +385,7 @@ rows:
     skipn: 2
     aout: 1
   - addr: LXI_B_C1_T2
+    load: 1
   - addr: LXI_B_C1_T3
     # DB -> idb -> C
     idbs: DB
@@ -386,6 +395,7 @@ rows:
   - addr: LXI_B_C2_T1
     aout: 1
   - addr: LXI_B_C2_T2
+    load: 1
   - addr: LXI_B_C2_T3
     # DB -> idb -> B
     idbs: DB
@@ -401,6 +411,7 @@ rows:
     skipn: 2
     aout: 1
   - addr: LXI_D_C1_T2
+    load: 1
   - addr: LXI_D_C1_T3
     # DB -> idb -> E
     idbs: DB
@@ -410,6 +421,7 @@ rows:
   - addr: LXI_D_C2_T1
     aout: 1
   - addr: LXI_D_C2_T2
+    load: 1
   - addr: LXI_D_C2_T3
     # DB -> idb -> D
     idbs: DB
@@ -424,6 +436,7 @@ rows:
     skipn: 2
     aout: 1
   - addr: LXI_H_C1_T2
+    load: 1
   - addr: LXI_H_C1_T3
     # DB -> idb -> L
     idbs: DB
@@ -433,6 +446,7 @@ rows:
   - addr: LXI_H_C2_T1
     aout: 1
   - addr: LXI_H_C2_T2
+    load: 1
   - addr: LXI_H_C2_T3
     # DB -> idb -> H
     idbs: DB
@@ -483,6 +497,7 @@ rows:
     skipn: 1
     aout: 1
   - addr: MVI_IMM_C1_T2
+    load: 1
   - addr: MVI_IMM_C1_T3
     # DB -> idb -> r
     idbs: DB
@@ -545,6 +560,7 @@ rows:
     skipn: 1
     aout: 1
   - addr: STAW_C1_T2
+    load: 1
   - addr: STAW_C1_T3
     # DB -> idb -> W
     idbs: DB
@@ -572,6 +588,7 @@ rows:
     skipn: 1
     aout: 1
   - addr: ORI_SR_IMM_C1_T2
+    load: 1
   - addr: ORI_SR_IMM_C1_T3
     # DB -> idb -> BI
     idbs: DB
@@ -609,6 +626,7 @@ rows:
     abs: HL
     ab_inc: 1
     abits: HL
+    load: 1
   - addr: BLOCK_C1_T3
     # DB -> idb -> W
     idbs: DB
@@ -656,6 +674,7 @@ rows:
     aout: 1
     pc_inc: 1
   - addr: JMP_C1_T2
+    load: 1
   - addr: JMP_C1_T3
     # DB -> idb -> W
     idbs: DB
@@ -670,6 +689,7 @@ rows:
     idbs: RF
     lts: RF
     rfts: PCL
+    load: 1
   - addr: JMP_C2_T3
     # DB -> idb -> PCH
     idbs: DB
@@ -686,9 +706,9 @@ rows:
     aout: 1
     pc_inc: 1
   - addr: MOV_ABS_C1_T2
+    load: 1
   - addr: MOV_ABS_C1_T3
     # DB -> idb -> W
-    # TODO: Figure this out. W isn't gonna work.
     idbs: DB
     rfts: W
     lts: RF
@@ -697,6 +717,7 @@ rows:
     aout: 1
     pc_inc: 1
   - addr: MOV_ABS_C2_T2
+    load: 1
   - addr: MOV_ABS_C2_T3
     # DB -> idb -> AI, 0 -> BI
     idbs: DB
@@ -710,6 +731,7 @@ rows:
     abs: IDB_W
     aout: 1
   - addr: MOV_ABS_C3_T2
+    load: 1
   - addr: MOV_ABS_C3_T3
     # DB -> idb -> r
     idbs: DB
@@ -729,6 +751,7 @@ rows:
     rfos: A
     idbs: RF
     lts: AI
+    load: 1
   - addr: NEI_IMM_A_C1_T3
     # DB -> idb -> BI
     idbs: DB

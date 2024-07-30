@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Mon Jul 29 06:53:49 2024
+[*] Tue Jul 30 03:41:20 2024
 [*]
 [dumpfile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.vcd"
-[dumpfile_mtime] "Mon Jul 29 06:53:15 2024"
-[dumpfile_size] 254343
+[dumpfile_mtime] "Tue Jul 30 03:31:24 2024"
+[dumpfile_size] 274660
 [savefile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.gtkw"
-[timestart] 608800
+[timestart] 719550
 [size] 1288 687
 [pos] -1 -1
-*-14.068130 650500 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-14.068130 739250 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -51,6 +51,8 @@ bootrom_tb.dut.M1
 bootrom_tb.dut.A[15:0]
 bootrom_tb.dut.DB_I[7:0]
 bootrom_tb.dut.DB_O[7:0]
+@29
+bootrom_tb.dut.RDB
 @28
 bootrom_tb.dut.WRB
 @200
@@ -80,9 +82,7 @@ bootrom_tb.dut.ie
 @22
 bootrom_tb.dut.rfo[7:0]
 bootrom_tb.dut.idb[7:0]
-@23
 bootrom_tb.dut.dor[7:0]
-@22
 bootrom_tb.dut.ab[15:0]
 bootrom_tb.dut.nabi[15:0]
 bootrom_tb.dut.aor[15:0]
