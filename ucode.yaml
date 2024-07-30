@@ -238,9 +238,13 @@ rows:
 
     # Idle cycles for skipping instructions w/ 1-2 operands
   - addr: SKIP_OP2_T1
+    aout: 1
+    pc_inc: 1
   - addr: SKIP_OP2_T2
   - addr: SKIP_OP2_T3
   - addr: SKIP_OP1_T1
+    aout: 1
+    pc_inc: 1
   - addr: SKIP_OP1_T2
   - addr: SKIP_OP1_T3
     m1: 1
