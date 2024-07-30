@@ -94,6 +94,7 @@ types:
       - DE
       - HL
       - VW
+      - IDB_W
 
   - name: e_sprs
     desc: special register select
@@ -223,6 +224,9 @@ columns:
   - name: pswz
     width: 1
     desc: (idb == 0) -> PSW.Z
+  - name: pswcy
+    width: 1
+    desc: CCO -> PSW.CY
   - name: pswhc
     width: 1
     desc: CHO -> PSW.HC
@@ -564,7 +568,7 @@ rows:
 
     # ORI sr2, byte
   - addr: ORI_SR_IMM_C1_T1
-    at: [ 0x59a, 0x59f ]        # prefix 0x64
+    at: [ 0x598, 0x59f ]        # prefix 0x64
     skipn: 1
     aout: 1
   - addr: ORI_SR_IMM_C1_T2
@@ -674,3 +678,70 @@ rows:
     bm: END
     m1: 1
 
+    # MOV r, word (Move Memory to Register)
+  - addr: MOV_ABS_C1_T1
+    at: [ 0x668, 0x66f ]        # prefix 0x70
+    skipn: 2
+    # Fetch word lo
+    aout: 1
+    pc_inc: 1
+  - addr: MOV_ABS_C1_T2
+  - addr: MOV_ABS_C1_T3
+    # DB -> idb -> W
+    # TODO: Figure this out. W isn't gonna work.
+    idbs: DB
+    rfts: W
+    lts: RF
+  - addr: MOV_ABS_C2_T1
+    # Fetch word hi
+    aout: 1
+    pc_inc: 1
+  - addr: MOV_ABS_C2_T2
+  - addr: MOV_ABS_C2_T3
+    # DB -> idb -> AI, 0 -> BI
+    idbs: DB
+    lts: AI
+    bi0: 1
+    # AI + BI -> CO
+    aluop: SUM
+  - addr: MOV_ABS_C3_T1
+    # W -> abl -> aorl, CO -> idb -> abh -> aorh
+    idbs: CO
+    abs: IDB_W
+    aout: 1
+  - addr: MOV_ABS_C3_T2
+  - addr: MOV_ABS_C3_T3
+    # DB -> idb -> r
+    idbs: DB
+    rfts: IR210
+    lts: RF
+    bm: END
+    m1: 1
+
+    # NEI A, byte (Not Equal Immediate with A)
+  - addr: NEI_IMM_A_C1_T1
+    at: 0x67
+    # Fetch byte
+    aout: 1
+    pc_inc: 1
+  - addr: NEI_IMM_A_C1_T2
+    # A -> idb -> AI
+    rfos: A
+    idbs: RF
+    lts: AI
+  - addr: NEI_IMM_A_C1_T3
+    # DB -> idb -> BI
+    idbs: DB
+    lts: BI
+    # AI - BI -> CO
+    aluop: SUM
+    bin: 1
+    cis: 1
+    m1: 1
+  - addr: NEI_IMM_A_C2_T1
+    idbs: CO
+    pswz: 1                     # Update PSW.Z
+    pswcy: 1                    # Update PSW.CY
+    pswhc: 1                    # Update PSW.HC
+    pswsk: NZ                   # !(idb == 0) -> PSW.SK
+    bm: END

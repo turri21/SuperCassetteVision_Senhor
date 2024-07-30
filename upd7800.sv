@@ -344,6 +344,7 @@ always @* begin
     UABS_DE: ab = {d, e};
     UABS_HL: ab = {h, l};
     UABS_VW: ab = {v, w};
+    UABS_IDB_W: ab = {idb, w};
     default: ab = 16'hxxxx;
   endcase
 end
@@ -582,10 +583,10 @@ end
 
 initial cl_idb_psw = 0;
 initial cl_idbz_z = uc.pswz;
-initial cl_cco_c = 0;
+always @* cl_cco_c = uc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
-initial cl_cho_hc = 0;
+always @* cl_cho_hc = uc.pswhc;
 always @* cl_sks_sk = (uc.bm == UBM_END) | m1_skip;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;

@@ -15,7 +15,7 @@ reg [7:0]   dut_db_i;
 
 wire [15:0] a;
 wire [7:0]  dut_db_o, rom_db;
-wire        rom_ncs;
+wire        rom_ncs, cart_ncs;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -50,9 +50,12 @@ always_comb begin
   dut_db_i = 8'hxx;
   if (~rom_ncs)
     dut_db_i = rom_db;
+  else if (~cart_ncs)
+    dut_db_i = 8'hFF;           // cart is absent
 end
 
 assign rom_ncs = |a[15:12];
+assign cart_ncs = ~a[15];
 
 
 initial begin
