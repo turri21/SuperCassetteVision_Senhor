@@ -73,7 +73,7 @@ s_ird        ird;
 s_uc         uc;
 e_uaddr      uptr, uptr_next;
 
-reg          cl_idb_psw, cl_idbz_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
+reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_abs        cl_abs;
 reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
@@ -208,8 +208,8 @@ always @(posedge CLK) begin
     if (cl_idb_psw)
       psw <= idb;
 
-    if (cl_idbz_z)
-      `psw_z <= ~|idb;
+    if (cl_co_z)
+      `psw_z <= ~|co;
 
     if (cl_cco_c)
       `psw_cy <= cco;
@@ -454,8 +454,8 @@ always @* begin
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
     USKS_NC: skso = ~cco;
-    USKS_Z: skso = ~|idb;
-    USKS_NZ: skso = |idb;
+    USKS_Z: skso = ~|co;
+    USKS_NZ: skso = |co;
     default: skso = 1'bx;
   endcase
 
@@ -592,7 +592,7 @@ end
 // Control logic
 
 initial cl_idb_psw = 0;
-initial cl_idbz_z = uc.pswz;
+initial cl_co_z = uc.pswz;
 always @* cl_cco_c = uc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;

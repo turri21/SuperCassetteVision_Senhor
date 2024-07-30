@@ -226,7 +226,7 @@ columns:
     desc: Negate BI
   - name: pswz
     width: 1
-    desc: (idb == 0) -> PSW.Z
+    desc: (CO == 0) -> PSW.Z
   - name: pswcy
     width: 1
     desc: CCO -> PSW.CY
@@ -766,5 +766,5 @@ rows:
     pswz: 1                     # Update PSW.Z
     pswcy: 1                    # Update PSW.CY
     pswhc: 1                    # Update PSW.HC
-    pswsk: NZ                   # !(idb == 0) -> PSW.SK
+    pswsk: NZ                   # Update PSW.SK
     bm: END
