@@ -632,13 +632,11 @@ function e_abs resolve_abs_ir(e_abs in);
 endfunction
 
 initial cl_idb_psw = 0;
-initial cl_co_z = nc.pswz;
+always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
 always @* cl_cho_hc = nc.pswhc;
-// Need another way to detect UC IDLE
-//always @* cl_sks_sk = ((uc.naddr != NA_IDLE) & (uc.bm == UBM_END)) | m1_skip;
 always @* cl_sks_sk = of_done | (nc.pswsk != USKS_0);
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;

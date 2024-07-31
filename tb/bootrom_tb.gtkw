@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Wed Jul 31 19:05:44 2024
+[*] Wed Jul 31 20:09:47 2024
 [*]
 [dumpfile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.vcd"
-[dumpfile_mtime] "Wed Jul 31 19:02:58 2024"
-[dumpfile_size] 536851
+[dumpfile_mtime] "Wed Jul 31 20:01:56 2024"
+[dumpfile_size] 418956
 [savefile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.gtkw"
-[timestart] 867210
+[timestart] 990780
 [size] 1288 687
 [pos] -1 -1
-*-13.650572 875250 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-12.650572 1004250 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -56,8 +56,9 @@ bootrom_tb.dut.RDB
 bootrom_tb.dut.WRB
 @200
 -
-@28
+@29
 bootrom_tb.dut.resp
+@28
 bootrom_tb.dut.resg
 @200
 -
@@ -71,9 +72,7 @@ bootrom_tb.dut.e[7:0]
 bootrom_tb.dut.h[7:0]
 bootrom_tb.dut.l[7:0]
 bootrom_tb.dut.w[7:0]
-@23
 bootrom_tb.dut.psw[7:0]
-@22
 bootrom_tb.dut.sp[15:0]
 bootrom_tb.dut.pc[15:0]
 bootrom_tb.dut.ir[10:0]
@@ -143,7 +142,9 @@ bootrom_tb.dut.cl_abh_aor
 bootrom_tb.dut.cl_abi_dec
 bootrom_tb.dut.cl_abi_inc
 bootrom_tb.dut.cl_abi_pc
+bootrom_tb.dut.cl_abits[2:0]
 bootrom_tb.dut.cl_abl_aor
+bootrom_tb.dut.cl_abs[2:0]
 bootrom_tb.dut.cl_ands
 bootrom_tb.dut.cl_asls
 bootrom_tb.dut.cl_bi_dah
@@ -151,9 +152,22 @@ bootrom_tb.dut.cl_bi_dal
 bootrom_tb.dut.cl_bi_not
 bootrom_tb.dut.cl_c_addc
 bootrom_tb.dut.cl_carry
+bootrom_tb.dut.cl_cco_c
+bootrom_tb.dut.cl_cho_hc
 bootrom_tb.dut.cl_clrs
+bootrom_tb.dut.cl_co_z
+bootrom_tb.dut.cl_decs
 bootrom_tb.dut.cl_eors
+bootrom_tb.dut.cl_idb_abih
+bootrom_tb.dut.cl_idb_abil
+bootrom_tb.dut.cl_idb_dor
 bootrom_tb.dut.cl_idb_ir
+bootrom_tb.dut.cl_idb_pch
+bootrom_tb.dut.cl_idb_pcl
+bootrom_tb.dut.cl_idb_psw
+bootrom_tb.dut.cl_idbs[2:0]
+bootrom_tb.dut.cl_incs
+bootrom_tb.dut.cl_load_db
 bootrom_tb.dut.cl_lsrs
 bootrom_tb.dut.cl_of_prefix_ir
 bootrom_tb.dut.cl_one_addc
@@ -162,11 +176,18 @@ bootrom_tb.dut.cl_ors
 bootrom_tb.dut.cl_pc_dec
 bootrom_tb.dut.cl_pc_inc
 bootrom_tb.dut.cl_pdas
+@22
+bootrom_tb.dut.cl_rfts[3:0]
+@28
 bootrom_tb.dut.cl_rols
 bootrom_tb.dut.cl_rors
 bootrom_tb.dut.cl_sks_sk
+bootrom_tb.dut.cl_store_dor
 bootrom_tb.dut.cl_sums
 bootrom_tb.dut.cl_sums_cco
+bootrom_tb.dut.cl_ui_ie
+bootrom_tb.dut.cl_zero_bi
+bootrom_tb.dut.cl_zero_c
 bootrom_tb.dut.cl_ui_ie
 [pattern_trace] 1
 [pattern_trace] 0

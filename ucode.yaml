@@ -238,8 +238,20 @@ ird:
     # 0x4xx: prefix 0x60
 
     # 0x5xx: prefix 0x64
+    - at: [ 0x598, 0x59f ]      # ANI sr2, byte
+      uaddr: ANI_SR_IMM
+      skipn: 1
+
     - at: [ 0x598, 0x59f ]      # ORI sr2, byte
       uaddr: ORI_SR_IMM
+      skipn: 1
+
+    - at: [ 0x5c8, 0x5cf ]      # ONI sr2, byte
+      uaddr: ONI_SR_IMM
+      skipn: 1
+
+    - at: [ 0x5d8, 0x5df ]      # OFFI sr2, byte
+      uaddr: OFFI_SR_IMM
       skipn: 1
 
     # 0x6xx: prefix 0x70
@@ -399,6 +411,22 @@ urom:
       m1: 1
       bm: END
 
+    - uaddr: ANI_SR_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ANI_SR_IMM_C3_T3
+    - naddr: ORI_SR_IMM_C4_T1
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C4_T3
+      m1: 1
+      bm: END
+
     - uaddr: ORI_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
@@ -409,10 +437,38 @@ urom:
     - naddr: IDLE
     - naddr: IDLE
     - naddr: ORI_SR_IMM_C3_T3
-    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C4_T1
     - naddr: IDLE
     - naddr: ORI_SR_IMM_C4_T3
       m1: 1
+      bm: END
+
+    - uaddr: ONI_SR_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ANI_SR_IMM_C3_T3
+      m1: 1
+    - naddr: ONI_SR_IMM_C4_T1
+      bm: END
+
+    - uaddr: OFFI_SR_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: OFFI_SR_IMM_C3_T3
+      m1: 1
+    - naddr: OFFI_SR_IMM_C4_T1
       bm: END
 
     - uaddr: BLOCK
@@ -789,14 +845,33 @@ nrom:
       # spr -> idb -> AI
       sprs: IR2
       idbs: SPR
+      lts: AI
     - naddr: ORI_SR_IMM_C3_T3
       # AI | BI -> CO
       aluop: OR
+    - naddr: ORI_SR_IMM_C4_T1
+      pswz: 1                   # Update PSW.Z
     - naddr: ORI_SR_IMM_C4_T3
       # CO -> idb -> spr
       idbs: CO
       lts: SPR
       sprs: IR2
+  
+    - naddr: ANI_SR_IMM_C3_T3   # ANI sr2, byte
+      # AI & BI -> CO
+      aluop: AND
+
+    - naddr: OFFI_SR_IMM_C3_T3  # OFFI sr2, byte
+      # AI & ~BI -> CO
+      aluop: AND
+      bin: 1
+    - naddr: OFFI_SR_IMM_C4_T1
+      pswz: 1                   # Update PSW.Z
+      pswsk: Z                  # (CO == 0) -> PSW.SK
+
+    - naddr: ONI_SR_IMM_C4_T1   # ONI sr2, byte
+      pswz: 1                   # Update PSW.Z
+      pswsk: NZ                 # (CO != 0) -> PSW.SK
   
       # BLOCK: (DE)+ <- (HL)+, C <- C - 1, end if borrow
     - naddr: BLOCK_C1_T1
