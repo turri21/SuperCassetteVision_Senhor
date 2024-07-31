@@ -73,6 +73,9 @@ s_ird        ird;
 s_uc         uc;
 e_uaddr      uptr, uptr_next;
 
+s_nc         nc;
+e_naddr      nptr, nptr_next;
+
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_abs        cl_abs, cl_abits;
@@ -166,7 +169,7 @@ assign M1 = m1ext;
 // General-purpose registers
 always @(posedge CLK) begin
   if (cp2n) begin
-    if (uc.lts == ULTS_RF) begin
+    if (nc.lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_V: v <= idb;
         URFS_A: a <= idb;
@@ -193,7 +196,7 @@ end
 // Working register
 always @(posedge CLK) begin
   if (cp2n) begin
-    if ((uc.lts == ULTS_RF) & (uc.rfts == URFS_W)) begin
+    if ((nc.lts == ULTS_RF) & (nc.rfts == URFS_W)) begin
       w <= idb;
     end
   end
@@ -232,7 +235,7 @@ always @(posedge CLK) begin
     sp <= 0;
   end
   else if (cp2p) begin
-    if (uc.lts == ULTS_RF) begin
+    if (nc.lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_SPL: sp[7:0] <= idb;
         URFS_SPH: sp[15:8] <= idb;
@@ -282,7 +285,7 @@ always @(posedge CLK) begin
   end
   else if (cp2n) begin
     if (cl_ui_ie) begin
-      ie <= uc.idx[0];
+      ie <= nc.idx[0];
     end
   end
 end
@@ -316,7 +319,7 @@ end
 
 // rfo: register file output
 always @* begin
-  case (uc.rfos)
+  case (nc.rfos)
     URFS_V: rfo = v;
     URFS_A: rfo = a;
     URFS_B: rfo = b;
@@ -341,7 +344,7 @@ always @* begin
     UIDBS_JRL: idb = {{3{ir[5]}}, ir[4:0]};
     UIDBS_JRH: idb = {8{ir[5]}};
     UIDBS_CO: idb = co;
-    UIDBS_CALT: idb = {1'b1, ir[5:0], uc.idx[0]};
+    UIDBS_CALT: idb = {1'b1, ir[5:0], nc.idx[0]};
     default: idb = 8'hxx;
   endcase
 end
@@ -366,10 +369,10 @@ end
 
 // Inputs
 always @(posedge CLK) begin
-  if (uc.lts == ULTS_AI) begin
+  if (nc.lts == ULTS_AI) begin
     ai <= idb;
   end
-  if (uc.lts == ULTS_BI) begin
+  if (nc.lts == ULTS_BI) begin
     bi <= idb;
   end
   if (cl_zero_bi) begin
@@ -450,7 +453,7 @@ end
 // Skip flag source
 
 always @* begin
-  case (uc.pswsk)
+  case (nc.pswsk)
     USKS_0: skso = 1'b0;
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
@@ -541,16 +544,24 @@ always @* ird = ird_lut[ir];
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-s_uc    uram [256];
+s_uc    urom [256];
+s_nc    nrom [256];
 
 initial begin
-  $readmemb("uram.mem", uram);
+  $readmemb("urom.mem", urom);
+  $readmemb("nrom.mem", nrom);
 end
 
 always_ff @(posedge CLK) begin
   if (cp2n) begin
-    uc <= uram[uptr];
+    uc <= urom[uptr];
   end
+end
+
+// TODO: register this
+always @uc.naddr begin
+  nptr = uc.naddr;
+  nc = nrom[nptr];
 end
 
 always @* begin
@@ -560,20 +571,20 @@ always @* begin
     if (`psw_sk) begin
       case (ird.skipn)
         2'd0: uptr_next = UA_IDLE;
-        2'd1: uptr_next = UA_SKIP_OP1_T1;
-        2'd2: uptr_next = UA_SKIP_OP2_T1;
+        2'd1: uptr_next = UA_SKIP_OP1;
+        2'd2: uptr_next = UA_SKIP_OP2;
         default: ;
       endcase
     end
     else begin
-      uptr_next = ird.addr;
+      uptr_next = ird.uaddr;
     end
   end
   else begin
     case (uc.bm)
       UBM_ADV: uptr_next = e_uaddr'(uptr_next + 1'd1);
       UBM_END: uptr_next = UA_IDLE;
-      UBM_DA: uptr_next = uc.nua;
+      //UBM_DA: uptr_next = uc.nua;
       default: ;
     endcase
   end
@@ -621,54 +632,56 @@ function e_abs resolve_abs_ir(e_abs in);
 endfunction
 
 initial cl_idb_psw = 0;
-initial cl_co_z = uc.pswz;
-always @* cl_cco_c = uc.pswcy;
+initial cl_co_z = nc.pswz;
+always @* cl_cco_c = nc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
-always @* cl_cho_hc = uc.pswhc;
-always @* cl_sks_sk = (uc.bm == UBM_END) | m1_skip;
+always @* cl_cho_hc = nc.pswhc;
+// Need another way to detect UC IDLE
+//always @* cl_sks_sk = ((uc.naddr != NA_IDLE) & (uc.bm == UBM_END)) | m1_skip;
+always @* cl_sks_sk = of_done | (nc.pswsk != USKS_0);
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
-always @* cl_ab_aor = oft[0] | uc.aout;
-always @* cl_idb_dor = (uc.lts == ULTS_DOR);
-always @* cl_store_dor = uc.store;
-always @* cl_load_db = oft[1] | uc.load;
-always @* cl_rfts = resolve_rfs_ir(uc.rfts);
-always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : uc.idbs);
-always @* cl_idb_pcl = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCL);
-always @* cl_idb_pch = (uc.lts == ULTS_RF) & (uc.rfts == URFS_PCH);
-always @* cl_pc_inc = uc.pc_inc;
-always @* cl_pc_dec = (uc.abs == UABS_PC) & cl_abi_dec;
+always @* cl_ab_aor = oft[0] | nc.aout;
+always @* cl_idb_dor = (nc.lts == ULTS_DOR);
+always @* cl_store_dor = nc.store;
+always @* cl_load_db = oft[1] | nc.load;
+always @* cl_rfts = resolve_rfs_ir(nc.rfts);
+always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : nc.idbs);
+always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
+always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
+always @* cl_pc_inc = nc.pc_inc;
+always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec;
 always @* cl_abi_pc = oft[3] | cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
-always @* cl_ui_ie = uc.lts == ULTS_IE;
-always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(uc.abs));
-always @* cl_abits = resolve_abs_ir(uc.abits);
+always @* cl_ui_ie = nc.lts == ULTS_IE;
+always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(nc.abs));
+always @* cl_abits = resolve_abs_ir(nc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
-always @* cl_abi_inc = oft[3] | cl_pc_inc | uc.ab_inc;
-always @* cl_abi_dec = uc.ab_dec;
+always @* cl_abi_inc = oft[3] | cl_pc_inc | nc.ab_inc;
+always @* cl_abi_dec = nc.ab_dec;
 initial cl_sums_cco = 1'b1;
-always @* cl_carry = uc.cis == UCIS_CCO;
-always @* cl_one_addc = uc.cis == UCIS_1;
-always @* cl_c_addc = uc.cis == UCIS_PSW_CY;
-always @* cl_zero_bi = uc.bi0;
-always @* cl_bi_not = uc.bin;
+always @* cl_carry = nc.cis == UCIS_CCO;
+always @* cl_one_addc = nc.cis == UCIS_1;
+always @* cl_c_addc = nc.cis == UCIS_PSW_CY;
+always @* cl_zero_bi = nc.bi0;
+always @* cl_bi_not = nc.bin;
 initial cl_bi_dah = 0;
 initial cl_bi_dal = 0;
 initial cl_pdas = 0;
 initial cl_clrs = 0;
-always @* cl_sums = uc.aluop == UAO_SUM;
-always @* cl_incs = uc.aluop == UAO_INC;
-always @* cl_decs = uc.aluop == UAO_DEC;
-always @* cl_ors =  uc.aluop == UAO_OR;
-always @* cl_ands = uc.aluop == UAO_AND;
-always @* cl_eors = uc.aluop == UAO_EOR;
-always @* cl_asls = uc.aluop == UAO_ASL;
-always @* cl_rols = uc.aluop == UAO_ROL;
-always @* cl_lsrs = uc.aluop == UAO_LSR;
-always @* cl_rors = uc.aluop == UAO_ROR;
+always @* cl_sums = nc.aluop == UAO_SUM;
+always @* cl_incs = nc.aluop == UAO_INC;
+always @* cl_decs = nc.aluop == UAO_DEC;
+always @* cl_ors =  nc.aluop == UAO_OR;
+always @* cl_ands = nc.aluop == UAO_AND;
+always @* cl_eors = nc.aluop == UAO_EOR;
+always @* cl_asls = nc.aluop == UAO_ASL;
+always @* cl_rols = nc.aluop == UAO_ROL;
+always @* cl_lsrs = nc.aluop == UAO_LSR;
+always @* cl_rors = nc.aluop == UAO_ROR;
 
 
 endmodule

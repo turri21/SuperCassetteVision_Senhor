@@ -1,4 +1,4 @@
-# Code generator for microcode RAM
+# Code generator for microcode ROM
 #
 # Copyright (c) 2024 David Hunter
 #
@@ -19,8 +19,8 @@ def get_type(name):
     return KeyError
 
 
-def get_column(name, tbl='columns'):
-    for t in doc[tbl]:
+def get_column(name, tbl):
+    for t in tbl['columns']:
         if t['name'] == name:
             return t
     return None
@@ -33,16 +33,30 @@ def type_to_int(te, val):
     raise ValueError
 
 
-# Fill in values of enum e_uaddr
-get_type('e_uaddr')['values'] = list(r['addr'] for r in doc['rows'])
+def get_all_addresses(tbl, col):
+    ret = []
+    v = 0
+    for r in tbl['rows']:
+        if col in r:
+            a = r[col]
+        else:
+            a = f"_{v:X}"
+        ret.append(a)
+        v = v + 1
+    return ret
 
 
-def gen_struct(f, stname, cols):
+# Fill in values of enums e_uaddr, e_naddr
+get_type('e_uaddr')['values'] = get_all_addresses(doc['urom'], 'uaddr')
+get_type('e_naddr')['values'] = get_all_addresses(doc['nrom'], 'naddr')
+
+
+def gen_struct(f, stname, tbl):
     f.write("typedef struct packed\n")
     f.write("{\n")
 
     stw = 0
-    for c in doc[cols]:
+    for c in tbl['columns']:
         if 'type' in c:
             te = get_type(c['type'])
             (t, w) = (te['name'], te['width'])
@@ -71,39 +85,39 @@ with open('uc-types.svh', 'w') as f:
             f.write(f"}} {name};    // {t['desc']}\n")
             f.write("\n")
 
-    gen_struct(f, 's_ird', 'columns_ird')
-    ram_w = gen_struct(f, 's_uc', 'columns')
+    gen_struct(f, 's_ird', doc['ird'])
+    urom_w = gen_struct(f, 's_uc', doc['urom'])
+    nrom_w = gen_struct(f, 's_nc', doc['nrom'])
 
 
 with open('uc-ird.svh', 'w') as f:
-    for r in doc['rows']:
-        if 'at' in r:
-            at = r['at']
-            if isinstance(at, list):
-                at = range(at[0], at[1] + 1)
-            else:
-                at = [at]
-            for a in at:
-                st = []
-                for c in doc['columns_ird']:
-                    name = c['name']
-                    v = r[name] if name in r else '0'
-                    if 'type' in c:
-                        te = get_type(c['type'])
-                        v = f"{te['prefix']}{v}"
-                    else:
-                        v = f"{c['width']}'d{v}"
-                    st.append(v)
-                v = '{' + ', '.join(st) + '}'
-                f.write(f"    ird_lut['h{a:03x}] = {v};\n")
+    for r in doc['ird']['rows']:
+        at = r['at']
+        if isinstance(at, list):
+            at = range(at[0], at[1] + 1)
+        else:
+            at = [at]
+        for a in at:
+            st = []
+            for c in doc['ird']['columns']:
+                name = c['name']
+                v = r[name] if name in r else '0'
+                if 'type' in c:
+                    te = get_type(c['type'])
+                    v = f"{te['prefix']}{v}"
+                else:
+                    v = f"{c['width']}'d{v}"
+                st.append(v)
+            v = '{' + ', '.join(st) + '}'
+            f.write(f"    ird_lut['h{a:03x}] = {v};\n")
 
 
-with open('uram.mem', 'w') as f:
-    for r in doc['rows']:
-        #print(r['addr'])
-        bs = '0' * ram_w
+def gen_rom(f, tbl, rom_w):
+    for r in tbl['rows']:
+        #print(r)
+        bs = '0' * rom_w
         for k, v in r.items():
-            c = get_column(k)
+            c = get_column(k, tbl)
             if c is None:
                 continue
             if 'type' in c:
@@ -118,3 +132,11 @@ with open('uram.mem', 'w') as f:
             bv = '0' * (w - len(bv)) + bv
             bs = bs[:start] + bv + bs[end:]
         f.write(bs + "\n")
+
+
+with open('urom.mem', 'w') as f:
+    gen_rom(f, doc['urom'], urom_w)
+
+
+with open('nrom.mem', 'w') as f:
+    gen_rom(f, doc['nrom'], nrom_w)

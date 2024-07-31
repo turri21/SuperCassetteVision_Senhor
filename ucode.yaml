@@ -1,4 +1,4 @@
-# Microcode RAM data description
+# Microcode / nanocode ROM data description
 #
 # Copyright (c) 2024 David Hunter
 #
@@ -10,7 +10,14 @@ types:
     type: enum
     width: 8
     prefix: UA_
-    # values will come from the rows list
+    # values will come from the ucode.rows list
+
+  - name: e_naddr
+    desc: ncode address
+    type: enum
+    width: 8
+    prefix: NA_
+    # values will come from the ncode.rows list
 
   - name: e_ubm
     desc: branch mode
@@ -150,764 +157,857 @@ types:
       - NZ
 
 
-# Instruction decode LUT (ird_lut) structure
-# LUT rows populated by rows with 'at' fields
-columns_ird:
-  - name: addr
-    type: e_uaddr
-    desc: microcode entry point
-  - name: m1_overlap
-    width: 1
-    desc: New M1 starts immediately
-  - name: skipn
-    width: 2
-    desc: Number of operands to skip when ins. is skipped
+######################################################################
+# Instruction decode LUT (ird_lut)
+ird:
+  columns:
+    - name: uaddr
+      type: e_uaddr
+      desc: microcode entry point
+    - name: m1_overlap
+      width: 1
+      desc: New M1 starts immediately
+    - name: skipn
+      width: 2
+      desc: Number of operands to skip when ins. is skipped
+
+  rows:
+    # no prefix opcode
+
+    - at: 0x04                  # LXI SP, bbaa
+      uaddr: LXI_SP
+      skipn: 2
+    - at: 0x08                  # RET
+      uaddr: RET
+    - at: 0x14                  # LXI BC, bbaa
+      uaddr: LXI_B
+      skipn: 2
+    - at: 0x24                  # LXI DE, bbaa
+      uaddr: LXI_D
+      skipn: 2
+    - at: 0x31                  # BLOCK
+      uaddr: BLOCK
+    - at: 0x34                  # LXI HL, bbaa
+      uaddr: LXI_H
+      skipn: 2
+    - at: 0x38                  # STAW wa
+      uaddr: STAW
+      skipn: 1
+    - at: 0x3b                  # STAX H
+      uaddr: STAX_H
+    - at: 0x3d                  # STAX H+
+      uaddr: STAX_HP
+    - at: [ 0x48, 0x4b ]        # MVIX rpa1, byte
+      uaddr: MVIX_IMM
+      skipn: 1
+    - at: 0x4E                  # JRE +jdisp
+      uaddr: JRE
+    - at: 0x52                  # DCR B
+      uaddr: DCR_B
+      m1_overlap: 1
+    - at: 0x53                  # DCR C
+      uaddr: DCR_C
+      m1_overlap: 1
+    - at: 0x54                  # JMP word
+      uaddr: JMP
+      skipn: 2
+    - at: 0x67                  # NEI A, byte
+      uaddr: NEI_IMM_A
+    - at: [ 0x68, 0x6F ]        # MVI r, byte
+      uaddr: MVI_IMM
+      skipn: 1
+    - at: [ 0x80, 0xBF ]        # CALT
+      uaddr: CALT
+    - at: [ 0xC0, 0xFF ]        # JR
+      uaddr: JR
+
+    # 0x1xx: prefix 0x48
+    - at: 0x120                 # EI
+      uaddr: EI
+      m1_overlap: 1
+    - at: 0x124                 # DI
+      uaddr: DI
+      m1_overlap: 1
+
+    # 0x2xx: prefix 0x4C
+
+    # 0x3xx: prefix 0x4D
+    - at: [ 0x3C0, 0x3FF ]      # MOV sr, A
+      uaddr: MOV_SR_A
+
+    # 0x4xx: prefix 0x60
+
+    # 0x5xx: prefix 0x64
+    - at: [ 0x598, 0x59f ]      # ORI sr2, byte
+      uaddr: ORI_SR_IMM
+      skipn: 1
+
+    # 0x6xx: prefix 0x70
+    - at: [ 0x668, 0x66f ]      # MOV r, word
+      uaddr: MOV_ABS
+      skipn: 2
 
 
-# Microcode RAM structure
-columns:
-  - name: bm
-    type: e_ubm
-    desc: branch mode
-  - name: nua
-    type: e_uaddr
-    desc: next address
-  - name: idx
-    width: 3
-    desc: general-purpose data
-  - name: rfos
-    type: e_urfs
-    desc: register file output select -> idb
-  - name: rfts
-    type: e_urfs
-    desc: register file target select
-  - name: idbs
-    type: e_idbs
-    desc: idb select
-  - name: lts
-    type: e_lts
-    desc: load target select
-  - name: abs
-    type: e_abs
-    desc: ab select
-  - name: abits
-    type: e_abs
-    desc: abi target select
-  - name: m1
-    width: 1
-    desc: Fetch next opcode (start M1)
-  - name: pc_inc
-    width: 1
-    desc: increment PC
-  - name: ab_inc
-    width: 1
-    desc: increment ab
-  - name: ab_dec
-    width: 1
-    desc: decrement ab
-  - name: aout
-    width: 1
-    desc: ab -> AOR
-  - name: load
-    width: 1
-    desc: assert RDB (read operation)
-  - name: store
-    width: 1
-    desc: dor -> DB
-  - name: aluop
-    type: e_aluop
-    desc: ALU operation
-  - name: cis
-    type: e_cis
-    desc: ALU carry in select
-  - name: bi0
-    width: 1
-    desc: Zero BI
-  - name: bin
-    width: 1
-    desc: Negate BI
-  - name: pswz
-    width: 1
-    desc: (CO == 0) -> PSW.Z
-  - name: pswcy
-    width: 1
-    desc: CCO -> PSW.CY
-  - name: pswhc
-    width: 1
-    desc: CHO -> PSW.HC
-  - name: pswsk
-    type: e_sks
-    desc: PSW.SK source
+######################################################################
+# Microcode ROM
+# Lists nanocode addresses for each step of every instruction
+urom:
+  columns:
+    - name: naddr
+      type: e_naddr
+      desc: nanocode address
+    - name: bm
+      type: e_ubm
+      desc: branch mode
+    - name: m1
+      width: 1
+      desc: Fetch next opcode (start M1)
+
+  rows:
+    - uaddr: IDLE
+      naddr: IDLE
+      bm: END
+
+      # Idle cycles for skipping instructions w/ 1-2 operands
+    - uaddr: SKIP_OP2
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: IDLE
+    - uaddr: SKIP_OP1
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: DI
+      naddr: DI_C1_T1
+      bm: END
+
+    - uaddr: EI
+      naddr: EI_C1_T1
+      bm: END
+
+    - uaddr: JR
+      naddr: JR_C1_T1
+    - naddr: JR_C1_T2
+    - naddr: JR_C1_T3
+    - naddr: JR_C2_T1
+    - naddr: JR_C2_T2
+    - naddr: JR_C2_T3
+    - naddr: JR_C3_T1
+    - naddr: JR_C3_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: JRE
+      naddr: PC_OUT_INC_T1      # Fetch jdisp
+    - naddr: JRE_C1_T2
+    - naddr: JRE_C1_T3
+    - naddr: JRE_C2_T1
+    - naddr: JRE_C2_T2
+    - naddr: JRE_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LXI_SP
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_SP_C1_T3
+    - naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_SP_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LXI_B
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_B_C1_T3
+    - naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_B_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LXI_D
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_D_C1_T3
+    - naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_D_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LXI_H
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_H_C1_T3
+    - naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: LXI_H_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: DCR_B
+      naddr: DCR_B_C1_T1
+    - naddr: DCR_B_C1_T2
+      bm: END
+
+    - uaddr: DCR_C
+      naddr: DCR_C_C1_T1
+    - naddr: DCR_C_C1_T2
+      bm: END
+
+    - uaddr: MVI_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_IR210_T3
+      m1: 1
+      bm: END
+
+    - uaddr: MOV_SR_A
+      naddr: MOV_SR_A_C1_T1
+    - naddr: IDLE
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: STAX_H
+      naddr: STAX_H_C1_T1
+    - naddr: STORE_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: STAX_HP
+      naddr: STAX_H_C1_T1
+    - naddr: STAX_HP_C1_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: STAW
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: STAW_C1_T3
+    - naddr: STAW_C2_T1
+    - naddr: STORE_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: ORI_SR_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C3_T3
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: ORI_SR_IMM_C4_T3
+      m1: 1
+      bm: END
+
+    - uaddr: BLOCK
+      naddr: BLOCK_C1_T1
+    - naddr: BLOCK_C1_T2
+    - naddr: BLOCK_C1_T3
+    - naddr: BLOCK_C2_T1
+    - naddr: BLOCK_C2_T2
+    - naddr: BLOCK_C2_T3
+    - naddr: BLOCK_C3_T1
+    - naddr: BLOCK_C3_T2
+    - naddr: BLOCK_C3_T3
+      m1: 1
+      bm: END
+
+    - uaddr: JMP
+      naddr: PC_OUT_INC_T1      # Fetch word lo
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: JMP_C2_T1          # Fetch word hi
+    - naddr: JMP_C2_T2
+    - naddr: JMP_C2_T3
+      m1: 1
+      bm: END
+
+      # MOV r, word (Move Memory to Register)
+    - uaddr: MOV_ABS
+      naddr: PC_OUT_INC_T1      # Fetch word lo
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: PC_OUT_INC_T1      # Fetch word hi
+    - naddr: LOAD_T2
+    - naddr: MOV_ABS_C2_T3
+    - naddr: MOV_ABS_C3_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_IR210_T3
+      m1: 1
+      bm: END
+
+      # NEI A, byte (Not Equal Immediate with A)
+    - uaddr: NEI_IMM_A
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NEI_IMM_A_C1_T2
+    - naddr: NEI_IMM_A_C1_T3
+      m1: 1
+    - naddr: NEI_IMM_A_C2_T1
+      bm: END
+
+      # MVIX rpa1, byte (Move Imm. to Memory naddress by Reg Pair)
+    - uaddr: MVIX_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: MVIX_IMM_C2_T1
+    - naddr: STORE_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+      # CALT (Call Table naddress)
+    - uaddr: CALT
+      naddr: CALT_C1_T1         # SP <- SP-1
+    - naddr: IDLE
+    - naddr: CALT_C1_T3
+    - naddr: CALT_C2_T1         # (SP) <- PCH, SP <- SP-1
+    - naddr: STORE_T2
+    - naddr: CALT_C2_T3
+    - naddr: CALT_C3_T1         # (SP) <- PCL
+    - naddr: STORE_T2
+    - naddr: CALT_C3_T3
+    - naddr: CALT_C4_T1         # PCL <- (128 + 2ta)
+    - naddr: CALT_C4_T2
+    - naddr: CALT_C4_T3
+    - naddr: CALT_C5_T1         # PCH <- (129 + 2ta)
+    - naddr: CALT_C5_T2
+    - naddr: CALT_C5_T3
+      m1: 1
+      bm: END
+
+      # RET (Return from subroutine)
+    - uaddr: RET
+      naddr: RET_C1_T1          # PCL <- (SP), SP <- SP+1
+    - naddr: RET_C1_T2
+    - naddr: RET_C1_T3
+    - naddr: RET_C2_T1          # PCH <- (SP), SP <- SP+1
+    - naddr: RET_C2_T2
+    - naddr: RET_C2_T3
+      m1: 1
+      bm: END
 
 
-rows:
-  - addr: IDLE
-    bm: DA
-    nua: IDLE
-
-    # Idle cycles for skipping instructions w/ 1-2 operands
-  - addr: SKIP_OP2_T1
-    aout: 1
-    pc_inc: 1
-  - addr: SKIP_OP2_T2
-    load: 1
-  - addr: SKIP_OP2_T3
-  - addr: SKIP_OP1_T1
-    aout: 1
-    pc_inc: 1
-  - addr: SKIP_OP1_T2
-    load: 1
-  - addr: SKIP_OP1_T3
-    m1: 1
-    bm: END
-
-  - addr: DI
-    at: 0x124                   # prefix 0x48
-    m1_overlap: 1
-    idx: 0
-    lts: IE
-    bm: END
-
-  - addr: EI
-    at: 0x120                   # prefix 0x48
-    m1_overlap: 1
-    idx: 1
-    lts: IE
-    bm: END
-
-  - addr: JR_C1_T1
-    at: [ 0xC0, 0xFF ]
-    # PCL -> idb -> AI
-    rfos: PCL
-    idbs: RF
-    lts: AI
-  - addr: JR_C1_T2
-    # IR[5:0] -> idb -> BI
-    idbs: JRL
-    lts: BI
-  - addr: JR_C1_T3
-    # AI + BI -> CO
-    aluop: SUM
-    cis: 0
-  - addr: JR_C2_T1
-    # CO -> idb -> PCL
-    idbs: CO
-    lts: RF
-    rfts: PCL
-  - addr: JR_C2_T2
-    # PCH -> idb -> AI
-    rfos: PCH
-    idbs: RF
-    lts: AI
-  - addr: JR_C2_T3
-    # sign-ext. IR[5] -> idb -> BI
-    idbs: JRH
-    lts: BI
-  - addr: JR_C3_T1
-    # AI + BI + CCO -> CO
-    aluop: SUM
-    cis: CCO
-  - addr: JR_C3_T2
-    # CO -> idb -> PCH
-    idbs: CO
-    lts: RF
-    rfts: PCH
-  - addr: JR_C3_T3
-    bm: END
-    m1: 1
-
-  - addr: JRE_C1_T1
-    at: 0x4E                    # JRE +jdisp
-    # Fetch jdisp
-    aout: 1
-    pc_inc: 1
-  - addr: JRE_C1_T2
-    # PCL -> idb -> AI
-    rfos: PCL
-    idbs: RF
-    lts: AI
-    load: 1
-  - addr: JRE_C1_T3
-    # DB -> idb -> BI
-    idbs: DB
-    lts: BI
-    # AI + BI -> CO
-    aluop: SUM
-    cis: 0
-  - addr: JRE_C2_T1
-    # CO -> idb -> PCL
-    idbs: CO
-    lts: RF
-    rfts: PCL
-  - addr: JRE_C2_T2
-    # PCH -> idb -> AI, 0 -> BI
-    rfos: PCH
-    idbs: RF
-    lts: AI
-    bi0: 1
-    # AI + BI + CCO -> CO
-    aluop: SUM
-    cis: CCO
-  - addr: JRE_C2_T3
-    # CO -> idb -> PCH
-    idbs: CO
-    lts: RF
-    rfts: PCH
-    bm: END
-    m1: 1
-
-    # LXI SP, bbaa
-  - addr: LXI_SP_C1_T1
-    at: 0x04
-    skipn: 2
-    aout: 1
-  - addr: LXI_SP_C1_T2
-    load: 1
-  - addr: LXI_SP_C1_T3
-    # DB -> idb -> SPL
-    idbs: DB
-    rfts: SPL
-    lts: RF
-    pc_inc: 1
-  - addr: LXI_SP_C2_T1
-    aout: 1
-  - addr: LXI_SP_C2_T2
-    load: 1
-  - addr: LXI_SP_C2_T3
-    # DB -> idb -> SPH
-    idbs: DB
-    rfts: SPH
-    lts: RF
-    pc_inc: 1
-    bm: END
-    m1: 1
-
-  - addr: LXI_B_C1_T1
-    at: 0x14                    # LXI BC, bbaa
-    skipn: 2
-    aout: 1
-  - addr: LXI_B_C1_T2
-    load: 1
-  - addr: LXI_B_C1_T3
-    # DB -> idb -> C
-    idbs: DB
-    rfts: C
-    lts: RF
-    pc_inc: 1
-  - addr: LXI_B_C2_T1
-    aout: 1
-  - addr: LXI_B_C2_T2
-    load: 1
-  - addr: LXI_B_C2_T3
-    # DB -> idb -> B
-    idbs: DB
-    rfts: B
-    lts: RF
-    pc_inc: 1
-    bm: END
-    m1: 1
-
-    # LXI DE, bbaa
-  - addr: LXI_D_C1_T1
-    at: 0x24
-    skipn: 2
-    aout: 1
-  - addr: LXI_D_C1_T2
-    load: 1
-  - addr: LXI_D_C1_T3
-    # DB -> idb -> E
-    idbs: DB
-    rfts: E
-    lts: RF
-    pc_inc: 1
-  - addr: LXI_D_C2_T1
-    aout: 1
-  - addr: LXI_D_C2_T2
-    load: 1
-  - addr: LXI_D_C2_T3
-    # DB -> idb -> D
-    idbs: DB
-    rfts: D
-    lts: RF
-    pc_inc: 1
-    bm: END
-    m1: 1
-
-  - addr: LXI_H_C1_T1
-    at: 0x34                    # LXI HL, bbaa
-    skipn: 2
-    aout: 1
-  - addr: LXI_H_C1_T2
-    load: 1
-  - addr: LXI_H_C1_T3
-    # DB -> idb -> L
-    idbs: DB
-    rfts: L
-    lts: RF
-    pc_inc: 1
-  - addr: LXI_H_C2_T1
-    aout: 1
-  - addr: LXI_H_C2_T2
-    load: 1
-  - addr: LXI_H_C2_T3
-    # DB -> idb -> H
-    idbs: DB
-    rfts: H
-    lts: RF
-    pc_inc: 1
-    bm: END
-    m1: 1
-
-  - addr: DCR_B_C1_T1
-    at: 0x52                    # DCR B
-    m1_overlap: 1
-    # B -> idb -> AI, AI - 1 -> CO
-    rfos: B
-    idbs: RF
-    lts: AI
-    aluop: DEC
-  - addr: DCR_B_C1_T2
-    # CO -> idb -> B
-    rfts: B
-    idbs: CO
-    lts: RF
-    pswz: 1                     # Update PSW.Z
-    pswhc: 1                    # Update PSW.HC
-    pswsk: NC                   # !CCO -> PSW.SK
-    bm: END
-
-  - addr: DCR_C_C1_T1
-    at: 0x53                    # DCR C
-    m1_overlap: 1
-    # C -> idb -> AI, AI - 1 -> CO
-    rfos: C
-    idbs: RF
-    lts: AI
-    aluop: DEC
-  - addr: DCR_C_C1_T2
-    # CO -> idb -> C
-    rfts: C
-    idbs: CO
-    lts: RF
-    pswz: 1                     # Update PSW.Z
-    pswhc: 1                    # Update PSW.HC
-    pswsk: NC                   # !CCO -> PSW.SK
-    bm: END
-
-  - addr: MVI_IMM_C1_T1
-    at: [ 0x68, 0x6F ]          # MVI r, byte
-    skipn: 1
-    aout: 1
-  - addr: MVI_IMM_C1_T2
-    load: 1
-  - addr: MVI_IMM_C1_T3
-    # DB -> idb -> r
-    idbs: DB
-    rfts: IR210
-    lts: RF
-    pc_inc: 1
-    bm: END
-    m1: 1
-
-  - addr: MOV_SR_A_C1_T1
-    at: [ 0x3C0, 0x3FF ]        # MOV sr, A
-    # A -> idb -> spr
-    rfos: A
-    idbs: RF
-    lts: SPR
-    sprs: IR3
-  - addr: MOV_SR_A_C1_T2
-  - addr: MOV_SR_A_C1_T3
-    bm: END
-    m1: 1
-
-  - addr: STAX_H_C1_T1
-    at: 0x3b                    # STAX H
-    # HL -> ab -> aor
-    abs: HL
-    aout: 1
-    # A -> idb -> dor
-    rfos: A
-    idbs: RF
-    lts: DOR
-  - addr: STAX_H_C1_T2
-    # dor -> DB
-    store: 1
-  - addr: STAX_H_C1_T3
-    m1: 1
-    bm: END
-
-  - addr: STAX_HP_C1_T1
-    at: 0x3d                    # STAX H+
-    # HL -> ab -> aor
-    abs: HL
-    aout: 1
-    # A -> idb -> dor
-    rfos: A
-    idbs: RF
-    lts: DOR
-  - addr: STAX_HP_C1_T2
-    # dor -> DB
-    store: 1
-    # HL + 1 -> HL
-    abs: HL
-    ab_inc: 1
-    abits: HL
-  - addr: STAX_HP_C1_T3
-    m1: 1
-    bm: END
-
-  - addr: STAW_C1_T1
-    at: 0x38                    # STAW wa
-    skipn: 1
-    aout: 1
-  - addr: STAW_C1_T2
-    load: 1
-  - addr: STAW_C1_T3
-    # DB -> idb -> W
-    idbs: DB
-    rfts: W
-    lts: RF
-    pc_inc: 1
-  - addr: STAW_C2_T1
-    # A -> idb -> dor
-    rfos: A
-    idbs: RF
-    lts: DOR
-    # VW -> ab -> aor
-    abs: VW
-    aout: 1
-  - addr: STAW_C2_T2
-    # dor -> DB
-    store: 1
-  - addr: STAW_C2_T3
-    m1: 1
-    bm: END
-
-    # ORI sr2, byte
-  - addr: ORI_SR_IMM_C1_T1
-    at: [ 0x598, 0x59f ]        # prefix 0x64
-    skipn: 1
-    aout: 1
-  - addr: ORI_SR_IMM_C1_T2
-    load: 1
-  - addr: ORI_SR_IMM_C1_T3
-    # DB -> idb -> BI
-    idbs: DB
-    lts: BI
-    pc_inc: 1
-  - addr: ORI_SR_IMM_C2_T1
-  - addr: ORI_SR_IMM_C2_T2
-  - addr: ORI_SR_IMM_C2_T3
-    # spr -> idb -> AI
-    sprs: IR2
-    idbs: SPR
-  - addr: ORI_SR_IMM_C3_T1
-  - addr: ORI_SR_IMM_C3_T2
-  - addr: ORI_SR_IMM_C3_T3
-    # AI | BI -> CO
-    aluop: OR
-  - addr: ORI_SR_IMM_C4_T1
-  - addr: ORI_SR_IMM_C4_T2
-  - addr: ORI_SR_IMM_C4_T3
-    # CO -> idb -> spr
-    idbs: CO
-    lts: SPR
-    sprs: IR2
-    m1: 1
-    bm: END
-
-    # BLOCK: (DE)+ <- (HL)+, C <- C - 1, end if borrow
-  - addr: BLOCK_C1_T1
-    at: 0x31
-    # HL -> ab -> aor
-    abs: HL
-    aout: 1
-  - addr: BLOCK_C1_T2
-    # HL + 1 -> HL
-    abs: HL
-    ab_inc: 1
-    abits: HL
-    load: 1
-  - addr: BLOCK_C1_T3
-    # DB -> idb -> W
-    idbs: DB
-    rfts: W
-    lts: RF
-  - addr: BLOCK_C2_T1
-    # W -> idb -> dor
-    rfos: W
-    idbs: RF
-    lts: DOR
-    # DE -> ab -> aor
-    abs: DE
-    aout: 1
-  - addr: BLOCK_C2_T2
-    # dor -> DB
-    store: 1
-    # DE + 1 -> DE
-    abs: DE
-    ab_inc: 1
-    abits: DE
-  - addr: BLOCK_C2_T3
-  - addr: BLOCK_C3_T1
-    # C -> idb -> AI, AI - 1 -> CO
-    rfos: C
-    idbs: RF
-    lts: AI
-    aluop: DEC
-  - addr: BLOCK_C3_T2
-    # CO -> idb -> C
-    rfts: C
-    idbs: CO
-    lts: RF
-  - addr: BLOCK_C3_T3
-    pswsk: NC                   # !CCO -> PSW.SK
-    abs: PC
-    ab_dec: 1                   # repeat ins. until skipped
-    m1: 1
-    bm: END
-
-    # JMP word
-  - addr: JMP_C1_T1
-    at: 0x54
-    skipn: 2
-    # Fetch word lo
-    aout: 1
-    pc_inc: 1
-  - addr: JMP_C1_T2
-    load: 1
-  - addr: JMP_C1_T3
-    # DB -> idb -> W
-    idbs: DB
-    rfts: W
-    lts: RF
-  - addr: JMP_C2_T1
-    # Fetch word hi
-    aout: 1
-  - addr: JMP_C2_T2
-    # W -> idb -> PCL
-    rfos: W
-    idbs: RF
-    lts: RF
-    rfts: PCL
-    load: 1
-  - addr: JMP_C2_T3
-    # DB -> idb -> PCH
-    idbs: DB
-    lts: RF
-    rfts: PCH
-    bm: END
-    m1: 1
-
-    # MOV r, word (Move Memory to Register)
-  - addr: MOV_ABS_C1_T1
-    at: [ 0x668, 0x66f ]        # prefix 0x70
-    skipn: 2
-    # Fetch word lo
-    aout: 1
-    pc_inc: 1
-  - addr: MOV_ABS_C1_T2
-    load: 1
-  - addr: MOV_ABS_C1_T3
-    # DB -> idb -> W
-    idbs: DB
-    rfts: W
-    lts: RF
-  - addr: MOV_ABS_C2_T1
-    # Fetch word hi
-    aout: 1
-    pc_inc: 1
-  - addr: MOV_ABS_C2_T2
-    load: 1
-  - addr: MOV_ABS_C2_T3
-    # DB -> idb -> AI, 0 -> BI
-    idbs: DB
-    lts: AI
-    bi0: 1
-    # AI + BI -> CO
-    aluop: SUM
-  - addr: MOV_ABS_C3_T1
-    # W -> abl -> aorl, CO -> idb -> abh -> aorh
-    idbs: CO
-    abs: IDB_W
-    aout: 1
-  - addr: MOV_ABS_C3_T2
-    load: 1
-  - addr: MOV_ABS_C3_T3
-    # DB -> idb -> r
-    idbs: DB
-    rfts: IR210
-    lts: RF
-    bm: END
-    m1: 1
-
-    # NEI A, byte (Not Equal Immediate with A)
-  - addr: NEI_IMM_A_C1_T1
-    at: 0x67
-    # Fetch byte
-    aout: 1
-    pc_inc: 1
-  - addr: NEI_IMM_A_C1_T2
-    # A -> idb -> AI
-    rfos: A
-    idbs: RF
-    lts: AI
-    load: 1
-  - addr: NEI_IMM_A_C1_T3
-    # DB -> idb -> BI
-    idbs: DB
-    lts: BI
-    # AI - BI -> CO
-    aluop: SUM
-    bin: 1
-    cis: 1
-    m1: 1
-  - addr: NEI_IMM_A_C2_T1
-    idbs: CO
-    pswz: 1                     # Update PSW.Z
-    pswcy: 1                    # Update PSW.CY
-    pswhc: 1                    # Update PSW.HC
-    pswsk: NZ                   # Update PSW.SK
-    bm: END
-
-    # MVIX rpa1, byte (Move Imm. to Memory address by Reg Pair)
-  - addr: MVIX_IMM_C1_T1
-    at: [ 0x48, 0x4b ]
-    skipn: 1
-    # Fetch byte
-    aout: 1
-    pc_inc: 1
-  - addr: MVIX_IMM_C1_T2
-    load: 1
-  - addr: MVIX_IMM_C1_T3
-    # DB -> idb -> W
-    idbs: DB
-    rfts: W
-    lts: RF
-  - addr: MVIX_IMM_C2_T1
-    # W -> idb -> dor
-    rfos: W
-    idbs: RF
-    lts: DOR
-    # DE -> ab -> aor
-    abs: IR10
-    aout: 1
-  - addr: MVIX_IMM_C2_T2
-    # dor -> DB
-    store: 1
-  - addr: MVIX_IMM_C2_T3
-    m1: 1
-    bm: END
-
-    # CALT (Call Table Address)
-  - addr: CALT_C1_T1            # SP <- SP-1
-    at: [ 0x80, 0xBF ]
-    # IR[5:0] -> idb -> AI
-    idbs: JRL
-    lts: AI
-  - addr: CALT_C1_T2
-  - addr: CALT_C1_T3
-    # SP - 1 -> SP
-    abs: SP
-    ab_dec: 1
-    abits: SP
-  - addr: CALT_C2_T1            # (SP) <- PCH, SP <- SP-1
-    # PCH -> idb -> dor
-    rfos: PCH
-    idbs: RF
-    lts: DOR
-    # SP -> ab -> aor
-    abs: SP
-    aout: 1
-  - addr: CALT_C2_T2
-    # dor -> DB
-    store: 1
-  - addr: CALT_C2_T3
-    # SP - 1 -> SP
-    abs: SP
-    ab_dec: 1
-    abits: SP
-  - addr: CALT_C3_T1            # (SP) <- PCL
-    # PCL -> idb -> dor
-    rfos: PCL
-    idbs: RF
-    lts: DOR
-    # SP -> ab -> aor
-    abs: SP
-    aout: 1
-  - addr: CALT_C3_T2
-    # dor -> DB
-    store: 1
-  - addr: CALT_C3_T3
-    # effective addr lo. -> idb -> W
-    idx: 0
-    idbs: CALT
-    lts: RF
-    rfts: W
-  - addr: CALT_C4_T1            # PCL <- (128 + 2ta)
-    # W -> abl -> aorl, 0 -> idb -> abh -> aorh
-    idbs: 0
-    abs: IDB_W
-    aout: 1
-  - addr: CALT_C4_T2
-    load: 1
-    # effective addr hi. -> idb -> W
-    idx: 1
-    idbs: CALT
-    lts: RF
-    rfts: W
-  - addr: CALT_C4_T3
-    # DB -> idb -> PCL
-    idbs: DB
-    lts: RF
-    rfts: PCL
-  - addr: CALT_C5_T1            # PCH <- (129 + 2ta)
-    # W -> abl -> aorl, 0 -> idb -> abh -> aorh
-    idbs: 0
-    abs: IDB_W
-    aout: 1
-  - addr: CALT_C5_T2
-    load: 1
-  - addr: CALT_C5_T3
-    # DB -> idb -> PCH
-    idbs: DB
-    lts: RF
-    rfts: PCH
-    m1: 1
-    bm: END
-
-    # RET (Return from subroutine)
-  - addr: RET_C1_T1             # PCL <- (SP), SP <- SP+1
-    at: 0x08
-    # SP -> ab -> aor
-    abs: SP
-    aout: 1
-  - addr: RET_C1_T2
-    load: 1
-    # SP + 1 -> SP
-    abs: SP
-    ab_inc: 1
-    abits: SP
-  - addr: RET_C1_T3
-    # DB -> idb -> PCL
-    idbs: DB
-    lts: RF
-    rfts: PCL
-  - addr: RET_C2_T1             # PCH <- (SP), SP <- SP+1
-    # SP -> ab -> aor
-    abs: SP
-    aout: 1
-  - addr: RET_C2_T2
-    load: 1
-    # SP + 1 -> SP
-    abs: SP
-    ab_inc: 1
-    abits: SP
-  - addr: RET_C2_T3
-    # DB -> idb -> PCL
-    idbs: DB
-    lts: RF
-    rfts: PCH
-    m1: 1
-    bm: END
+######################################################################
+# Nanocode ROM
+nrom:
+  columns:
+    - name: idx
+      width: 3
+      desc: general-purpose data
+    - name: rfos
+      type: e_urfs
+      desc: register file output select -> idb
+    - name: rfts
+      type: e_urfs
+      desc: register file target select
+    - name: idbs
+      type: e_idbs
+      desc: idb select
+    - name: lts
+      type: e_lts
+      desc: load target select
+    - name: abs
+      type: e_abs
+      desc: ab select
+    - name: abits
+      type: e_abs
+      desc: abi target select
+    - name: pc_inc
+      width: 1
+      desc: increment PC
+    - name: ab_inc
+      width: 1
+      desc: increment ab
+    - name: ab_dec
+      width: 1
+      desc: decrement ab
+    - name: aout
+      width: 1
+      desc: ab -> AOR
+    - name: load
+      width: 1
+      desc: assert RDB (read operation)
+    - name: store
+      width: 1
+      desc: dor -> DB
+    - name: aluop
+      type: e_aluop
+      desc: ALU operation
+    - name: cis
+      type: e_cis
+      desc: ALU carry in select
+    - name: bi0
+      width: 1
+      desc: Zero BI
+    - name: bin
+      width: 1
+      desc: Negate BI
+    - name: pswz
+      width: 1
+      desc: (CO == 0) -> PSW.Z
+    - name: pswcy
+      width: 1
+      desc: CCO -> PSW.CY
+    - name: pswhc
+      width: 1
+      desc: CHO -> PSW.HC
+    - name: pswsk
+      type: e_sks
+      desc: PSW.SK source
+  
+  
+  rows:
+    - naddr: IDLE
+  
+    - naddr: PC_OUT_INC_T1
+      aout: 1
+      pc_inc: 1
+    - naddr: LOAD_T2
+      load: 1
+    - naddr: STORE_T2
+      # dor -> DB
+      store: 1
+  
+    - naddr: DI_C1_T1           # DI
+      idx: 0
+      lts: IE
+  
+    - naddr: EI_C1_T1           # EI
+      idx: 1
+      lts: IE
+  
+    - naddr: JR_C1_T1           # JR (Jump relative)
+      # PCL -> idb -> AI
+      rfos: PCL
+      idbs: RF
+      lts: AI
+    - naddr: JR_C1_T2
+      # IR[5:0] -> idb -> BI
+      idbs: JRL
+      lts: BI
+    - naddr: JR_C1_T3
+      # AI + BI -> CO
+      aluop: SUM
+      cis: 0
+    - naddr: JR_C2_T1
+      # CO -> idb -> PCL
+      idbs: CO
+      lts: RF
+      rfts: PCL
+    - naddr: JR_C2_T2
+      # PCH -> idb -> AI
+      rfos: PCH
+      idbs: RF
+      lts: AI
+    - naddr: JR_C2_T3
+      # sign-ext. IR[5] -> idb -> BI
+      idbs: JRH
+      lts: BI
+    - naddr: JR_C3_T1
+      # AI + BI + CCO -> CO
+      aluop: SUM
+      cis: CCO
+    - naddr: JR_C3_T2
+      # CO -> idb -> PCH
+      idbs: CO
+      lts: RF
+      rfts: PCH
+  
+    - naddr: JRE_C1_T2          # JRE +jdisp
+      # PCL -> idb -> AI
+      rfos: PCL
+      idbs: RF
+      lts: AI
+      load: 1
+    - naddr: JRE_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI + BI -> CO
+      aluop: SUM
+      cis: 0
+    - naddr: JRE_C2_T1
+      # CO -> idb -> PCL
+      idbs: CO
+      lts: RF
+      rfts: PCL
+    - naddr: JRE_C2_T2
+      # PCH -> idb -> AI, 0 -> BI
+      rfos: PCH
+      idbs: RF
+      lts: AI
+      bi0: 1
+      # AI + BI + CCO -> CO
+      aluop: SUM
+      cis: CCO
+    - naddr: JRE_C2_T3
+      # CO -> idb -> PCH
+      idbs: CO
+      lts: RF
+      rfts: PCH
+  
+    - naddr: LXI_SP_C1_T3       # LXI SP, bbaa
+      # DB -> idb -> SPL
+      idbs: DB
+      rfts: SPL
+      lts: RF
+    - naddr: LXI_SP_C2_T3
+      # DB -> idb -> SPH
+      idbs: DB
+      rfts: SPH
+      lts: RF
+  
+    - naddr: LXI_B_C1_T3        # LXI BC, bbaa
+      # DB -> idb -> C
+      idbs: DB
+      rfts: C
+      lts: RF
+    - naddr: LXI_B_C2_T3
+      # DB -> idb -> B
+      idbs: DB
+      rfts: B
+      lts: RF
+  
+    - naddr: LXI_D_C1_T3        # LXI DE, bbaa
+      # DB -> idb -> E
+      idbs: DB
+      rfts: E
+      lts: RF
+    - naddr: LXI_D_C2_T3
+      # DB -> idb -> D
+      idbs: DB
+      rfts: D
+      lts: RF
+  
+    - naddr: LXI_H_C1_T3        # LXI HL, bbaa
+      # DB -> idb -> L
+      idbs: DB
+      rfts: L
+      lts: RF
+    - naddr: LXI_H_C2_T3
+      # DB -> idb -> H
+      idbs: DB
+      rfts: H
+      lts: RF
+  
+    - naddr: DCR_B_C1_T1        # DCR B
+      # B -> idb -> AI, AI - 1 -> CO
+      rfos: B
+      idbs: RF
+      lts: AI
+      aluop: DEC
+    - naddr: DCR_B_C1_T2
+      # CO -> idb -> B
+      rfts: B
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NC                 # !CCO -> PSW.SK
+  
+    - naddr: DCR_C_C1_T1        # DCR C
+      # C -> idb -> AI, AI - 1 -> CO
+      rfos: C
+      idbs: RF
+      lts: AI
+      aluop: DEC
+    - naddr: DCR_C_C1_T2
+      # CO -> idb -> C
+      rfts: C
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NC                 # !CCO -> PSW.SK
+  
+    - naddr: WRITE_DB_TO_IR210_T3
+      # DB -> idb -> r
+      idbs: DB
+      rfts: IR210
+      lts: RF
+  
+    - naddr: MOV_SR_A_C1_T1     # MOV sr, A
+      # A -> idb -> spr
+      rfos: A
+      idbs: RF
+      lts: SPR
+      sprs: IR3
+  
+    - naddr: STAX_H_C1_T1       # STAX H
+      # HL -> ab -> aor
+      abs: HL
+      aout: 1
+      # A -> idb -> dor
+      rfos: A
+      idbs: RF
+      lts: DOR
+  
+    - naddr: STAX_HP_C1_T2      # STAX H+
+      # dor -> DB
+      store: 1
+      # HL + 1 -> HL
+      abs: HL
+      ab_inc: 1
+      abits: HL
+  
+    - naddr: STAW_C1_T3         # STAW wa
+      # DB -> idb -> W
+      idbs: DB
+      rfts: W
+      lts: RF
+    - naddr: STAW_C2_T1
+      # A -> idb -> dor
+      rfos: A
+      idbs: RF
+      lts: DOR
+      # VW -> ab -> aor
+      abs: VW
+      aout: 1
+  
+    - naddr: ORI_SR_IMM_C1_T3   # ORI sr2, byte
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+    - naddr: ORI_SR_IMM_C2_T3
+      # spr -> idb -> AI
+      sprs: IR2
+      idbs: SPR
+    - naddr: ORI_SR_IMM_C3_T3
+      # AI | BI -> CO
+      aluop: OR
+    - naddr: ORI_SR_IMM_C4_T3
+      # CO -> idb -> spr
+      idbs: CO
+      lts: SPR
+      sprs: IR2
+  
+      # BLOCK: (DE)+ <- (HL)+, C <- C - 1, end if borrow
+    - naddr: BLOCK_C1_T1
+      # HL -> ab -> aor
+      abs: HL
+      aout: 1
+    - naddr: BLOCK_C1_T2
+      # HL + 1 -> HL
+      abs: HL
+      ab_inc: 1
+      abits: HL
+      load: 1
+    - naddr: BLOCK_C1_T3
+      # DB -> idb -> W
+      idbs: DB
+      rfts: W
+      lts: RF
+    - naddr: BLOCK_C2_T1
+      # W -> idb -> dor
+      rfos: W
+      idbs: RF
+      lts: DOR
+      # DE -> ab -> aor
+      abs: DE
+      aout: 1
+    - naddr: BLOCK_C2_T2
+      # dor -> DB
+      store: 1
+      # DE + 1 -> DE
+      abs: DE
+      ab_inc: 1
+      abits: DE
+    - naddr: BLOCK_C2_T3
+    - naddr: BLOCK_C3_T1
+      # C -> idb -> AI, AI - 1 -> CO
+      rfos: C
+      idbs: RF
+      lts: AI
+      aluop: DEC
+    - naddr: BLOCK_C3_T2
+      # CO -> idb -> C
+      rfts: C
+      idbs: CO
+      lts: RF
+    - naddr: BLOCK_C3_T3
+      pswsk: NC                 # !CCO -> PSW.SK
+      abs: PC
+      ab_dec: 1                 # repeat ins. until skipped
+  
+    - naddr: WRITE_DB_TO_W_T3   # JMP word
+      # DB -> idb -> W
+      idbs: DB
+      rfts: W
+      lts: RF
+    - naddr: JMP_C2_T1
+      # Fetch word hi
+      aout: 1
+    - naddr: JMP_C2_T2
+      # W -> idb -> PCL
+      rfos: W
+      idbs: RF
+      lts: RF
+      rfts: PCL
+      load: 1
+    - naddr: JMP_C2_T3
+      # DB -> idb -> PCH
+      idbs: DB
+      lts: RF
+      rfts: PCH
+  
+    - naddr: MOV_ABS_C2_T3      # MOV r, word
+      # DB -> idb -> AI, 0 -> BI
+      idbs: DB
+      lts: AI
+      bi0: 1
+      # AI + BI -> CO
+      aluop: SUM
+    - naddr: MOV_ABS_C3_T1
+      # W -> abl -> aorl, CO -> idb -> abh -> aorh
+      idbs: CO
+      abs: IDB_W
+      aout: 1
+  
+      # NEI A, byte (Not Equal Immediate with A)
+    - naddr: NEI_IMM_A_C1_T2
+      # A -> idb -> AI
+      rfos: A
+      idbs: RF
+      lts: AI
+      load: 1
+    - naddr: NEI_IMM_A_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI - BI -> CO
+      aluop: SUM
+      bin: 1
+      cis: 1
+    - naddr: NEI_IMM_A_C2_T1
+      idbs: CO
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NZ                 # Update PSW.SK
+  
+      # MVIX rpa1, byte (Move Imm. to Memory naddress by Reg Pair)
+    - naddr: MVIX_IMM_C2_T1
+      # W -> idb -> dor
+      rfos: W
+      idbs: RF
+      lts: DOR
+      # DE -> ab -> aor
+      abs: IR10
+      aout: 1
+  
+      # CALT (Call Table naddress)
+    - naddr: CALT_C1_T1         # SP <- SP-1
+      at: [ 0x80, 0xBF ]
+      # IR[5:0] -> idb -> AI
+      idbs: JRL
+      lts: AI
+    - naddr: CALT_C1_T3
+      # SP - 1 -> SP
+      abs: SP
+      ab_dec: 1
+      abits: SP
+    - naddr: CALT_C2_T1         # (SP) <- PCH, SP <- SP-1
+      # PCH -> idb -> dor
+      rfos: PCH
+      idbs: RF
+      lts: DOR
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+    - naddr: CALT_C2_T3
+      # SP - 1 -> SP
+      abs: SP
+      ab_dec: 1
+      abits: SP
+    - naddr: CALT_C3_T1         # (SP) <- PCL
+      # PCL -> idb -> dor
+      rfos: PCL
+      idbs: RF
+      lts: DOR
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+    - naddr: CALT_C3_T3
+      # effective naddr lo. -> idb -> W
+      idx: 0
+      idbs: CALT
+      lts: RF
+      rfts: W
+    - naddr: CALT_C4_T1          # PCL <- (128 + 2ta)
+      # W -> abl -> aorl, 0 -> idb -> abh -> aorh
+      idbs: 0
+      abs: IDB_W
+      aout: 1
+    - naddr: CALT_C4_T2
+      load: 1
+      # effective naddr hi. -> idb -> W
+      idx: 1
+      idbs: CALT
+      lts: RF
+      rfts: W
+    - naddr: CALT_C4_T3
+      # DB -> idb -> PCL
+      idbs: DB
+      lts: RF
+      rfts: PCL
+    - naddr: CALT_C5_T1          # PCH <- (129 + 2ta)
+      # W -> abl -> aorl, 0 -> idb -> abh -> aorh
+      idbs: 0
+      abs: IDB_W
+      aout: 1
+    - naddr: CALT_C5_T2
+      load: 1
+    - naddr: CALT_C5_T3
+      # DB -> idb -> PCH
+      idbs: DB
+      lts: RF
+      rfts: PCH
+  
+      # RET (Return from subroutine)
+    - naddr: RET_C1_T1           # PCL <- (SP), SP <- SP+1
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+    - naddr: RET_C1_T2
+      load: 1
+      # SP + 1 -> SP
+      abs: SP
+      ab_inc: 1
+      abits: SP
+    - naddr: RET_C1_T3
+      # DB -> idb -> PCL
+      idbs: DB
+      lts: RF
+      rfts: PCL
+    - naddr: RET_C2_T1           # PCH <- (SP), SP <- SP+1
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+    - naddr: RET_C2_T2
+      load: 1
+      # SP + 1 -> SP
+      abs: SP
+      ab_inc: 1
+      abits: SP
+    - naddr: RET_C2_T3
+      # DB -> idb -> PCL
+      idbs: DB
+      lts: RF
+      rfts: PCH

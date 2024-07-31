@@ -3,4 +3,5 @@
 uc-at.svh
 uc-types.svh
 uc-ird.svh
-uram.mem
+urom.mem
+nrom.mem
