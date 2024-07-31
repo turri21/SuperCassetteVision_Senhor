@@ -110,6 +110,16 @@ initial #0 begin
   dut.b = 0;
   dut.c = 1;
 
+  // Double 'block' in ClearScreen
+  #700 @(posedge clk) ;
+  dut.c -= 8'hF8;
+  dut.e += 8'hF8;
+  dut.l += 8'hF8;
+  #43 @(posedge clk) ;
+  dut.c -= 8'hFD;
+  dut.e += 8'hFD;
+  dut.l += 8'hFD;
+
   #800 @(posedge clk) ;
 
   $finish;

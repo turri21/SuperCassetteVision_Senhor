@@ -876,3 +876,38 @@ rows:
     rfts: PCH
     m1: 1
     bm: END
+
+    # RET (Return from subroutine)
+  - addr: RET_C1_T1             # PCL <- (SP), SP <- SP+1
+    at: 0x08
+    # SP -> ab -> aor
+    abs: SP
+    aout: 1
+  - addr: RET_C1_T2
+    load: 1
+    # SP + 1 -> SP
+    abs: SP
+    ab_inc: 1
+    abits: SP
+  - addr: RET_C1_T3
+    # DB -> idb -> PCL
+    idbs: DB
+    lts: RF
+    rfts: PCL
+  - addr: RET_C2_T1             # PCH <- (SP), SP <- SP+1
+    # SP -> ab -> aor
+    abs: SP
+    aout: 1
+  - addr: RET_C2_T2
+    load: 1
+    # SP + 1 -> SP
+    abs: SP
+    ab_inc: 1
+    abits: SP
+  - addr: RET_C2_T3
+    # DB -> idb -> PCL
+    idbs: DB
+    lts: RF
+    rfts: PCH
+    m1: 1
+    bm: END
