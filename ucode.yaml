@@ -105,6 +105,23 @@ types:
       - IDB_W
       - IR10                    # IR[1:0] encodes BC, DE, HL
 
+  - name: e_spr
+    desc: special register
+    type: enum
+    width: 4
+    prefix: USPR_
+    values:
+      - PA                      # Port A
+      - PB                      # Port B
+      - PC                      # Port C
+      - MK                      # Interrupt Mask
+      - MB                      # Mode B
+      - MC                      # Mode C
+      - TM0                     # Timer Reg 0
+      - TM1                     # Timer Reg 1
+      - S                       # Serial Reg
+      - TMM                     # Timer Mode Reg
+
   - name: e_sprs
     desc: special register select
     type: enum
@@ -627,6 +644,9 @@ nrom:
     - name: pswsk
       type: e_sks
       desc: PSW.SK source
+    - name: sprs
+      type: e_sprs
+      desc: special register select
   
   
   rows:

@@ -28,7 +28,14 @@ module upd7800
    output        DB_OE,
    output        M1, // opcode fetch cycle
    output        RDB, // read
-   output        WRB  // write
+   output        WRB, // write
+   output [7:0]  PA_O, // Port A
+   input [7:0]   PB_I, // Port B
+   output [7:0]  PB_O,
+   output [7:0]  PB_OE,
+   input [7:0]   PC_I, // Port C
+   output [7:0]  PC_O,
+   output [7:0]  PC_OE
    );
 
 `define psw_z  psw[6]           // Zero
@@ -43,6 +50,7 @@ module upd7800
 wire         resp;
 wire         cp1p, cp2p, cp2n;
 wire [15:0]  pcl, pch;
+wire [7:0]   pboe, pcoe;
 
 reg          resg;
 reg          cp2;
@@ -51,10 +59,12 @@ reg [7:0]    psw;
 reg [15:0]   sp, pc;
 reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
+reg [7:0]    mk;                // interrupt mask reg.
+reg [7:0]    mb, mc, pao, pbo, pco;
 reg [15:0]   aor;
 reg [7:0]    dor;
 reg          rd_ext, wr_ext;
-reg [7:0]    rfo, idb;
+reg [7:0]    rfo, spro, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
@@ -87,6 +97,7 @@ reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_idb_dor, cl_store_dor;
 reg          cl_load_db;
 e_urfs       cl_rfts;
+e_spr        cl_spr;
 e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
 reg          cl_idb_abil, cl_idb_abih;
@@ -164,7 +175,52 @@ assign M1 = m1ext;
 
 
 //////////////////////////////////////////////////////////////////////
+// I/O Ports
+
+initial begin
+  pao = 0;
+  pbo = 0;
+  pco = 0;
+  mb = 8'hff;
+  mc = 8'hff;
+end
+
+// Port and Mode registers
+always @(posedge CLK) begin
+  if (resg) begin
+    pao <= 0;
+    pbo <= 0;
+    pco <= 0;
+    mb <= 8'hff;
+    mc <= 8'hff;
+  end
+  else if (cp2n) begin
+    if (nc.lts == ULTS_SPR) begin
+      case (cl_spr)
+        USPR_PA: pao <= idb;
+        USPR_PB: pbo <= idb;
+        USPR_PC: pco <= idb;
+        USPR_MB: mb <= idb;
+        USPR_MC: mc <= idb;
+        default: ;
+      endcase
+    end
+  end
+end
+
+assign pboe = ~mb;
+assign pcoe = {~mc[7], 5'b11110, ~mc[1:0]};
+
+assign PB_OE = pboe;
+assign PC_OE = pcoe;
+
+
+//////////////////////////////////////////////////////////////////////
 // Registers
+
+initial begin
+  mk = 0;
+end
 
 // General-purpose registers
 always @(posedge CLK) begin
@@ -290,6 +346,18 @@ always @(posedge CLK) begin
   end
 end
 
+// mk: interrupt mask register
+always @(posedge CLK) begin
+  if (resg) begin
+    mk <= 0;
+  end
+  else if (cp2n) begin
+    if ((nc.lts == ULTS_SPR) & (cl_spr == USPR_MK)) begin
+      mk <= idb;
+    end
+  end
+end
+
 // aor: address bus output register
 // register latches on cp1p
 always @(posedge CLK) begin
@@ -335,6 +403,21 @@ always @* begin
   endcase
 end
 
+// spro: special register output
+always @* begin
+  case (cl_spr)
+    USPR_PA: spro = pao;
+    USPR_PB: spro = (PB_I & ~pboe) | (pbo & pboe);
+    USPR_PC: spro = (PC_I & ~pcoe) | (pco & pcoe);
+    USPR_MK: spro = mk;
+    USPR_MB: spro = mb;
+    USPR_MC: spro = mc;
+    //USPR_TM0: spro = tm0;
+    //USPR_TM1: spro = tm1;
+    default: spro = 8'hxx;
+  endcase
+end
+
 // idb: internal data bus
 always @* begin
   case (cl_idbs)
@@ -344,6 +427,7 @@ always @* begin
     UIDBS_JRL: idb = {{3{ir[5]}}, ir[4:0]};
     UIDBS_JRH: idb = {8{ir[5]}};
     UIDBS_CO: idb = co;
+    UIDBS_SPR: idb = spro;
     UIDBS_CALT: idb = {1'b1, ir[5:0], nc.idx[0]};
     default: idb = 8'hxx;
   endcase
@@ -637,6 +721,19 @@ function e_abs resolve_abs_ir(e_abs in);
   end
 endfunction
 
+function e_spr resolve_sprs(e_sprs in);
+  reg [3:0] out;
+  begin
+    if (in == USRS_IR2) begin
+      out = {1'b0, ir[2:0]};
+    end
+    if (in == USRS_IR3) begin
+      out = ir[3:0];
+    end
+    resolve_sprs = e_spr'(out);
+  end
+endfunction
+
 initial cl_idb_psw = 0;
 always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;
@@ -651,6 +748,7 @@ always @* cl_idb_dor = (nc.lts == ULTS_DOR);
 always @* cl_store_dor = nc.store;
 always @* cl_load_db = oft[1] | nc.load;
 always @* cl_rfts = resolve_rfs_ir(nc.rfts);
+always @* cl_spr = resolve_sprs(nc.sprs);
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : nc.idbs);
 always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);

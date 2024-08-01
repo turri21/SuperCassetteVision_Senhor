@@ -39,7 +39,9 @@ upd7800 dut
    .DB_OE(),
    .M1(),
    .RDB(dut_rdb),
-   .WRB(dut_wrb)
+   .WRB(dut_wrb),
+   .PB_I(8'b0),
+   .PC_I(8'b0)
    );
 
 bootrom rom
