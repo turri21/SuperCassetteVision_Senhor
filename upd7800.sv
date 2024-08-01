@@ -590,12 +590,18 @@ always @* begin
   end
 end
 
-always_ff @(posedge CLK) begin
+always @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_IDLE;
   end
   else if (cp2p) begin
     uptr <= uptr_next;
+
+    if (of_done & ~`psw_sk) begin
+      assert (uptr_next != UA_IDLE);
+      else
+        $error("%t: Illegal opcode", $time);
+    end
   end
 end
 
