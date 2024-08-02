@@ -66,10 +66,12 @@ wire         cp1p, cp2p, cp2n;
 wire         cke_div12;
 wire [15:0]  pcl, pch;
 wire [7:0]   pboe, pcoe;
+wire         irf1;
 
 reg          resg;
 reg [3:0]    intv1, intv2;
 reg [4:0]    intp, intpr, intps, intpm, iack, imsk;
+reg [4:0]    irfm;              // Mask selected by SK(N)IT operand
 reg          intg;
 reg [7:0]    intva;
 reg          cp2;
@@ -109,6 +111,8 @@ e_naddr      nptr, nptr_next;
 
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
+reg          cl_zero_irf;
+reg [2:0]    cl_irf;
 e_abs        cl_abs, cl_abits;
 reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
 reg          cl_abi_sp, cl_abi_pc;
@@ -201,6 +205,9 @@ always @* begin
   if (cp2n & intg & of_start) begin
     intpr |= iack;
   end
+  if (cp2n & cl_zero_irf) begin
+    intpr |= irfm;
+  end
 end
 
 always_ff @(posedge CLK) begin
@@ -257,6 +264,14 @@ always @* begin
 end
 
 always_comb intg = |intpm;
+
+// Interrupt flag selected by SK(N)IT instruction operand
+always_comb begin
+  irfm = 0;
+  irfm[cl_irf] = 1'b1;
+end
+
+assign irf1 = |(irfm & intpm);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -669,6 +684,8 @@ always @* begin
     USKS_NC: skso = ~cco;
     USKS_Z: skso = ~|co;
     USKS_NZ: skso = |co;
+    USKS_I: skso = irf1;
+    USKS_NI: skso = ~irf1;
     default: skso = 1'bx;
   endcase
 
@@ -821,7 +838,7 @@ always @(posedge CLK) begin
     uptr <= uptr_next;
 
     if (of_done & ~`psw_sk) begin
-      assert (uptr_next != UA_IDLE);
+      assert (ir == 0 || uptr_next != UA_IDLE);
       else begin
         $error("%t: Illegal opcode", $time);
         $fatal(1);
@@ -882,6 +899,8 @@ initial cl_zero_c = 0;
 initial cl_one_c = 0;
 always @* cl_cho_hc = nc.pswhc;
 always @* cl_sks_sk = (of_done | (nc.pswsk != USKS_0)) & ~intg;
+always @* cl_zero_irf = (nc.pswsk == USKS_I) | (nc.pswsk == USKS_NI);
+always @* cl_irf = ir[2:0];
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | nc.aout;
