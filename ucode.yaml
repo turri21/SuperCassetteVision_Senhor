@@ -54,6 +54,7 @@ types:
       - E
       - H
       - L
+      - PSW
       - SPL
       - SPH
       - PCL
@@ -70,11 +71,9 @@ types:
       - 0                       # zero
       - RF                      # register file: A, B, etc.
       - DB                      # external data bus
-      - JRL                     # sign-ext. IR[5:0] (for JR)
-      - JRH                     # sign-ext. IR[5] (for JR)
       - CO                      # ALU output
       - SPR                     # special reg.
-      - CALT                    # EA for CALT
+      - SDG                     # special data generator
 
   - name: e_lts
     desc: load target select
@@ -130,6 +129,17 @@ types:
     values:
       - IR2                     # IR[2:0]
       - IR3                     # IR[3:0]
+
+  - name: e_sdgs
+    desc: special data generator select
+    type: enum
+    width: 2
+    prefix: USDGS_
+    values:
+      - JRL                     # sign-ext. IR[5:0] (for JR)
+      - JRH                     # sign-ext. IR[5] (for JR)
+      - CALT                    # EA for CALT
+      - INTVA                   # EA for interrupt vector
 
   - name: e_aluop
     desc: ALU operation
@@ -233,6 +243,8 @@ ird:
     - at: [ 0x68, 0x6F ]        # MVI r, byte
       uaddr: MVI_IMM
       skipn: 1
+    - at: 0x72                  # SOFTI
+      uaddr: INT
     - at: [ 0x80, 0xBF ]        # CALT
       uaddr: CALT
     - at: [ 0xC0, 0xFF ]        # JR
@@ -547,12 +559,12 @@ urom:
 
       # CALT (Call Table naddress)
     - uaddr: CALT
-      naddr: CALT_C1_T1         # SP <- SP-1
+      naddr: IDLE               # SP <- SP-1
     - naddr: IDLE
-    - naddr: CALT_C1_T3
+    - naddr: DEC_SP
     - naddr: CALT_C2_T1         # (SP) <- PCH, SP <- SP-1
     - naddr: STORE_T2
-    - naddr: CALT_C2_T3
+    - naddr: DEC_SP
     - naddr: CALT_C3_T1         # (SP) <- PCL
     - naddr: STORE_T2
     - naddr: CALT_C3_T3
@@ -573,6 +585,29 @@ urom:
     - naddr: RET_C2_T1          # PCH <- (SP), SP <- SP+1
     - naddr: RET_C2_T2
     - naddr: RET_C2_T3
+      m1: 1
+      bm: END
+
+      # INT (Software/Hardware Interrupt) [19 states]
+    - uaddr: INT
+      naddr: IDLE               # SP <- SP-1
+    - naddr: IDLE
+    - naddr: DEC_SP
+    - naddr: INT_C2_T1          # (SP) <- PSW, SP <- SP-1
+    - naddr: STORE_T2
+    - naddr: DEC_SP
+    - naddr: CALT_C2_T1         # (SP) <- PCH, SP <- SP-1
+    - naddr: STORE_T2
+    - naddr: DEC_SP
+    - naddr: CALT_C3_T1         # (SP) <- PCL
+    - naddr: STORE_T2
+    - naddr: CALT_C3_T3
+    - naddr: INT_C4_T1          # PCL <- 'h60
+    - naddr: IDLE
+    - naddr: IDLE
+    - naddr: INT_C5_T1          # PCH <- 0
+    - naddr: IDLE
+    - naddr: IDLE
       m1: 1
       bm: END
 
@@ -647,6 +682,9 @@ nrom:
     - name: sprs
       type: e_sprs
       desc: special register select
+    - name: sdgs
+      type: e_sdgs
+      desc: special data generator select
   
   
   rows:
@@ -676,7 +714,8 @@ nrom:
       lts: AI
     - naddr: JR_C1_T2
       # IR[5:0] -> idb -> BI
-      idbs: JRL
+      idbs: SDG
+      sdgs: JRL
       lts: BI
     - naddr: JR_C1_T3
       # AI + BI -> CO
@@ -694,7 +733,8 @@ nrom:
       lts: AI
     - naddr: JR_C2_T3
       # sign-ext. IR[5] -> idb -> BI
-      idbs: JRH
+      idbs: SDG
+      sdgs: JRH
       lts: BI
     - naddr: JR_C3_T1
       # AI + BI + CCO -> CO
@@ -1011,9 +1051,10 @@ nrom:
     - naddr: CALT_C1_T1         # SP <- SP-1
       at: [ 0x80, 0xBF ]
       # IR[5:0] -> idb -> AI
-      idbs: JRL
+      idbs: SDG
+      sdgs: JRL
       lts: AI
-    - naddr: CALT_C1_T3
+    - naddr: DEC_SP
       # SP - 1 -> SP
       abs: SP
       ab_dec: 1
@@ -1026,11 +1067,6 @@ nrom:
       # SP -> ab -> aor
       abs: SP
       aout: 1
-    - naddr: CALT_C2_T3
-      # SP - 1 -> SP
-      abs: SP
-      ab_dec: 1
-      abits: SP
     - naddr: CALT_C3_T1         # (SP) <- PCL
       # PCL -> idb -> dor
       rfos: PCL
@@ -1042,7 +1078,8 @@ nrom:
     - naddr: CALT_C3_T3
       # effective naddr lo. -> idb -> W
       idx: 0
-      idbs: CALT
+      idbs: SDG
+      sdgs: CALT
       lts: RF
       rfts: W
     - naddr: CALT_C4_T1          # PCL <- (128 + 2ta)
@@ -1054,7 +1091,8 @@ nrom:
       load: 1
       # effective naddr hi. -> idb -> W
       idx: 1
-      idbs: CALT
+      idbs: SDG
+      sdgs: CALT
       lts: RF
       rfts: W
     - naddr: CALT_C4_T3
@@ -1106,3 +1144,22 @@ nrom:
       idbs: DB
       lts: RF
       rfts: PCH
+
+      # INT (Software/Hardware Interrupt)
+    - naddr: INT_C2_T1          # (SP) <- PSW
+      # PSW -> idb -> dor
+      rfos: PSW
+      idbs: RF
+      lts: DOR
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+    - naddr: INT_C4_T1          # 0 -> idb -> PCH
+      idbs: 0
+      lts: RF
+      rfts: PCH
+    - naddr: INT_C5_T1          # intva -> idb -> PCL
+      sdgs: INTVA
+      idbs: SDG
+      lts: RF
+      rfts: PCL

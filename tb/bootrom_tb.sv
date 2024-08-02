@@ -12,6 +12,7 @@ reg         clk, res;
 reg         cp1p, cp1n, cp2p, cp2n;
 reg [7:0]   din;
 reg [7:0]   dut_db_i;
+reg         vbl;
 
 wire [15:0] a;
 wire [7:0]  dut_db_o, rom_db, ram_db;
@@ -33,6 +34,9 @@ upd7800 dut
    .CP2_POSEDGE(cp2p),
    .CP2_NEGEDGE(cp2n),
    .RESETB(~res),
+   .INT0(1'b0),
+   .INT1(1'b0),
+   .INT2(vbl),
    .A(a),
    .DB_I(dut_db_i),
    .DB_O(dut_db_o),
@@ -78,6 +82,7 @@ assign cart_ncs = ~a[15] | ~ram_ncs;
 
 
 initial begin
+  vbl = 0;
   cp1p = 0;
   cp1n = 0;
   cp2p = 0;
@@ -98,6 +103,13 @@ initial forever begin :cpgen
 end
 
 wire cp2 = dut.cp2;
+
+initial forever begin :vblgen
+  repeat (5000) @(posedge clk) ;
+  vbl <= 1'b1;
+  repeat (5000) @(posedge clk) ;
+  vbl <= 1'b0;
+end
 
 initial #0 begin
   #3 @(posedge clk) ;

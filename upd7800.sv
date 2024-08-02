@@ -22,6 +22,9 @@ module upd7800
    input         CP2_POSEDGE, // clock phase 2, +ve edge
    input         CP2_NEGEDGE, //  "             -ve edge
    input         RESETB, // reset (active-low)
+   input         INT0,
+   input         INT1,
+   input         INT2,
    output [15:0] A,
    input [7:0]   DB_I,
    output [7:0]  DB_O,
@@ -45,15 +48,32 @@ module upd7800
 `define psw_l0 psw[2]           // Word instruction string effect
 `define psw_cy psw[0]           // Carry
 
+`define IR_SOFTI 11'h072
+
 `include "uc-types.svh"
+
+typedef enum reg [2:0]
+{
+    II_INT0 = 0,                // priority 2
+    II_INTT = 1,                // priority 3
+    II_INT1 = 2,                // priority 4
+    II_INT2 = 3,                // priority 5
+    II_INTS = 4                 // priority 6
+} e_int_idx;
 
 wire         resp;
 wire         cp1p, cp2p, cp2n;
+wire         cke_div12;
 wire [15:0]  pcl, pch;
 wire [7:0]   pboe, pcoe;
 
 reg          resg;
+reg [3:0]    intv1, intv2;
+reg [4:0]    intp, intpr, intps, intpm, iack, imsk;
+reg          intg;
+reg [7:0]    intva;
 reg          cp2;
+reg [3:0]    cnt_div12;
 reg [7:0]    v, a, b, c, d, e, h, l, w;
 reg [7:0]    psw;
 reg [15:0]   sp, pc;
@@ -70,10 +90,11 @@ reg [7:0]    ai, bi, ibi, co;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 reg [15:0]   uabi, nabi;
 reg          skso;
+reg [7:0]    sdg;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
-wire         of_done;
+wire         of_start, of_start_d, of_done, of_pc_inc;
 reg          m1, m1ext;
 wire         m1_next, oft0_next;
 wire         m1_overlap, m1_skip;
@@ -116,11 +137,20 @@ assign cp2n = CP2_NEGEDGE;
 
 initial begin
   cp2 = 0;
+  cnt_div12 = 0;
 end
 
 always_ff @(posedge CLK) begin
   cp2 <= (cp2 & ~cp2n) | cp2p;
 end
+
+// Internal /12 clock (from CP1/2)
+always_ff @(posedge CLK) begin
+  if (cp1p)
+    cnt_div12 <= cke_div12 ? 0 : cnt_div12 + 1'd1;
+end
+
+assign cke_div12 = cp1p & (cnt_div12 == 4'd11);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -128,6 +158,10 @@ end
 
 initial begin
   resg = 1'b1;
+  intv1 = 0;
+  intv2 = 0;
+  intp = 0;
+  intg = 0;
 end
 
 assign resp = ~RESETB;
@@ -137,6 +171,92 @@ always_ff @(posedge CLK) begin
     resg <= resp;
   end
 end
+
+// Interrupt sampling: Edge-triggered INT1/2 are sampled at /12
+// clock. Interrupt deemed asserted after 3 consecutive asserted
+// samples following at least 1 deasserted sample.
+
+always_ff @(posedge CLK) begin
+  if (cke_div12) begin
+    intv1 <= {intv1[2:0], INT1};
+    intv2 <= {intv2[2:0], INT2 ^ ~mk[5]};
+  end
+end
+
+always @* begin
+  intps = 0;
+  if (INT0)
+    intps[II_INT0] = ~intp[II_INT0];
+  if (cke_div12 & (intv1 == 8'b0111))
+    intps[II_INT1] = 1'b1;
+  if (cke_div12 & (intv2 == 8'b0111))
+    intps[II_INT2] = 1'b1;
+end
+
+always @* begin
+  intpr = 0;
+  if (~INT0)
+    intpr[II_INT0] = intp[II_INT0];
+  // End of interrupt processing
+  if (cp2n & intg & of_start) begin
+    intpr |= iack;
+  end
+end
+
+always_ff @(posedge CLK) begin
+  if (resg) begin
+    intp <= 0;
+  end
+  else begin
+    intp <= (intp & ~intpr) | intps;
+  end
+end
+
+always_ff @(posedge CLK) begin
+  if (resg) begin
+    intpm <= 0;
+  end
+  else begin
+    if (cp2n & of_start_d) begin
+      // Latch interrupt state at start of opcode fetch
+      intpm <= intp & imsk;     // pending and non-masked
+    end
+  end
+end
+
+// Interrupt priority encoder
+always @* begin
+  casez (intpm)
+    5'bzzzz1: iack = 5'b00001;
+    5'bzzz10: iack = 5'b00010;
+    5'bzz100: iack = 5'b00100;
+    5'bz1000: iack = 5'b01000;
+    5'b10000: iack = 5'b10000;
+    default: iack = 0;
+  endcase
+end
+
+// imsk: Set to enable
+always @* begin
+  imsk[II_INT0] = ie & ~mk[0];
+  imsk[II_INTT] = ie & ~mk[1];
+  imsk[II_INT1] = ie & ~mk[2];
+  imsk[II_INT2] = ie & ~mk[3];
+  imsk[II_INTS] = ie & ~mk[4];
+end
+
+always @* begin
+  case (1'b1)
+    iack[II_INT0]: intva = 8'h04;
+    iack[II_INTT]: intva = 8'h08;
+    iack[II_INT1]: intva = 8'h10;
+    iack[II_INT2]: intva = 8'h20;
+    iack[II_INTS]: intva = 8'h40;
+    default: intva = 8'h60;     // SOFTI
+  endcase
+end
+
+always_comb intg = |intpm;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -219,7 +339,7 @@ assign PC_OE = pcoe;
 // Registers
 
 initial begin
-  mk = 0;
+  mk = 8'hff;
 end
 
 // General-purpose registers
@@ -326,7 +446,12 @@ always @(posedge CLK) begin
   end
   if (cp2n) begin
     if (cl_idb_ir) begin
-      ir[7:0] <= idb;
+      if (intg) begin
+        ir <= `IR_SOFTI;
+      end
+      else begin
+        ir[7:0] <= idb;
+      end
     end
     if (cl_of_prefix_ir) begin
       ir[10:8] <= of_prefix;
@@ -349,7 +474,7 @@ end
 // mk: interrupt mask register
 always @(posedge CLK) begin
   if (resg) begin
-    mk <= 0;
+    mk <= 8'hff;
   end
   else if (cp2n) begin
     if ((nc.lts == ULTS_SPR) & (cl_spr == USPR_MK)) begin
@@ -396,6 +521,7 @@ always @* begin
     URFS_E: rfo = e;
     URFS_H: rfo = h;
     URFS_L: rfo = l;
+    URFS_PSW: rfo = psw;
     URFS_PCL: rfo = pcl;
     URFS_PCH: rfo = pch;
     URFS_W: rfo = w;
@@ -424,11 +550,9 @@ always @* begin
     UIDBS_0: idb = 0;
     UIDBS_RF: idb = rfo;
     UIDBS_DB: idb = DB_I;
-    UIDBS_JRL: idb = {{3{ir[5]}}, ir[4:0]};
-    UIDBS_JRH: idb = {8{ir[5]}};
     UIDBS_CO: idb = co;
     UIDBS_SPR: idb = spro;
-    UIDBS_CALT: idb = {1'b1, ir[5:0], nc.idx[0]};
+    UIDBS_SDG: idb = sdg;
     default: idb = 8'hxx;
   endcase
 end
@@ -534,8 +658,9 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
-// Skip flag source
+// Miscellaneous data sources
 
+// Skip flag source
 always @* begin
   case (nc.pswsk)
     USKS_0: skso = 1'b0;
@@ -550,6 +675,17 @@ always @* begin
   // A skipped instruction resets SK.
   if (m1_skip)
     skso = 1'b0;
+end
+
+// Special data generator
+always @* begin
+  case (nc.sdgs)
+    USDGS_JRL: sdg = {{3{ir[5]}}, ir[4:0]};
+    USDGS_JRH: sdg = {8{ir[5]}};
+    USDGS_CALT: sdg = {1'b1, ir[5:0], nc.idx[0]};
+    USDGS_INTVA: sdg = intva;
+    default: sdg = 8'hxx;
+  endcase
 end
 
 
@@ -579,7 +715,7 @@ always_ff @(posedge CLK) begin
     oft[0] <= oft0_next;
     m1 <= m1_next;
   end
-end  
+end
 
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_overlap = of_done & ird.m1_overlap;
@@ -602,7 +738,10 @@ always @* begin
   end
 end
 
+assign of_start = m1_next & oft0_next;
+assign of_start_d = m1 & oft[0];
 assign of_done = oft[3] & ~(m1 & |of_prefix);
+assign of_pc_inc = oft[3] & ~intg;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -683,8 +822,10 @@ always @(posedge CLK) begin
 
     if (of_done & ~`psw_sk) begin
       assert (uptr_next != UA_IDLE);
-      else
+      else begin
         $error("%t: Illegal opcode", $time);
+        $fatal(1);
+      end
     end
   end
 end
@@ -740,7 +881,7 @@ always @* cl_cco_c = nc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
 always @* cl_cho_hc = nc.pswhc;
-always @* cl_sks_sk = of_done | (nc.pswsk != USKS_0);
+always @* cl_sks_sk = (of_done | (nc.pswsk != USKS_0)) & ~intg;
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | nc.aout;
@@ -752,17 +893,17 @@ always @* cl_spr = resolve_sprs(nc.sprs);
 always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : nc.idbs);
 always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
-always @* cl_pc_inc = nc.pc_inc;
+always @* cl_pc_inc = of_pc_inc | nc.pc_inc;
 always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec;
-always @* cl_abi_pc = oft[3] | cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
+always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
-always @* cl_ui_ie = nc.lts == ULTS_IE;
+always @* cl_ui_ie = (nc.lts == ULTS_IE) | (intg & of_done);
 always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(nc.abs));
 always @* cl_abits = resolve_abs_ir(nc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
-always @* cl_abi_inc = oft[3] | cl_pc_inc | nc.ab_inc;
+always @* cl_abi_inc = cl_pc_inc | nc.ab_inc;
 always @* cl_abi_dec = nc.ab_dec;
 initial cl_sums_cco = 1'b1;
 always @* cl_carry = nc.cis == UCIS_CCO;
