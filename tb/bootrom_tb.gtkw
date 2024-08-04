@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Fri Aug  2 04:40:12 2024
+[*] Sat Aug  3 06:28:26 2024
 [*]
 [dumpfile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.vcd"
-[dumpfile_mtime] "Fri Aug  2 04:39:26 2024"
-[dumpfile_size] 431315
+[dumpfile_mtime] "Sat Aug  3 06:24:45 2024"
+[dumpfile_size] 1096443
 [savefile] "/Users/dhunter/src/upd7800/tb/bootrom_tb.gtkw"
-[timestart] 1304120
+[timestart] 3386120
 [size] 1288 687
 [pos] -1 -1
-*-13.650572 1330500 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-13.650572 3425500 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -55,7 +55,7 @@ bootrom_tb.dut.DB_O[7:0]
 bootrom_tb.dut.RDB
 bootrom_tb.dut.WRB
 bootrom_tb.dut.INT2
-@800200
+@c00200
 -int
 @28
 bootrom_tb.dut.resp
@@ -73,7 +73,7 @@ bootrom_tb.dut.imsk[4:0]
 bootrom_tb.dut.intg
 @22
 bootrom_tb.dut.intva[7:0]
-@1000200
+@1401200
 -int
 @800200
 -regs
@@ -91,7 +91,7 @@ bootrom_tb.dut.psw[7:0]
 bootrom_tb.dut.sp[15:0]
 bootrom_tb.dut.pc[15:0]
 bootrom_tb.dut.ir[10:0]
-@29
+@28
 bootrom_tb.dut.ie
 @22
 bootrom_tb.dut.mk[7:0]
@@ -144,29 +144,14 @@ bootrom_tb.dut.m1
 -of
 @800200
 -uc
-@c00022
-bootrom_tb.dut.ird[10:0]
-@28
-(0)bootrom_tb.dut.ird[10:0]
-(1)bootrom_tb.dut.ird[10:0]
-(2)bootrom_tb.dut.ird[10:0]
-(3)bootrom_tb.dut.ird[10:0]
-(4)bootrom_tb.dut.ird[10:0]
-(5)bootrom_tb.dut.ird[10:0]
-(6)bootrom_tb.dut.ird[10:0]
-(7)bootrom_tb.dut.ird[10:0]
-(8)bootrom_tb.dut.ird[10:0]
-(9)bootrom_tb.dut.ird[10:0]
-(10)bootrom_tb.dut.ird[10:0]
-@1401200
--group_end
 @22
-bootrom_tb.dut.uptr[7:0]
-bootrom_tb.dut.uptr_next[7:0]
+bootrom_tb.dut.ird[11:0]
+bootrom_tb.dut.uptr[8:0]
+bootrom_tb.dut.uptr_next[8:0]
 bootrom_tb.dut.nptr[7:0]
 @1000200
 -uc
-@c00200
+@800200
 -cl
 @28
 bootrom_tb.dut.cl_ab_aor
@@ -178,7 +163,6 @@ bootrom_tb.dut.cl_abits[2:0]
 bootrom_tb.dut.cl_abl_aor
 bootrom_tb.dut.cl_abs[2:0]
 bootrom_tb.dut.cl_ands
-bootrom_tb.dut.cl_asls
 bootrom_tb.dut.cl_bi_dah
 bootrom_tb.dut.cl_bi_dal
 bootrom_tb.dut.cl_bi_not
@@ -200,6 +184,7 @@ bootrom_tb.dut.cl_idb_psw
 bootrom_tb.dut.cl_idbs[2:0]
 bootrom_tb.dut.cl_incs
 bootrom_tb.dut.cl_load_db
+bootrom_tb.dut.cl_lsls
 bootrom_tb.dut.cl_lsrs
 bootrom_tb.dut.cl_of_prefix_ir
 bootrom_tb.dut.cl_one_addc
@@ -208,6 +193,8 @@ bootrom_tb.dut.cl_ors
 bootrom_tb.dut.cl_pc_dec
 bootrom_tb.dut.cl_pc_inc
 bootrom_tb.dut.cl_pdas
+@23
+bootrom_tb.dut.cl_rfos[3:0]
 @22
 bootrom_tb.dut.cl_rfts[3:0]
 @28
@@ -221,7 +208,7 @@ bootrom_tb.dut.cl_ui_ie
 bootrom_tb.dut.cl_zero_bi
 bootrom_tb.dut.cl_zero_c
 bootrom_tb.dut.cl_ui_ie
-@1401200
+@1000200
 -cl
 [pattern_trace] 1
 [pattern_trace] 0

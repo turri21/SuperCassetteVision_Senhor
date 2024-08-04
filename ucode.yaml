@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 8
+    width: 9
     prefix: UA_
     # values will come from the ucode.rows list
 
@@ -154,7 +154,7 @@ types:
       - OR
       - AND
       - EOR
-      - ASL
+      - LSL
       - ROL
       - LSR
       - ROR
@@ -207,55 +207,103 @@ ird:
       uaddr: IDLE
       m1_overlap: 1
     - at: 0x04                  # LXI SP, bbaa
-      uaddr: LXI_SP
+      uaddr: LDX_IMM_SP
       skipn: 2
     - at: 0x08                  # RET
       uaddr: RET
+    - at: [ 0x0a, 0x0f ]        # MOV A, r1
+      uaddr: MOV_A_R1
+      m1_overlap: 1
     - at: 0x14                  # LXI BC, bbaa
-      uaddr: LXI_B
+      uaddr: LDX_IMM_B
       skipn: 2
     - at: 0x19                  # STM
       uaddr: STM
+      m1_overlap: 1
+    - at: [ 0x1a, 0x1f ]        # MOV r1, A
+      uaddr: MOV_R1_A
       m1_overlap: 1
     - at: 0x20                  # INRW wa
       uaddr: INRW
       skipn: 1
     - at: 0x24                  # LXI DE, bbaa
-      uaddr: LXI_D
+      uaddr: LDX_IMM_D
       skipn: 2
+    - at: 0x26                  # ADINC A, byte
+      uaddr: ADDNC_A_IMM
+      skipn: 1
+    - at: 0x27                  # GTI A, byte
+      uaddr: GT_A_IMM
+    - at: 0x28                  # LDAW wa
+      uaddr: LDW_A
+      skipn: 1
+    - at: 0x2b                  # LDAX H
+      uaddr: LDX_A_H
+    - at: 0x2d                  # LDAX H+
+      uaddr: LDX_A_HP
+    - at: 0x30                  # DCRW wa
+      uaddr: DCRW
+      skipn: 1
     - at: 0x31                  # BLOCK
       uaddr: BLOCK
     - at: 0x34                  # LXI HL, bbaa
-      uaddr: LXI_H
+      uaddr: LDX_IMM_H
       skipn: 2
+    - at: 0x36                  # SUINB A, byte
+      uaddr: SUBNB_A_IMM
+      skipn: 1
+    - at: 0x37                  # LTI A, byte
+      uaddr: LT_A_IMM
     - at: 0x38                  # STAW wa
       uaddr: STAW
       skipn: 1
+    - at: 0x3a                  # STAX D
+      uaddr: STAX_D
     - at: 0x3b                  # STAX H
       uaddr: STAX_H
+    - at: 0x3c                  # STAX D+
+      uaddr: STAX_DP
     - at: 0x3d                  # STAX H+
       uaddr: STAX_HP
+    - at: [ 0x41, 0x43 ]        # INR r2
+      uaddr: INR
+      m1_overlap: 1
+    - at: 0x46                  # ADI A, byte
+      uaddr: ADD_A_IMM
+      skipn: 1
+    - at: 0x47                  # ONI A, byte
+      uaddr: ON_A_IMM
     - at: [ 0x48, 0x4b ]        # MVIX rpa1, byte
-      uaddr: MVIX_IMM
+      uaddr: MOVX_IMM
       skipn: 1
     - at: 0x4E                  # JRE +jdisp
       uaddr: JRE
-    - at: 0x52                  # DCR B
-      uaddr: DCR_B
-      m1_overlap: 1
-    - at: 0x53                  # DCR C
-      uaddr: DCR_C
+      skipn: 1
+    - at: [ 0x51, 0x53 ]        # DCR r2
+      uaddr: DCR
       m1_overlap: 1
     - at: 0x54                  # JMP word
       uaddr: JMP
       skipn: 2
-    - at: 0x67                  # NEI A, byte
-      uaddr: NEI_IMM_A
-    - at: [ 0x68, 0x6F ]        # MVI r, byte
-      uaddr: MVI_IMM
+    - at: 0x57                  # OFFI A, byte
+      uaddr: OFF_A_IMM
+    - at: 0x62                  # RETI
+      uaddr: RETI
+    - at: 0x66                  # SUI A, byte
+      uaddr: SUB_A_IMM
       skipn: 1
+    - at: 0x67                  # NEI A, byte
+      uaddr: NE_A_IMM
+    - at: [ 0x68, 0x6F ]        # MVI r, byte
+      uaddr: MOV_IMM
+      skipn: 1
+    - at: 0x71                  # MVIW
+      uaddr: MOVW_IMM
+      skipn: 2
     - at: 0x72                  # SOFTI
       uaddr: INT
+    - at: 0x77                  # EQI A, byte
+      uaddr: EQ_A_IMM
     - at: [ 0x80, 0xBF ]        # CALT
       uaddr: CALT
     - at: [ 0xC0, 0xFF ]        # JR
@@ -270,17 +318,31 @@ ird:
       m1_overlap: 1
     - at: 0x10E                 # PUSH V
       uaddr: PUSH_VA
+    - at: 0x10F                 # POP V
+      uaddr: POP_VA
     - at: 0x11E                 # PUSH B
       uaddr: PUSH_BC
+    - at: 0x11F                 # POP B
+      uaddr: POP_BC
     - at: 0x12E                 # PUSH D
       uaddr: PUSH_DE
+    - at: 0x12F                 # POP D
+      uaddr: POP_DE
     - at: 0x13E                 # PUSH H
       uaddr: PUSH_HL
+    - at: 0x13F                 # POP H
+      uaddr: POP_HL
     - at: 0x120                 # EI
       uaddr: EI
       m1_overlap: 1
     - at: 0x124                 # DI
       uaddr: DI
+      m1_overlap: 1
+    - at: 0x134                 # SLL A
+      uaddr: SLL_A
+      m1_overlap: 1
+    - at: 0x135                 # SLR A
+      uaddr: SLR_A
       m1_overlap: 1
 
     # 0x2xx: prefix 0x4C
@@ -290,26 +352,58 @@ ird:
       uaddr: MOV_SR_A
 
     # 0x4xx: prefix 0x60
+    - at: [ 0x440, 0x447 ]      # ADD r, A
+      uaddr: ADD_R_A
+      m1_overlap: 1
+    - at: [ 0x450, 0x457 ]      # ADC r, A
+      uaddr: ADC_R_A
+      m1_overlap: 1
+    - at: [ 0x460, 0x467 ]      # SUB r, A
+      uaddr: SUB_R_A
+      m1_overlap: 1
+    - at: [ 0x470, 0x477 ]      # SBB r, A
+      uaddr: SBB_R_A
+      m1_overlap: 1
+    - at: [ 0x4c0, 0x4c7 ]      # ADD A, r
+      uaddr: ADD_A_R
+      m1_overlap: 1
 
     # 0x5xx: prefix 0x64
+    - at: [ 0x520, 0x527 ]      # ADINC r, byte
+      uaddr: ADDNC_R_IMM
+      skipn: 1
+    - at: [ 0x530, 0x537 ]      # SUINB r, byte
+      uaddr: SUBNB_R_IMM
+      skipn: 1
+    - at: [ 0x540, 0x547 ]      # ADI r, byte
+      uaddr: ADD_R_IMM
+      skipn: 1
+    - at: [ 0x548, 0x54f ]      # ONI r, byte
+      uaddr: ON_R_IMM
+      skipn: 1
+    - at: [ 0x550, 0x557 ]      # ACI r, byte
+      uaddr: ADC_R_IMM
+      skipn: 1
+    - at: [ 0x558, 0x55f ]      # OFFI r, byte
+      uaddr: OFF_R_IMM
+      skipn: 1
+    - at: [ 0x560, 0x567 ]      # SUI r, byte
+      uaddr: SUB_R_IMM
+      skipn: 1
     - at: [ 0x588, 0x58f ]      # ANI sr2, byte
-      uaddr: ANI_SR_IMM
+      uaddr: AND_SR_IMM
       skipn: 1
-
     - at: [ 0x590, 0x597 ]      # XRI sr2, byte
-      uaddr: XRI_SR_IMM
+      uaddr: XOR_SR_IMM
       skipn: 1
-
     - at: [ 0x598, 0x59f ]      # ORI sr2, byte
-      uaddr: ORI_SR_IMM
+      uaddr: OR_SR_IMM
       skipn: 1
-
     - at: [ 0x5c8, 0x5cf ]      # ONI sr2, byte
-      uaddr: ONI_SR_IMM
+      uaddr: ON_SR_IMM
       skipn: 1
-
     - at: [ 0x5d8, 0x5df ]      # OFFI sr2, byte
-      uaddr: OFFI_SR_IMM
+      uaddr: OFF_SR_IMM
       skipn: 1
 
     # 0x6xx: prefix 0x70
@@ -317,6 +411,10 @@ ird:
       uaddr: MOV_ABS
       skipn: 2
 
+    # 0x7xx: prefix 0x74
+    - at: 0x7C0                 # ADDW wa
+      uaddr: ADDW
+      skipn: 1
 
 ######################################################################
 # Microcode ROM
@@ -381,66 +479,82 @@ urom:
       m1: 1
       bm: END
 
-    - uaddr: LXI_SP
+    - uaddr: LDX_IMM_SP
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_SP_C1_T3
+    - naddr: LDX_IMM_SP_C1_T3
     - naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_SP_C2_T3
+    - naddr: LDX_IMM_SP_C2_T3
       m1: 1
       bm: END
 
-    - uaddr: LXI_B
+    - uaddr: LDX_IMM_B
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_B_C1_T3
+    - naddr: LDX_IMM_B_C1_T3
     - naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_B_C2_T3
+    - naddr: LDX_IMM_B_C2_T3
       m1: 1
       bm: END
 
-    - uaddr: LXI_D
+    - uaddr: LDX_IMM_D
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_D_C1_T3
+    - naddr: LDX_IMM_D_C1_T3
     - naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_D_C2_T3
+    - naddr: LDX_IMM_D_C2_T3
       m1: 1
       bm: END
 
-    - uaddr: LXI_H
+    - uaddr: LDX_IMM_H
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_H_C1_T3
+    - naddr: LDX_IMM_H_C1_T3
     - naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: LXI_H_C2_T3
+    - naddr: LDX_IMM_H_C2_T3
       m1: 1
       bm: END
 
-    - uaddr: DCR_B
-      naddr: DCR_B_C1_T1
-    - naddr: DCR_B_C1_T2
+    - uaddr: DCR
+      naddr: DCR_C1_T1
+    - naddr: DCR_C1_T2
       bm: END
 
-    - uaddr: DCR_C
-      naddr: DCR_C_C1_T1
-    - naddr: DCR_C_C1_T2
-      bm: END
-
-    - uaddr: MVI_IMM
+    - uaddr: MOV_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
     - naddr: WRITE_DB_TO_IR210_T3
       m1: 1
       bm: END
 
+      # MVIW wa, imm (Move Immediate to Working Register)
+    - uaddr: MOVW_IMM
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_CO_T3
+    - naddr: STORE_CO_TO_VW_T1
+    - naddr: STORE_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
     - uaddr: MOV_SR_A
       naddr: MOV_SR_A_C1_T1
     - naddr: IDLE
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: STAX_D
+      naddr: STAX_D_C1_T1
+    - naddr: STORE_T2
     - naddr: IDLE
       m1: 1
       bm: END
@@ -452,10 +566,41 @@ urom:
       m1: 1
       bm: END
 
-    - uaddr: STAX_HP
-      naddr: STAX_H_C1_T1
-    - naddr: STAX_HP_C1_T2
+    - uaddr: STAX_DP
+      naddr: STAX_DP_C1_T1
+    - naddr: STORE_T2
     - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: STAX_HP
+      naddr: STAX_HP_C1_T1
+    - naddr: STORE_T2
+    - naddr: IDLE
+      m1: 1
+      bm: END
+
+    - uaddr: LDW_A
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: LOAD_FROM_VW_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_A_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LDX_A_H
+      naddr: STAX_H_C1_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_A_T3
+      m1: 1
+      bm: END
+
+    - uaddr: LDX_A_HP
+      naddr: STAX_HP_C1_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_A_T3
       m1: 1
       bm: END
 
@@ -469,80 +614,136 @@ urom:
       m1: 1
       bm: END
 
-    - uaddr: ANI_SR_IMM
+    - uaddr: ADD_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: ADD_AI_TO_DB       # DB -> idb -> BI, AI + BI -> CO
+      m1: 1
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+    - uaddr: ADDNC_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: ADD_AI_TO_DB
+      m1: 1
+    - naddr: ADDNC_R_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: ADC_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: ADC_IMM_C1_T3
+      m1: 1
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+    - uaddr: SUBNB_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: SUB_IMM_C1_T3
+      m1: 1
+    - naddr: SUBNB_R_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: SUB_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: SUB_IMM_C1_T3
+      m1: 1
+    - naddr: SUB_R_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: ON_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: OFF_R_IMM_C1_T3
+      m1: 1
+    - naddr: ON_SR_IMM_C4_T1
+      bm: END
+
+    - uaddr: OFF_R_IMM
+      naddr: ADD_R_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: OFF_R_IMM_C1_T3
+      m1: 1
+    - naddr: OFF_SR_IMM_C4_T1
+      bm: END
+
+    - uaddr: AND_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: OR_SR_IMM_C1_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: OR_SR_IMM_C2_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ANI_SR_IMM_C3_T3
-    - naddr: ORI_SR_IMM_C4_T1
+    - naddr: AND_SR_IMM_C3_T3
+    - naddr: OR_SR_IMM_C4_T1
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C4_T3
+    - naddr: OR_SR_IMM_C4_T3
       m1: 1
       bm: END
 
-    - uaddr: XRI_SR_IMM
+    - uaddr: XOR_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: OR_SR_IMM_C1_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: OR_SR_IMM_C2_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: XRI_SR_IMM_C3_T3
-    - naddr: ORI_SR_IMM_C4_T1
+    - naddr: XOR_SR_IMM_C3_T3
+    - naddr: OR_SR_IMM_C4_T1
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C4_T3
+    - naddr: OR_SR_IMM_C4_T3
       m1: 1
       bm: END
 
-    - uaddr: ORI_SR_IMM
+    - uaddr: OR_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: OR_SR_IMM_C1_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: OR_SR_IMM_C2_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C3_T3
-    - naddr: ORI_SR_IMM_C4_T1
+    - naddr: OR_SR_IMM_C3_T3
+    - naddr: OR_SR_IMM_C4_T1
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C4_T3
+    - naddr: OR_SR_IMM_C4_T3
       m1: 1
       bm: END
 
-    - uaddr: ONI_SR_IMM
+    - uaddr: ON_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: OR_SR_IMM_C1_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: OR_SR_IMM_C2_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ANI_SR_IMM_C3_T3
+    - naddr: AND_SR_IMM_C3_T3
       m1: 1
-    - naddr: ONI_SR_IMM_C4_T1
+    - naddr: ON_SR_IMM_C4_T1
       bm: END
 
-    - uaddr: OFFI_SR_IMM
+    - uaddr: OFF_SR_IMM
       naddr: PC_OUT_INC_T1
     - naddr: LOAD_T2
-    - naddr: ORI_SR_IMM_C1_T3
+    - naddr: OR_SR_IMM_C1_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: ORI_SR_IMM_C2_T3
+    - naddr: OR_SR_IMM_C2_T3
     - naddr: IDLE
     - naddr: IDLE
-    - naddr: OFFI_SR_IMM_C3_T3
+    - naddr: OFF_SR_IMM_C3_T3
       m1: 1
-    - naddr: OFFI_SR_IMM_C4_T1
+    - naddr: OFF_SR_IMM_C4_T1
       bm: END
 
     - uaddr: BLOCK
@@ -575,7 +776,7 @@ urom:
     - naddr: WRITE_DB_TO_W_T3
     - naddr: PC_OUT_INC_T1      # Fetch word hi
     - naddr: LOAD_T2
-    - naddr: MOV_ABS_C2_T3
+    - naddr: WRITE_DB_TO_CO_T3
     - naddr: MOV_ABS_C3_T1
     - naddr: LOAD_T2
     - naddr: WRITE_DB_TO_IR210_T3
@@ -583,20 +784,47 @@ urom:
       bm: END
 
       # NEI A, byte (Not Equal Immediate with A)
-    - uaddr: NEI_IMM_A
+    - uaddr: NE_A_IMM
       naddr: PC_OUT_INC_T1      # Fetch byte
-    - naddr: NEI_IMM_A_C1_T2
-    - naddr: NEI_IMM_A_C1_T3
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: NE_A_IMM_C1_T3
       m1: 1
-    - naddr: NEI_IMM_A_C2_T1
+    - naddr: NE_A_IMM_C2_T1
+      bm: END
+
+      # EQI A, byte (Equal Immediate with A)
+    - uaddr: EQ_A_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: NE_A_IMM_C1_T3
+      m1: 1
+    - naddr: EQ_A_IMM_C2_T1
+      bm: END
+
+      # GTI A, byte (Greater Than Immediate)
+    - uaddr: GT_A_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: GT_A_IMM_C1_T3
+      m1: 1
+    - naddr: GT_A_IMM_C2_T1
+      bm: END
+
+      # LTI A, byte (Less Than Immediate)
+    - uaddr: LT_A_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: NE_A_IMM_C1_T3
+      m1: 1
+    - naddr: LT_A_IMM_C2_T1
       bm: END
 
       # MVIX rpa1, byte (Move Imm. to Memory naddress by Reg Pair)
-    - uaddr: MVIX_IMM
+    - uaddr: MOVX_IMM
       naddr: PC_OUT_INC_T1      # Fetch byte
     - naddr: LOAD_T2
     - naddr: WRITE_DB_TO_W_T3
-    - naddr: MVIX_IMM_C2_T1
+    - naddr: MOVX_IMM_C2_T1
     - naddr: STORE_T2
     - naddr: IDLE
       m1: 1
@@ -624,11 +852,11 @@ urom:
 
       # RET (Return from subroutine)
     - uaddr: RET
-      naddr: RET_C1_T1          # PCL <- (SP), SP <- SP+1
-    - naddr: RET_C1_T2
+      naddr: RET_T1             # PCL <- (SP), SP <- SP+1
+    - naddr: RET_T2
     - naddr: RET_C1_T3
-    - naddr: RET_C2_T1          # PCH <- (SP), SP <- SP+1
-    - naddr: RET_C2_T2
+    - naddr: RET_T1             # PCH <- (SP), SP <- SP+1
+    - naddr: RET_T2
     - naddr: RET_C2_T3
       m1: 1
       bm: END
@@ -653,6 +881,21 @@ urom:
     - naddr: INT_C5_T1          # PCH <- 0
     - naddr: IDLE
     - naddr: IDLE
+      m1: 1
+      bm: END
+
+      # RETI (Return from Interrupt)
+      # Note: Data sheet says 15 cycles, but I think that's a typo.
+    - uaddr: RETI
+      naddr: RET_T1             # PCL <- (SP), SP <- SP+1
+    - naddr: RET_T2
+    - naddr: RET_C1_T3
+    - naddr: RET_T1             # PCH <- (SP), SP <- SP+1
+    - naddr: RET_T2
+    - naddr: RET_C2_T3
+    - naddr: RET_T1             # PSW <- (SP), SP <- SP+1
+    - naddr: RET_T2
+    - naddr: RETI_C3_T3
       m1: 1
       bm: END
 
@@ -709,6 +952,47 @@ urom:
       m1: 1
       bm: END
 
+      # POP (Pop Register Pair from Stack)
+    - uaddr: POP_VA
+      naddr: POP_T1             # (SP) <- A, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_VA_C1_T3
+    - naddr: POP_T1             # (SP) <- V, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_VA_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: POP_BC
+      naddr: POP_T1             # (SP) <- C, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_BC_C1_T3
+    - naddr: POP_T1             # (SP) <- B, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_BC_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: POP_DE
+      naddr: POP_T1             # (SP) <- E, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_DE_C1_T3
+    - naddr: POP_T1             # (SP) <- D, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_DE_C2_T3
+      m1: 1
+      bm: END
+
+    - uaddr: POP_HL
+      naddr: POP_T1             # (SP) <- L, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_HL_C1_T3
+    - naddr: POP_T1             # (SP) <- H, SP <- SP+1
+    - naddr: LOAD_T2
+    - naddr: POP_HL_C2_T3
+      m1: 1
+      bm: END
+
       # SKIT irf (Skip If Interrupt)
     - uaddr: SKIT
       naddr: SKIT_C1_T1
@@ -731,14 +1015,146 @@ urom:
     - naddr: WRITE_DB_TO_W_T3
     - naddr: INRW_C2_T1         # VW -> ab -> aor
     - naddr: LOAD_T2
-    - naddr: INRW_C2_T3         # DB -> idb -> AI
-    - naddr: INRW_C3_T1         # AI + 1 -> CO
-    - naddr: IDLE
-    - naddr: IDLE
+    - naddr: INRW_C2_T3         # DB -> idb -> AI, AI + 1 -> CO
     - naddr: STORE_CO_TO_VW_T1
     - naddr: STORE_T2
     - naddr: INRW_C4_T3         # Update PSW.Z,SK,HC
       m1: 1
+      bm: END
+
+      # INR r2 (Increment Register)
+    - uaddr: INR
+      naddr: INR_C1_T1
+    - naddr: INR_C1_T2
+      bm: END
+
+      # ONI A, byte (On-Test Immediate with A)
+    - uaddr: ON_A_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: ON_A_IMM_C1_T3
+      m1: 1
+    - naddr: ON_SR_IMM_C4_T1
+      bm: END
+
+      # OFFI A, byte (Off-Test Immediate with A)
+    - uaddr: OFF_A_IMM
+      naddr: PC_OUT_INC_T1      # Fetch byte
+    - naddr: NE_A_IMM_C1_T2
+    - naddr: OFF_A_IMM_C1_T3
+      m1: 1
+    - naddr: OFF_SR_IMM_C4_T1
+      bm: END
+
+      # MOV A, r1 (Move Register to A)
+    - uaddr: MOV_A_R1
+      naddr: MOV_A_R1_C1_T1
+      bm: END
+
+      # MOV r1, A (Move A to Register)
+    - uaddr: MOV_R1_A
+      naddr: MOV_R1_A_C1_T1
+      bm: END
+      
+      # SLL A (Shift Logical Left A)
+    - uaddr: SLL_A
+      naddr: SLL_A_C1_T1
+    - naddr: SLL_A_C1_T2
+      bm: END
+      
+      # SLR A (Shift Logical Right A)
+    - uaddr: SLR_A
+      naddr: SLR_A_C1_T1
+    - naddr: SLL_A_C1_T2
+      bm: END
+
+    - uaddr: ADD_A_IMM
+      naddr: ADD_A_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: ADD_AI_TO_DB
+      m1: 1
+    - naddr: ADD_A_WRITEBACK    # CO -> A, Update PSW.Z,CY,HC
+      bm: END
+
+    - uaddr: ADDNC_A_IMM
+      naddr: ADD_A_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: ADD_AI_TO_DB
+      m1: 1
+    - naddr: ADDNC_A_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: SUBNB_A_IMM
+      naddr: ADD_A_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: SUB_IMM_C1_T3
+      m1: 1
+    - naddr: SUBNB_A_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: SUB_A_IMM
+      naddr: ADD_A_IMM_C1_T1
+    - naddr: LOAD_T2
+    - naddr: SUB_IMM_C1_T3
+      m1: 1
+    - naddr: SUB_A_IMM_WRITEBACK
+      bm: END
+
+    - uaddr: ADD_R_A
+      naddr: WRITE_R_TO_AI
+    - naddr: ADD_R_A_C1_T2
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+    - uaddr: ADC_R_A
+      naddr: WRITE_R_TO_AI
+    - naddr: ADC_R_A_C1_T2
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+    - uaddr: SUB_R_A
+      naddr: WRITE_R_TO_AI
+    - naddr: SUB_R_A_C1_T2
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+    - uaddr: SBB_R_A
+      naddr: WRITE_R_TO_AI
+    - naddr: SBB_R_A_C1_T2
+    - naddr: ADD_R_WRITEBACK
+      bm: END
+
+      # ADD A, r (Add Register to A)
+    - uaddr: ADD_A_R
+      naddr: WRITE_A_TO_AI
+    - naddr: ADD_A_R_C1_T2
+    - naddr: ADD_A_WRITEBACK
+      bm: END
+
+      # DCRW wa (Decrement Working Register)
+    - uaddr: DCRW
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: INRW_C2_T1         # VW -> ab -> aor
+    - naddr: LOAD_T2
+    - naddr: DCRW_C2_T3         # DB -> idb -> AI, AI - 1 -> CO
+    - naddr: STORE_CO_TO_VW_T1
+    - naddr: STORE_T2
+    - naddr: INRW_C4_T3         # Update PSW.Z,SK,HC
+      m1: 1
+      bm: END
+
+      # ADDW wa (Add Working Register to A)
+    - uaddr: ADDW
+      naddr: PC_OUT_INC_T1
+    - naddr: LOAD_T2
+    - naddr: WRITE_DB_TO_W_T3
+    - naddr: ADDW_C2_T1         # VW -> ab -> aor, A -> AI
+    - naddr: LOAD_T2
+    - naddr: ADD_AI_TO_DB       # DB -> idb -> BI, AI + BI -> CO
+      m1: 1
+    - naddr: ADD_A_WRITEBACK    # CO -> A, Update PSW.Z,CY,HC
       bm: END
 
 
@@ -909,74 +1325,74 @@ nrom:
       lts: RF
       rfts: PCH
   
-    - naddr: LXI_SP_C1_T3       # LXI SP, bbaa
+    - naddr: LDX_IMM_SP_C1_T3   # LXI SP, bbaa
       # DB -> idb -> SPL
       idbs: DB
       rfts: SPL
       lts: RF
-    - naddr: LXI_SP_C2_T3
+    - naddr: LDX_IMM_SP_C2_T3
       # DB -> idb -> SPH
       idbs: DB
       rfts: SPH
       lts: RF
   
-    - naddr: LXI_B_C1_T3        # LXI BC, bbaa
+    - naddr: LDX_IMM_B_C1_T3    # LXI BC, bbaa
       # DB -> idb -> C
       idbs: DB
       rfts: C
       lts: RF
-    - naddr: LXI_B_C2_T3
+    - naddr: LDX_IMM_B_C2_T3
       # DB -> idb -> B
       idbs: DB
       rfts: B
       lts: RF
   
-    - naddr: LXI_D_C1_T3        # LXI DE, bbaa
+    - naddr: LDX_IMM_D_C1_T3    # LXI DE, bbaa
       # DB -> idb -> E
       idbs: DB
       rfts: E
       lts: RF
-    - naddr: LXI_D_C2_T3
+    - naddr: LDX_IMM_D_C2_T3
       # DB -> idb -> D
       idbs: DB
       rfts: D
       lts: RF
   
-    - naddr: LXI_H_C1_T3        # LXI HL, bbaa
+    - naddr: LDX_IMM_H_C1_T3    # LXI HL, bbaa
       # DB -> idb -> L
       idbs: DB
       rfts: L
       lts: RF
-    - naddr: LXI_H_C2_T3
+    - naddr: LDX_IMM_H_C2_T3
       # DB -> idb -> H
       idbs: DB
       rfts: H
       lts: RF
   
-    - naddr: DCR_B_C1_T1        # DCR B
-      # B -> idb -> AI, AI - 1 -> CO
-      rfos: B
+    - naddr: INR_C1_T1          # INR r2
+      # r2 -> idb -> AI, AI + 1 -> CO
+      rfos: IR210
       idbs: RF
       lts: AI
-      aluop: DEC
-    - naddr: DCR_B_C1_T2
-      # CO -> idb -> B
-      rfts: B
+      aluop: INC
+    - naddr: INR_C1_T2
+      # CO -> idb -> r2
+      rfts: IR210
       idbs: CO
       lts: RF
       pswz: 1                   # Update PSW.Z
       pswhc: 1                  # Update PSW.HC
-      pswsk: NC                 # !CCO -> PSW.SK
+      pswsk: C                  # CCO -> PSW.SK
   
-    - naddr: DCR_C_C1_T1        # DCR C
-      # C -> idb -> AI, AI - 1 -> CO
-      rfos: C
+    - naddr: DCR_C1_T1          # DCR r2
+      # r2 -> idb -> AI, AI - 1 -> CO
+      rfos: IR210
       idbs: RF
       lts: AI
       aluop: DEC
-    - naddr: DCR_C_C1_T2
-      # CO -> idb -> C
-      rfts: C
+    - naddr: DCR_C1_T2
+      # CO -> idb -> r2
+      rfts: IR210
       idbs: CO
       lts: RF
       pswz: 1                   # Update PSW.Z
@@ -996,6 +1412,15 @@ nrom:
       lts: SPR
       sprs: IR3
   
+    - naddr: STAX_D_C1_T1       # STAX D
+      # DE -> ab -> aor
+      abs: DE
+      aout: 1
+      # A -> idb -> dor
+      rfos: A
+      idbs: RF
+      lts: DOR
+  
     - naddr: STAX_H_C1_T1       # STAX H
       # HL -> ab -> aor
       abs: HL
@@ -1005,11 +1430,27 @@ nrom:
       idbs: RF
       lts: DOR
   
-    - naddr: STAX_HP_C1_T2      # STAX H+
-      # dor -> DB
-      store: 1
-      # HL + 1 -> HL
+    - naddr: STAX_DP_C1_T1      # STAX D+
+      # DE -> ab -> aor
+      abs: DE
+      aout: 1
+      # A -> idb -> dor
+      rfos: A
+      idbs: RF
+      lts: DOR
+      # DE + 1 -> DE
+      ab_inc: 1
+      abits: DE
+  
+    - naddr: STAX_HP_C1_T1      # STAX H+
+      # HL -> ab -> aor
       abs: HL
+      aout: 1
+      # A -> idb -> dor
+      rfos: A
+      idbs: RF
+      lts: DOR
+      # HL + 1 -> HL
       ab_inc: 1
       abits: HL
   
@@ -1030,7 +1471,6 @@ nrom:
       # DB -> idb -> AI
       idbs: DB
       lts: AI
-    - naddr: INRW_C3_T1
       # AI + 1 -> CO
       aluop: INC
     - naddr: STORE_CO_TO_VW_T1
@@ -1045,43 +1485,124 @@ nrom:
       pswhc: 1                  # Update PSW.HC
       pswsk: C                  # CCO -> PSW.SK
   
-    - naddr: ORI_SR_IMM_C1_T3   # ORI sr2, byte
+      # ADI r, byte (Add Immediate to Register)
+    - naddr: ADD_R_IMM_C1_T1
+      # PC -> ab -> aor, PC+1 -> PC
+      aout: 1
+      pc_inc: 1
+      # r -> idb -> AI
+      rfos: IR210
+      idbs: RF
+      lts: AI
+    - naddr: ADD_AI_TO_DB
       # DB -> idb -> BI
       idbs: DB
       lts: BI
-    - naddr: ORI_SR_IMM_C2_T3
+      # AI + BI -> CO
+      aluop: SUM
+    - naddr: ADD_R_WRITEBACK
+      # CO -> idb -> r
+      rfts: IR210
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+
+      # ADINC r, byte (Add Immediate to Register. Skip if No Carry)
+    - naddr: ADDNC_R_IMM_WRITEBACK
+      # CO -> idb -> r
+      rfts: IR210
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NC                 # !CCO -> PSW.SK
+
+      # ACI r, byte (Add Immediate to Register with Carry)
+    - naddr: ADC_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI + BI + PSW.CY -> CO
+      aluop: SUM
+      cis: PSW_CY
+
+      # SUI r, byte (Subtract Immediate from Register)
+    - naddr: SUB_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI - BI -> CO
+      aluop: SUM
+      bin: 1
+      cis: 1
+    - naddr: SUB_R_IMM_WRITEBACK
+      # CO -> idb -> r
+      rfts: IR210
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+
+      # SUINB r, byte (Subtract Immediate from Register. Skip if No Borrow)
+    - naddr: SUBNB_R_IMM_WRITEBACK
+      # CO -> idb -> r
+      rfts: IR210
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: C                  # CCO -> PSW.SK
+
+      # OFFI r, byte (Off-Test Immediate with Register)
+    - naddr: OFF_R_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI & BI -> CO
+      aluop: AND
+
+    - naddr: OR_SR_IMM_C1_T3    # ORI sr2, byte
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+    - naddr: OR_SR_IMM_C2_T3
       # spr -> idb -> AI
       sprs: IR2
       idbs: SPR
       lts: AI
-    - naddr: ORI_SR_IMM_C3_T3
+    - naddr: OR_SR_IMM_C3_T3
       # AI | BI -> CO
       aluop: OR
-    - naddr: ORI_SR_IMM_C4_T1
+    - naddr: OR_SR_IMM_C4_T1
       pswz: 1                   # Update PSW.Z
-    - naddr: ORI_SR_IMM_C4_T3
+    - naddr: OR_SR_IMM_C4_T3
       # CO -> idb -> spr
       idbs: CO
       lts: SPR
       sprs: IR2
   
-    - naddr: ANI_SR_IMM_C3_T3   # ANI sr2, byte
+    - naddr: AND_SR_IMM_C3_T3   # ANI sr2, byte
       # AI & BI -> CO
       aluop: AND
 
-    - naddr: XRI_SR_IMM_C3_T3   # XRI sr2, byte
+    - naddr: XOR_SR_IMM_C3_T3   # XRI sr2, byte
       # AI ^ BI -> CO
       aluop: EOR
 
-    - naddr: OFFI_SR_IMM_C3_T3  # OFFI sr2, byte
+    - naddr: OFF_SR_IMM_C3_T3  # OFFI sr2, byte
       # AI & ~BI -> CO
       aluop: AND
       bin: 1
-    - naddr: OFFI_SR_IMM_C4_T1
+    - naddr: OFF_SR_IMM_C4_T1
       pswz: 1                   # Update PSW.Z
       pswsk: Z                  # (CO == 0) -> PSW.SK
 
-    - naddr: ONI_SR_IMM_C4_T1   # ONI sr2, byte
+    - naddr: ON_SR_IMM_C4_T1    # ONI sr2, byte
       pswz: 1                   # Update PSW.Z
       pswsk: NZ                 # (CO != 0) -> PSW.SK
   
@@ -1154,7 +1675,7 @@ nrom:
       lts: RF
       rfts: PCH
   
-    - naddr: MOV_ABS_C2_T3      # MOV r, word
+    - naddr: WRITE_DB_TO_CO_T3
       # DB -> idb -> AI, 0 -> BI
       idbs: DB
       lts: AI
@@ -1168,13 +1689,13 @@ nrom:
       aout: 1
   
       # NEI A, byte (Not Equal Immediate with A)
-    - naddr: NEI_IMM_A_C1_T2
+    - naddr: NE_A_IMM_C1_T2
       # A -> idb -> AI
       rfos: A
       idbs: RF
       lts: AI
       load: 1
-    - naddr: NEI_IMM_A_C1_T3
+    - naddr: NE_A_IMM_C1_T3
       # DB -> idb -> BI
       idbs: DB
       lts: BI
@@ -1182,15 +1703,42 @@ nrom:
       aluop: SUM
       bin: 1
       cis: 1
-    - naddr: NEI_IMM_A_C2_T1
-      idbs: CO
+    - naddr: NE_A_IMM_C2_T1
       pswz: 1                   # Update PSW.Z
       pswcy: 1                  # Update PSW.CY
       pswhc: 1                  # Update PSW.HC
       pswsk: NZ                 # Update PSW.SK
   
+      # EQI A, byte (Equal Immediate with A)
+    - naddr: EQ_A_IMM_C2_T1
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: Z                  # Update PSW.SK
+
+      # GTI A, byte (Greater Than Immediate)
+    - naddr: GT_A_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI - BI - 1 -> CO
+      aluop: SUM
+      bin: 1
+    - naddr: GT_A_IMM_C2_T1
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: C                  # Update PSW.SK
+
+      # LTI A, byte (Less Than Immediate)
+    - naddr: LT_A_IMM_C2_T1
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NC                 # Update PSW.SK
+
       # MVIX rpa1, byte (Move Imm. to Memory naddress by Reg Pair)
-    - naddr: MVIX_IMM_C2_T1
+    - naddr: MOVX_IMM_C2_T1
       # W -> idb -> dor
       rfos: W
       idbs: RF
@@ -1266,11 +1814,11 @@ nrom:
       rfts: PCH
   
       # RET (Return from subroutine)
-    - naddr: RET_C1_T1           # PCL <- (SP), SP <- SP+1
+    - naddr: RET_T1
       # SP -> ab -> aor
       abs: SP
       aout: 1
-    - naddr: RET_C1_T2
+    - naddr: RET_T2
       load: 1
       # SP + 1 -> SP
       abs: SP
@@ -1281,16 +1829,6 @@ nrom:
       idbs: DB
       lts: RF
       rfts: PCL
-    - naddr: RET_C2_T1           # PCH <- (SP), SP <- SP+1
-      # SP -> ab -> aor
-      abs: SP
-      aout: 1
-    - naddr: RET_C2_T2
-      load: 1
-      # SP + 1 -> SP
-      abs: SP
-      ab_inc: 1
-      abits: SP
     - naddr: RET_C2_T3
       # DB -> idb -> PCL
       idbs: DB
@@ -1315,6 +1853,13 @@ nrom:
       idbs: SDG
       lts: RF
       rfts: PCL
+
+      # RETI (Return from Interrupt)
+    - naddr: RETI_C3_T3
+      # DB -> idb -> PSW
+      idbs: DB
+      lts: RF
+      rfts: PSW
 
       # PUSH (Push Register Pair on Stack)
     - naddr: PUSH_VA_C2_T1      # (SP) <- V, SP <- SP-1
@@ -1382,6 +1927,55 @@ nrom:
       abs: SP
       aout: 1
 
+      # POP (Pop Register Pair from Stack)
+    - naddr: POP_T1
+      # SP -> ab -> aor
+      abs: SP
+      aout: 1
+      # SP + 1 -> SP
+      ab_inc: 1
+      abits: SP
+    - naddr: POP_VA_C1_T3
+      # DB -> idb -> A
+      idbs: DB
+      lts: RF
+      rfts: A
+    - naddr: POP_VA_C2_T3
+      # DB -> idb -> V
+      idbs: DB
+      lts: RF
+      rfts: V
+    - naddr: POP_BC_C1_T3
+      # DB -> idb -> C
+      idbs: DB
+      lts: RF
+      rfts: C
+    - naddr: POP_BC_C2_T3
+      # DB -> idb -> B
+      idbs: DB
+      lts: RF
+      rfts: B
+    - naddr: POP_DE_C1_T3
+      # DB -> idb -> E
+      idbs: DB
+      lts: RF
+      rfts: E
+    - naddr: POP_DE_C2_T3
+      # DB -> idb -> D
+      idbs: DB
+      lts: RF
+      rfts: D
+    - naddr: POP_HL_C1_T3
+      # DB -> idb -> L
+      idbs: DB
+      lts: RF
+      rfts: L
+    - naddr: POP_HL_C2_T3
+      # DB -> idb -> H
+      idbs: DB
+      lts: RF
+      rfts: H
+
       # SKIT irf (Skip If Interrupt)
     - naddr: SKIT_C1_T1
       pswsk: I                  # irf -> PSW.SK
@@ -1389,3 +1983,194 @@ nrom:
       # SKNIT irf (Skip If No Interrupt)
     - naddr: SKNIT_C1_T1
       pswsk: NI                 # !irf -> PSW.SK
+
+    - naddr: LOAD_FROM_VW_T1
+      # VW -> ab -> aor
+      abs: VW
+      aout: 1
+    - naddr: WRITE_DB_TO_A_T3
+      # DB -> idb -> A
+      idbs: DB
+      rfts: A
+      lts: RF
+
+      # ONI A, byte (On-Test Immediate with A)
+    - naddr: ON_A_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI & BI -> CO
+      aluop: AND
+
+      # OFFI A, byte (Off-Test Immediate with A)
+    - naddr: OFF_A_IMM_C1_T3
+      # DB -> idb -> BI
+      idbs: DB
+      lts: BI
+      # AI & ~BI -> CO
+      aluop: AND
+      bin: 1
+
+      # MOV A, r1 (Move Register to A)
+    - naddr: MOV_A_R1_C1_T1
+      # A -> idb -> r1
+      rfos: IR210
+      idbs: RF
+      rfts: A
+      lts: RF
+
+      # MOV r1, A (Move A to Register)
+    - naddr: MOV_R1_A_C1_T1
+      # r1 -> idb -> A
+      rfos: A
+      idbs: RF
+      rfts: IR210
+      lts: RF
+
+    - naddr: SLL_A_C1_T1        # SLL A
+      # r2 -> idb -> AI, AI << 1 -> CO
+      rfos: A
+      idbs: RF
+      lts: AI
+      aluop: LSL
+    - naddr: SLL_A_C1_T2
+      # CO -> idb -> A
+      rfts: A
+      idbs: CO
+      lts: RF
+      pswcy: 1                  # Update PSW.CY
+
+    - naddr: SLR_A_C1_T1        # SLR A
+      # r2 -> idb -> AI, AI >> 1 -> CO
+      rfos: A
+      idbs: RF
+      lts: AI
+      aluop: LSR
+  
+      # ADI A, byte (Add Immediate to A)
+    - naddr: ADD_A_IMM_C1_T1
+      # PC -> ab -> aor, PC+1 -> PC
+      aout: 1
+      pc_inc: 1
+      # A -> idb -> AI
+      rfos: A
+      idbs: RF
+      lts: AI
+    - naddr: ADD_A_WRITEBACK
+      # CO -> idb -> A
+      rfts: A
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+
+      # ADINC A, byte (Add Immediate to A. Skip if No Carry)
+    - naddr: ADDNC_A_IMM_WRITEBACK
+      # CO -> idb -> A
+      rfts: A
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: NC                 # !CCO -> PSW.SK
+
+      # SUI A, byte (Subtract Immediate from A)
+    - naddr: SUB_A_IMM_WRITEBACK
+      # CO -> idb -> A
+      rfts: A
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+
+      # SUINB A, byte (Subtract Immediate from A. Skip if No Borrow)
+    - naddr: SUBNB_A_IMM_WRITEBACK
+      # CO -> idb -> A
+      rfts: A
+      idbs: CO
+      lts: RF
+      pswz: 1                   # Update PSW.Z
+      pswcy: 1                  # Update PSW.CY
+      pswhc: 1                  # Update PSW.HC
+      pswsk: C                  # CCO -> PSW.SK
+
+      # ADD r, A (Add A to Register)
+    - naddr: WRITE_R_TO_AI
+      # r -> idb -> AI
+      rfos: IR210
+      idbs: RF
+      lts: AI
+    - naddr: ADD_R_A_C1_T2
+      # A -> idb -> BI
+      rfos: A
+      idbs: RF
+      lts: BI
+      # AI + BI -> CO
+      aluop: SUM
+
+      # ADC r, A (Add A to Register with Carry)
+    - naddr: ADC_R_A_C1_T2
+      # A -> idb -> BI
+      rfos: A
+      idbs: RF
+      lts: BI
+      # AI + BI + PSW.CY -> CO
+      aluop: SUM
+      cis: PSW_CY
+
+      # SUB r, A (Subtract A from Register)
+    - naddr: SUB_R_A_C1_T2
+      # A -> idb -> BI
+      rfos: A
+      idbs: RF
+      lts: BI
+      # AI - BI -> CO
+      aluop: SUM
+      bin: 1
+      cis: 1
+
+      # SBB r, A (Subtract A from Register with Borrow)
+    - naddr: SBB_R_A_C1_T2
+      # A -> idb -> BI
+      rfos: A
+      idbs: RF
+      lts: BI
+      # AI - BI - 1 -> CO
+      aluop: SUM
+      bin: 1
+
+      # DCRW wa (Decrement Working Register)
+    - naddr: DCRW_C2_T3
+      # DB -> idb -> AI
+      idbs: DB
+      lts: AI
+      # AI - 1 -> CO
+      aluop: DEC
+
+      # ADDW wa (Add Working Register to A)
+    - naddr: ADDW_C2_T1
+      # VW -> ab -> aor
+      abs: VW
+      aout: 1
+      # A -> idb -> AI
+      rfos: A
+      idbs: RF
+      lts: AI
+
+      # ADD A, r (Add Register to A)
+    - naddr: WRITE_A_TO_AI
+      # A -> idb -> AI
+      rfos: A
+      idbs: RF
+      lts: AI
+    - naddr: ADD_A_R_C1_T2
+      # r -> idb -> BI
+      rfos: IR210
+      idbs: RF
+      lts: BI
+      # AI + BI -> CO
+      aluop: SUM
+

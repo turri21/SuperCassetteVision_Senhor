@@ -121,7 +121,7 @@ reg          cl_ui_ie;
 reg          cl_abl_aor, cl_abh_aor, cl_ab_aor;
 reg          cl_idb_dor, cl_store_dor;
 reg          cl_load_db;
-e_urfs       cl_rfts;
+e_urfs       cl_rfos, cl_rfts;
 e_spr        cl_spr;
 e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
@@ -129,7 +129,7 @@ reg          cl_idb_abil, cl_idb_abih;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
              cl_bi_not, cl_bi_dah, cl_bi_dal, cl_pdas;
 reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
-             cl_asls, cl_rols, cl_lsrs, cl_rors;
+             cl_lsls, cl_rols, cl_lsrs, cl_rors;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -465,7 +465,9 @@ always @(posedge CLK) begin
         ir <= `IR_SOFTI;
       end
       else begin
-        ir[7:0] <= idb;
+        // HACK: Bypassing idb, because I need it free in T3 for completing
+        // the prior instruction.
+        ir[7:0] <= DB_I;
       end
     end
     if (cl_of_prefix_ir) begin
@@ -527,7 +529,7 @@ end
 
 // rfo: register file output
 always @* begin
-  case (nc.rfos)
+  case (cl_rfos)
     URFS_V: rfo = v;
     URFS_A: rfo = a;
     URFS_B: rfo = b;
@@ -639,7 +641,7 @@ always @(posedge CLK) if (cp2n) begin
     co <= ai & ibi;
   else if (cl_eors)
     co <= ai ^ ibi;
-  else if (cl_asls | cl_rols)
+  else if (cl_lsls | cl_rols)
     {cco, co} <= {ai[7:0], addc & cl_rols};
   else if (cl_lsrs | cl_rors)
     {co, cco} <= {addc & cl_rors, ai[7:0]};
@@ -750,6 +752,7 @@ always @* begin
       8'h60: of_prefix = 3'd4;
       8'h64: of_prefix = 3'd5;
       8'h70: of_prefix = 3'd6;
+      8'h74: of_prefix = 3'd7;
       default: ;
     endcase
   end
@@ -784,7 +787,7 @@ always @* ird = ird_lut[ir];
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-s_uc    urom [256];
+s_uc    urom [512];
 s_nc    nrom [256];
 
 initial begin
@@ -892,7 +895,7 @@ function e_spr resolve_sprs(e_sprs in);
   end
 endfunction
 
-initial cl_idb_psw = 0;
+always @* cl_idb_psw = (cl_rfts == URFS_PSW);
 always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;
 initial cl_zero_c = 0;
@@ -907,9 +910,10 @@ always @* cl_ab_aor = oft[0] | nc.aout;
 always @* cl_idb_dor = (nc.lts == ULTS_DOR);
 always @* cl_store_dor = nc.store;
 always @* cl_load_db = oft[1] | nc.load;
+always @* cl_rfos = resolve_rfs_ir(nc.rfos);
 always @* cl_rfts = resolve_rfs_ir(nc.rfts);
 always @* cl_spr = resolve_sprs(nc.sprs);
-always @* cl_idbs = e_idbs'(oft[2] ? UIDBS_DB : nc.idbs);
+always @* cl_idbs = nc.idbs;
 always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
 always @* cl_pc_inc = of_pc_inc | nc.pc_inc;
@@ -940,7 +944,7 @@ always @* cl_decs = nc.aluop == UAO_DEC;
 always @* cl_ors =  nc.aluop == UAO_OR;
 always @* cl_ands = nc.aluop == UAO_AND;
 always @* cl_eors = nc.aluop == UAO_EOR;
-always @* cl_asls = nc.aluop == UAO_ASL;
+always @* cl_lsls = nc.aluop == UAO_LSL;
 always @* cl_rols = nc.aluop == UAO_ROL;
 always @* cl_lsrs = nc.aluop == UAO_LSR;
 always @* cl_rors = nc.aluop == UAO_ROR;

@@ -117,24 +117,50 @@ initial #0 begin
 
   // We're looping until C reaches 0 (inner loop).
   #80 @(posedge clk) ;
+  assert(dut.pc == 16'h0016);
   dut.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
   #90 @(posedge clk) ;
+  assert(dut.pc == 16'h0018);
   dut.b = 0;
   dut.c = 1;
 
   // Double 'block' in ClearScreen
   #700 @(posedge clk) ;
+  assert(dut.pc == 16'h0a25);
   dut.c -= 8'hF8;
   dut.e += 8'hF8;
   dut.l += 8'hF8;
   #43 @(posedge clk) ;
+  assert(dut.pc == 16'h0a26);
   dut.c -= 8'hFD;
   dut.e += 8'hFD;
   dut.l += 8'hFD;
 
-  #800 @(posedge clk) ;
+  // Double 'block' in ClearSpriteAttrs
+  #2002 @(posedge clk) ;
+  assert(dut.pc == 16'h0a25);
+  dut.c -= 8'hF5;
+  dut.e += 8'hF5;
+  dut.l += 8'hF5;
+  #43 @(posedge clk) ;
+  assert(dut.pc == 16'h0a26);
+  dut.c -= 8'hFD;
+  dut.e += 8'hFD;
+  dut.l += 8'hFD;
+
+  // 16x 'block' in ClearSpritePatterns
+  #162 @(posedge clk) ;
+  assert(dut.pc == 16'h0a55);
+  dut.b -= 8'h0F;
+  dut.c -= 8'hF8;
+  dut.d += 8'h0F;
+  dut.e += 8'hF8;
+  dut.h += 8'h0F;
+  dut.l += 8'hF8;
+
+  #8000 @(posedge clk) ;
 
   $finish;
 end
