@@ -45,7 +45,7 @@ upd7800 dut
    .RDB(dut_rdb),
    .WRB(dut_wrb),
    .PB_I(8'b0),
-   .PC_I(8'b0)
+   .PC_I(8'h01)                 // pause switch off
    );
 
 bootrom rom
@@ -139,11 +139,11 @@ initial #0 begin
   dut.l += 8'hFD;
 
   // Double 'block' in ClearSpriteAttrs
-  #2002 @(posedge clk) ;
+  #2000 @(posedge clk) ;
   assert(dut.pc == 16'h0a25);
-  dut.c -= 8'hF5;
-  dut.e += 8'hF5;
-  dut.l += 8'hF5;
+  dut.c -= 8'hFC;
+  dut.e += 8'hFC;
+  dut.l += 8'hFC;
   #43 @(posedge clk) ;
   assert(dut.pc == 16'h0a26);
   dut.c -= 8'hFD;
@@ -160,7 +160,7 @@ initial #0 begin
   dut.h += 8'h0F;
   dut.l += 8'hF8;
 
-  #8000 @(posedge clk) ;
+  #28000 @(posedge clk) ;
 
   $finish;
 end
@@ -207,6 +207,13 @@ module ram
 
 reg [DW-1:0] ram [0:((1 << AW) - 1)];
 reg [DW-1:0] dor;
+
+// Undefined RAM contents make simulation eventually die.
+initial begin
+int i;
+  for (i = 0; i < (1 << AW); i++)
+    ram[i] = 0;
+end
 
 always @(posedge CLK)
   dor <= ram[A];

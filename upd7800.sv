@@ -107,7 +107,7 @@ s_uc         uc;
 e_uaddr      uptr, uptr_next;
 
 s_nc         nc;
-e_naddr      nptr, nptr_next;
+t_naddr      nptr, nptr_next;
 
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
@@ -127,7 +127,7 @@ e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
 reg          cl_idb_abil, cl_idb_abih;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
-             cl_bi_not, cl_bi_dah, cl_bi_dal, cl_pdas;
+             cl_bi_not, cl_bi_daa;
 reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
              cl_lsls, cl_rols, cl_lsrs, cl_rors;
 
@@ -607,19 +607,20 @@ end
 
 always @* addc = (cl_carry & cco) | (cl_one_addc | cl_incs) | (cl_c_addc & `psw_cy);
 always @* notbi = cl_bi_not | cl_decs;
-always @* pdah = (`psw_cy ^ cl_pdas) | (ai > 8'h99);
-always @* pdal = (`psw_hc ^ cl_pdas) | (ai[3:0] > 4'h9);
-always @* pdac = (~cl_pdas & (`psw_cy | pdah)) | (cl_pdas & `psw_cy & ~pdah);
+always @* pdah = `psw_cy | (ai[7:4] > 4'h9) |
+                 (~`psw_hc & (ai[3:0] > 4'h9) & (ai[7:4] == 4'h9));
+always @* pdal = `psw_hc | (ai[3:0] > 4'h9);
+always @* pdac = `psw_cy | pdah;
 
 always @* begin
   ibi = bi;
   if (cl_incs | cl_decs)
     ibi = 8'h00;
-  // DAA/DAS adjust constants
-  if (cl_bi_dah & pdah)
-    ibi = 8'h60;
-  if (cl_bi_dal & pdal)
-    ibi = 8'h06;
+  // DAA adjust constants
+  if (cl_bi_daa) begin
+    ibi[7:4] = pdah ? 4'h6 : 4'h0;
+    ibi[3:0] = pdal ? 4'h6 : 4'h0;
+  end
   ibi = ibi ^ {8{notbi}};
 end
 
@@ -631,7 +632,7 @@ always @(posedge CLK) if (cp2n) begin
     hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
     co <= {hsum[3:0], lsum[3:0]};
     if (cl_sums_cco)
-      cco <= (cl_bi_dah) ? pdac : hsum[4];
+      cco <= (cl_bi_daa) ? pdac : hsum[4];
     //cvo <= (ai[7] == ibi[7]) & (ai[7] != hsum[3]);
     cho <= lsum > 5'd9;
   end
@@ -934,9 +935,7 @@ always @* cl_one_addc = nc.cis == UCIS_1;
 always @* cl_c_addc = nc.cis == UCIS_PSW_CY;
 always @* cl_zero_bi = nc.bi0;
 always @* cl_bi_not = nc.bin;
-initial cl_bi_dah = 0;
-initial cl_bi_dal = 0;
-initial cl_pdas = 0;
+always @* cl_bi_daa = nc.daa;
 initial cl_clrs = 0;
 always @* cl_sums = nc.aluop == UAO_SUM;
 always @* cl_incs = nc.aluop == UAO_INC;

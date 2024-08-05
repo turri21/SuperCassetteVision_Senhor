@@ -1,0 +1,293 @@
+# Microcode / nanocode ROM data description
+#
+# Copyright (c) 2024 David Hunter
+#
+# This program is GPL licensed. See COPYING for the full license.
+
+types:
+  - name: e_uaddr
+    desc: ucode address
+    type: enum
+    width: 9
+    prefix: UA_
+    # values will come from the ucode.rows list
+
+  - name: t_naddr
+    desc: ncode address
+    type: int
+    width: 8
+
+  - name: e_ubm
+    desc: branch mode
+    type: enum
+    width: 2
+    prefix: UBM_
+    values:
+      - ADV                     # advance (default)
+      - END                     # return to IDLE
+      - DA                      # direct address
+
+  - name: e_mcy
+    desc: machine cycle
+    type: enum
+    width: 2
+    prefix: UTX_
+    values:
+      - T1
+      - T2
+      - T3
+      - T4
+
+  - name: e_urfs
+    desc: register file select
+    type: enum
+    width: 4
+    prefix: URFS_
+    values:
+      - V
+      - A
+      - B
+      - C
+      - D
+      - E
+      - H
+      - L
+      - PSW
+      - SPL
+      - SPH
+      - PCL
+      - PCH
+      - IR210                   # IR[2:0] encodes V,A,B...L
+      - W                       # working address
+
+  - name: e_idbs
+    desc: idb select
+    type: enum
+    width: 3
+    prefix: UIDBS_
+    values:
+      - 0                       # zero
+      - RF                      # register file: A, B, etc.
+      - DB                      # external data bus
+      - CO                      # ALU output
+      - SPR                     # special reg.
+      - SDG                     # special data generator
+
+  - name: e_lts
+    desc: load target select
+    type: enum
+    width: 4
+    prefix: ULTS_
+    values:
+      - NONE                    # (default) no load
+      - RF
+      - DOR
+      - AI
+      - BI
+      - IE
+      - SPR                     # special reg.
+
+  - name: e_abs
+    desc: ab select
+    type: enum
+    width: 3
+    prefix: UABS_
+    values:
+      - PC                      # (default)
+      - SP
+      - BC
+      - DE
+      - HL
+      - VW
+      - IDB_W
+      - IR10                    # IR[1:0] encodes BC, DE, HL
+
+  - name: e_spr
+    desc: special register
+    type: enum
+    width: 4
+    prefix: USPR_
+    values:
+      - PA                      # Port A
+      - PB                      # Port B
+      - PC                      # Port C
+      - MK                      # Interrupt Mask
+      - MB                      # Mode B
+      - MC                      # Mode C
+      - TM0                     # Timer Reg 0
+      - TM1                     # Timer Reg 1
+      - S                       # Serial Reg
+      - TMM                     # Timer Mode Reg
+
+  - name: e_sprs
+    desc: special register select
+    type: enum
+    width: 1
+    prefix: USRS_
+    values:
+      - IR2                     # IR[2:0]
+      - IR3                     # IR[3:0]
+
+  - name: e_sdgs
+    desc: special data generator select
+    type: enum
+    width: 2
+    prefix: USDGS_
+    values:
+      - JRL                     # sign-ext. IR[5:0] (for JR)
+      - JRH                     # sign-ext. IR[5] (for JR)
+      - CALT                    # EA for CALT
+      - INTVA                   # EA for interrupt vector
+
+  - name: e_aluop
+    desc: ALU operation
+    type: enum
+    width: 4
+    prefix: UAO_
+    values:
+      - NOP
+      - SUM
+      - INC
+      - DEC
+      - OR
+      - AND
+      - EOR
+      - LSL
+      - ROL
+      - LSR
+      - ROR
+
+  - name: e_cis
+    desc: ALU carry in select
+    type: enum
+    width: 2
+    prefix: UCIS_
+    values:
+      - 0
+      - 1
+      - CCO
+      - PSW_CY
+
+  - name: e_sks
+    desc: SKip flag source
+    type: enum
+    width: 3
+    prefix: USKS_
+    values:
+      - 0                       # (default) reset
+      - 1                       # set (for RETS)
+      - C
+      - NC
+      - Z
+      - NZ
+      - I                       # INT*F set
+      - NI                      # INT*F clear
+
+
+######################################################################
+# Instruction decode LUT (ird_lut)
+ird:
+  columns:
+    - name: uaddr
+      type: e_uaddr
+      desc: microcode entry point
+    - name: m1_overlap
+      width: 1
+      desc: New M1 starts immediately
+    - name: skipn
+      width: 2
+      desc: Number of operands to skip when ins. is skipped
+
+
+######################################################################
+# Microcode ROM
+# Lists nanocode addresses for each step of every instruction
+urom:
+  columns:
+    - name: naddr
+      type: t_naddr
+      desc: nanocode address
+    - name: bm
+      type: e_ubm
+      desc: branch mode
+    - name: m1
+      width: 1
+      desc: Fetch next opcode (start M1)
+
+
+######################################################################
+# Nanocode ROM
+nrom:
+  columns:
+    - name: idx
+      width: 3
+      desc: general-purpose data
+    - name: rfos
+      type: e_urfs
+      desc: register file output select -> idb
+    - name: rfts
+      type: e_urfs
+      desc: register file target select
+    - name: idbs
+      type: e_idbs
+      desc: idb select
+    - name: lts
+      type: e_lts
+      desc: load target select
+    - name: abs
+      type: e_abs
+      desc: ab select
+    - name: abits
+      type: e_abs
+      desc: abi target select
+    - name: pc_inc
+      width: 1
+      desc: increment PC
+    - name: ab_inc
+      width: 1
+      desc: increment ab
+    - name: ab_dec
+      width: 1
+      desc: decrement ab
+    - name: aout
+      width: 1
+      desc: ab -> AOR
+    - name: load
+      width: 1
+      desc: assert RDB (read operation)
+    - name: store
+      width: 1
+      desc: dor -> DB
+    - name: aluop
+      type: e_aluop
+      desc: ALU operation
+    - name: cis
+      type: e_cis
+      desc: ALU carry in select
+    - name: bi0
+      width: 1
+      desc: Zero BI
+    - name: bin
+      width: 1
+      desc: Negate BI
+    - name: pswz
+      width: 1
+      desc: (CO == 0) -> PSW.Z
+    - name: pswcy
+      width: 1
+      desc: CCO -> PSW.CY
+    - name: pswhc
+      width: 1
+      desc: CHO -> PSW.HC
+    - name: pswsk
+      type: e_sks
+      desc: PSW.SK source
+    - name: sprs
+      type: e_sprs
+      desc: special register select
+    - name: sdgs
+      type: e_sdgs
+      desc: special data generator select
+    - name: daa
+      width: 1
+      desc: decimal adjust const -> BI
