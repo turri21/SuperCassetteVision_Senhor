@@ -615,9 +615,9 @@ def softi(ir, nsteps):
     ucs.step(idb_rd(0) | idb_wr('RF_PCH'))
     ucs.step(nc_idle)
     ucs.step(nc_idle)
-    # PCL <- 'h60
+    # PCL <- 'h60, PSW.SK <- 0 (not auto-cleared)
     ucs.step(idb_rd('SDG_INTVA') | idb_wr('RF_PCL'))
-    ucs.step(nc_idle)
+    ucs.step({'pswsk': 0})
     ucs.step(nc_idle)
     ird_row(ir, nsteps, 0, ucs)
 

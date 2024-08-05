@@ -160,7 +160,7 @@ initial #0 begin
   dut.h += 8'h0F;
   dut.l += 8'hF8;
 
-  #80000 @(posedge clk) ;
+  #90000 @(posedge clk) ;
 
   $finish;
 end

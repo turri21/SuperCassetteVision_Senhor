@@ -172,10 +172,10 @@ types:
   - name: e_sks
     desc: SKip flag source
     type: enum
-    width: 3
+    width: 4
     prefix: USKS_
     values:
-      - 0                       # (default) reset
+      - PSW_SK                  # (default) no change
       - 1                       # set (for RETS)
       - C
       - NC
@@ -183,6 +183,7 @@ types:
       - NZ
       - I                       # INT*F set
       - NI                      # INT*F clear
+      - 0                       # reset
 
 
 ######################################################################

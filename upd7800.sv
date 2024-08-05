@@ -96,7 +96,7 @@ reg [7:0]    sdg;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
-wire         of_start, of_start_d, of_done, of_pc_inc;
+wire         of_start, of_start_d, of_done, of_pc_inc, of_skip;
 reg          m1, m1ext;
 wire         m1_next, oft0_next;
 wire         m1_overlap, m1_skip;
@@ -111,6 +111,7 @@ t_naddr      nptr, nptr_next;
 
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
+e_sks        cl_pswsk;
 reg          cl_zero_irf;
 reg [2:0]    cl_irf;
 e_abs        cl_abs, cl_abits;
@@ -680,8 +681,8 @@ end
 
 // Skip flag source
 always @* begin
-  case (nc.pswsk)
-    USKS_0: skso = 1'b0;
+  case (cl_pswsk)
+    USKS_PSW_SK: skso = `psw_sk;
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
     USKS_NC: skso = ~cco;
@@ -689,12 +690,9 @@ always @* begin
     USKS_NZ: skso = |co;
     USKS_I: skso = irf1;
     USKS_NI: skso = ~irf1;
+    USKS_0: skso = 1'b0;
     default: skso = 1'bx;
   endcase
-
-  // A skipped instruction resets SK.
-  if (m1_skip)
-    skso = 1'b0;
 end
 
 // Special data generator
@@ -738,9 +736,10 @@ always_ff @(posedge CLK) begin
   end
 end
 
+assign of_skip = `psw_sk & ~intg;
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_overlap = of_done & ird.m1_overlap;
-assign m1_skip = of_done & (`psw_sk & (ird.skipn == 0));
+assign m1_skip = of_done & (of_skip & (ird.skipn == 0));
 assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap | m1_skip)));
 
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
@@ -813,7 +812,7 @@ always @* begin
   uptr_next = uptr;
 
   if (of_done) begin
-    if (`psw_sk) begin
+    if (of_skip) begin
       case (ird.skipn)
         2'd0: uptr_next = UA_IDLE;
         2'd1: uptr_next = UA_SKIP_OP1;
@@ -842,7 +841,7 @@ always @(posedge CLK) begin
   else if (cp2p) begin
     uptr <= uptr_next;
 
-    if (of_done & ~`psw_sk) begin
+    if (of_done & ~of_skip) begin
       assert (ir == 0 || uptr_next != UA_IDLE);
       else begin
         $error("%t: Illegal opcode", $time);
@@ -903,7 +902,8 @@ always @* cl_cco_c = nc.pswcy;
 initial cl_zero_c = 0;
 initial cl_one_c = 0;
 always @* cl_cho_hc = nc.pswhc;
-always @* cl_sks_sk = (of_done | (nc.pswsk != USKS_0)) & ~intg;
+always @* cl_sks_sk = (of_done & ~intg) | (nc.pswsk != USKS_PSW_SK);
+always @* cl_pswsk = e_sks'((of_done & ~intg) ? USKS_0 : nc.pswsk);
 always @* cl_zero_irf = (nc.pswsk == USKS_I) | (nc.pswsk == USKS_NI);
 always @* cl_irf = ir[2:0];
 initial cl_abl_aor = 0;
