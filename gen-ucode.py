@@ -112,6 +112,10 @@ def idb_wr(rbs):
 def aor_wr(abs):
     return {'abs': abs, 'aout': 1}
 
+def aor_wr_rp():
+    # Also enables inc/dec writeback
+    return aor_wr('IR210') | {'abits': 'IR210', 'rpir': 1}
+
 ######################################################################
 # Common nrom operations
 
@@ -179,18 +183,12 @@ def load_imm16(ir, nsteps, reg):
     ucs.step({'idbs': 'DB', 'rfts': regh, 'lts': 'RF'})
     ird_row(ir, nsteps, 2, ucs)
 
-def loadx(ir, nsteps, rp, dst, mod=''):
-    nc_mod_rp = {}
-    if mod == '+':
-        nc_mod_rp = {'ab_inc': 1, 'abits': rp}
-    elif mod == '-':
-        nc_mod_rp = {'ab_dec': 1, 'abits': rp}
+def loadx(ir, nsteps):
+    ucs = ucode_seq(f'LDAX')
 
-    ucs = ucode_seq(f'LDX{mod}_{rp}_{dst}')
-
-    ucs.step(aor_wr(rp) | nc_mod_rp)
+    ucs.step(aor_wr_rp())
     ucs.step(nc_load)
-    ucs.step(idb_rd('DB') | idb_wr(dst))
+    ucs.step(idb_rd('DB') | idb_wr('A'))
 
     ird_row(ir, nsteps, 0, ucs)
 
@@ -209,32 +207,27 @@ def load_abs(ir, nsteps):
     ucs.step(idb_rd('DB') | idb_wr('RF_IR210'))
     ird_row(ir, nsteps, 2, ucs)
 
-def storex(ir, nsteps, rp, src, mod=''):
+def storex(ir, nsteps, src):
     imm = src == 'IMM'
     if imm:
         src = 'RF_W'
     noper = 1 if imm else 0
     nc_write_src_to_dor = idb_rd(src) | {'lts': 'DOR'}
-    nc_write_dst_to_aor = aor_wr(rp)
-    nc_mod_dst = {}
-    if mod == '+':
-        nc_mod_dst = {'ab_inc': 1, 'abits': rp}
+    nc_write_dst_to_aor = aor_wr_rp()
 
-    ucs = ucode_seq(f'STX{mod}_{rp}_{src}')
+    ucs = ucode_seq(f'STX_{src}')
 
     if imm:
         ucs.step(nc_pc_out_inc)
         ucs.step(nc_load)
         ucs.step({'idbs': 'DB'} | idb_wr(src))
-        ucs.step(nc_write_src_to_dor | nc_write_dst_to_aor)
-    else:
-        ucs.step(nc_write_src_to_dor | nc_write_dst_to_aor | nc_mod_dst)
+    ucs.step(nc_write_src_to_dor | nc_write_dst_to_aor)
     ucs.step(nc_store)
     ucs.step(nc_idle)
 
     ird_row(ir, nsteps, noper, ucs)
 
-def storew(ir, nsteps, src, mod=''):
+def storew(ir, nsteps, src):
     imm = src == 'IMM'
     noper = 2 if imm else 1
 
@@ -437,6 +430,33 @@ def math(ir, nsteps, op, dst, src, skip=''):
 
 def math_imm(ir, nsteps, op, reg, skip=''):
     math(ir, nsteps, op, reg, 'IMM', skip)
+
+def mathx(ir, nsteps, op, skip=''):
+    ncop = {
+        'ADD': {'aluop': 'SUM'},
+        'ADC': {'aluop': 'SUM', 'cis': 'PSW_CY'},
+        'SUB': {'aluop': 'SUM', 'bin': 1, 'cis': 1},
+        'SBB': {'aluop': 'SUM', 'bin': 1, 'cis': 'PSW_CY'},
+    }[op]
+    ncsk = {
+        '': {},
+        'NC': {'pswsk': 'NC'},  # !CCO -> PSW.SK
+        'NB': {'pswsk': 'C'},   # CCO -> PSW.SK
+    }[skip]
+    nc_write_dst_to_ai = idb_rd('A') | idb_wr('AI')
+    nc_write_src_to_bi = idb_rd('DB') | idb_wr('BI')
+
+    ucs = ucode_seq(f'{op}{skip}')
+    ucs.step(aor_wr_rp())
+    ucs.step(nc_load | nc_write_dst_to_ai)
+    ucs.step(nc_write_src_to_bi | ncop)
+    ucs.step({'idbs': 'CO'} | idb_wr('A') | {
+        'pswz': 1,              # Update PSW.Z
+        'pswcy': 1,             # Update PSW.CY
+        'pswhc': 1,             # Update PSW.HC
+    } | ncsk)
+
+    ird_row(ir, nsteps, 0, ucs)
 
 def incdec(ir, nsteps, op, reg):
     wa = reg == 'WA'
@@ -709,20 +729,10 @@ load_imm16(0x14, 10, 'BC')                        # LXI BC, bbaa
 load_imm16(0x24, 10, 'DE')                        # LXI DE, bbaa
 load_imm16(0x34, 10, 'HL')                        # LXI HL, bbaa
 
-loadx(0x29, 7, 'BC', 'A')                         # LDAX B
-loadx(0x2a, 7, 'DE', 'A')                         # LDAX D
-loadx(0x2b, 7, 'HL', 'A')                         # LDAX H
-loadx(0x2c, 7, 'DE', 'A', '+')                    # LDAX D+
-loadx(0x2d, 7, 'HL', 'A', '+')                    # LDAX H+
-loadx(0x2e, 7, 'DE', 'A', '-')                    # LDAX D-
-loadx(0x2f, 7, 'HL', 'A', '-')                    # LDAX H-
+loadx([0x29, 0x2f], 7)                            # LDAX rpa
 
-storex(0x3a, 7, 'DE', 'A')                        # STAX D/H/L
-storex(0x3b, 7, 'HL', 'A')
-storex(0x3c, 7, 'DE', 'A', '+')
-storex(0x3d, 7, 'HL', 'A', '+')
-
-storex([0x48, 0x4b], 10, 'IR10', 'IMM')           # MVIX rpa1, byte
+storex([0x3a, 0x3d], 7, 'A')                      # STAX D/H/L
+storex([0x48, 0x4b], 10, 'IMM')                   # MVIX rpa1, byte
 
 storew(0x38, 10, 'A')                             # STAW wa
 storew(0x71, 13, 'IMM')                           # MVIW wa, byte
@@ -730,12 +740,14 @@ storew(0x71, 13, 'IMM')                           # MVIW wa, byte
 block(0x31, 13)                                   # BLOCK
 
 test_imm(0x45, 13, 'ON', 'WA')                    # ONIW wa, byte
+test_imm(0x65, 13, 'NEQ', 'WA')                   # NEIW wa, byte
 
 logic_imm(0x07, 7, 'AND', 'A')                    # ANI A, byte
 logic_imm(0x16, 7, 'XOR', 'A')                    # XRI A, byte
 logic_imm(0x17, 7, 'OR', 'A')                     # ORI A, byte
 
 test_imm(0x27, 7, 'GT', 'A')                      # GTI A, byte
+test_imm(0x37, 7, 'LT', 'A')                      # LTI A, byte
 test_imm(0x47, 7, 'ON', 'A')                      # ONI A, byte
 test_imm(0x57, 7, 'OFF', 'A')                     # OFFI A, byte
 test_imm(0x67, 7, 'NEQ', 'A')                     # NEI A, byte
@@ -754,7 +766,14 @@ incdec(0x30, 13, 'DEC', 'WA')                     # DCRW wa
 incdec([0x41, 0x43], 4, 'INC', 'RF_IR210')        # INR r2
 incdec([0x51, 0x53], 4, 'DEC', 'RF_IR210')        # DCR r2
 
+incdecx(0x02, 7, 'INC', 'SP')                     # INX SP
+incdecx(0x12, 7, 'INC', 'BC')                     # INX BC
 incdecx(0x22, 7, 'INC', 'DE')                     # INX D
+incdecx(0x32, 7, 'INC', 'HL')                     # INX H
+incdecx(0x03, 7, 'DEC', 'SP')                     # DCX SP
+incdecx(0x13, 7, 'DEC', 'BC')                     # DCX BC
+incdecx(0x23, 7, 'DEC', 'DE')                     # DCX D
+incdecx(0x33, 7, 'DEC', 'HL')                     # DCX H
 
 daa(0x61, 4)                                      # DAA
 
@@ -847,6 +866,9 @@ test_imm([0x5d8, 0x5df], 11, 'OFF', 'SPR_IR2')    # OFFI sr2, byte
 load_abs([0x668, 0x66f], 17)                      # MOV r, word
 
 store_abs([0x678, 0x67f], 17)                     # MOV word, r
+
+mathx([0x6c1, 0x6c7], 11, 'ADD')                  # ADDX rpa
+mathx([0x6e1, 0x6e7], 11, 'SUB')                  # SUBX rpa
 
 ######################################################################
 # 0x7xx: prefix 0x74

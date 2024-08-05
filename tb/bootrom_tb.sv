@@ -15,9 +15,9 @@ reg [7:0]   dut_db_i;
 reg         vbl;
 
 wire [15:0] a;
-wire [7:0]  dut_db_o, rom_db, ram_db;
+wire [7:0]  dut_db_o, rom_db, wram_db, vram_db;
 wire        dut_rdb, dut_wrb;
-wire        rom_ncs, ram_ncs, cart_ncs;
+wire        rom_ncs, wram_ncs, vram_ncs, cart_ncs;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -55,30 +55,44 @@ bootrom rom
    .nCS(rom_ncs | dut_rdb)
    );
 
-ram #(7, 8) ram
+ram #(7, 8) wram
   (
    .CLK(clk),
-   .nCE(ram_ncs),
+   .nCE(wram_ncs),
    .nWE(dut_wrb),
-   .nOE(ram_ncs | ~dut_wrb),
+   .nOE(wram_ncs | ~dut_wrb),
    .A(a[6:0]),
    .DI(dut_db_o),
-   .DO(ram_db)
+   .DO(wram_db)
+   );
+
+ram #(10, 8) vram
+  (
+   .CLK(clk),
+   .nCE(vram_ncs),
+   .nWE(dut_wrb),
+   .nOE(vram_ncs | ~dut_wrb),
+   .A(a[9:0]),
+   .DI(dut_db_o),
+   .DO(vram_db)
    );
 
 always_comb begin
   dut_db_i = 8'hxx;
   if (~rom_ncs)
     dut_db_i = rom_db;
-  else if (~ram_ncs)
-    dut_db_i = ram_db;
+  else if (~wram_ncs)
+    dut_db_i = wram_db;
+  else if (~vram_ncs)
+    dut_db_i = vram_db;
   else if (~cart_ncs)
     dut_db_i = 8'hFF;           // cart is absent
 end
 
 assign rom_ncs = |a[15:12];
-assign ram_ncs = ~&a[15:7];    // 'hFF80-'hFFFF
-assign cart_ncs = ~a[15] | ~ram_ncs;
+assign wram_ncs = ~&a[15:7];    // 'hFF80-'hFFFF
+assign vram_ncs = (a & ~16'h03ff) != 16'h3000;
+assign cart_ncs = ~a[15] | ~wram_ncs | ~vram_ncs;
 
 
 initial begin
@@ -160,7 +174,7 @@ initial #0 begin
   dut.h += 8'h0F;
   dut.l += 8'hF8;
 
-  #90000 @(posedge clk) ;
+  #140000 @(posedge clk) ;
 
   $finish;
 end

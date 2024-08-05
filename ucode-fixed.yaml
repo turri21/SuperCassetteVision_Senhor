@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 9
+    width: 10
     prefix: UA_
     # values will come from the ucode.rows list
 
@@ -100,7 +100,7 @@ types:
       - HL
       - VW
       - IDB_W
-      - IR10                    # IR[1:0] encodes BC, DE, HL
+      - IR210            # IR[2:0] encodes SP,BC,DE,HL,DE+,HL+,DE-,HL-
 
   - name: e_spr
     desc: special register
@@ -293,3 +293,6 @@ nrom:
     - name: daa
       width: 1
       desc: decimal adjust const -> BI
+    - name: rpir
+      width: 1
+      desc: IR[2:0] selects reg. pair and inc/dec

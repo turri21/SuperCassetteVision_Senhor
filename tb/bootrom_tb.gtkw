@@ -147,8 +147,8 @@ bootrom_tb.dut.m1
 -uc
 @22
 bootrom_tb.dut.ird[11:0]
-bootrom_tb.dut.uptr[8:0]
-bootrom_tb.dut.uptr_next[8:0]
+bootrom_tb.dut.uptr[9:0]
+bootrom_tb.dut.uptr_next[9:0]
 bootrom_tb.dut.nptr[7:0]
 @1000200
 -uc

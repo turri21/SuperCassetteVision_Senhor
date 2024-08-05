@@ -126,6 +126,7 @@ e_urfs       cl_rfos, cl_rfts;
 e_spr        cl_spr;
 e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
+reg          cl_rpir_inc, cl_rpir_dec;
 reg          cl_idb_abil, cl_idb_abih;
 reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
              cl_bi_not, cl_bi_daa;
@@ -788,7 +789,7 @@ always @* ird = ird_lut[ir];
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-s_uc    urom [512];
+s_uc    urom [1024];
 s_nc    nrom [256];
 
 initial begin
@@ -871,11 +872,12 @@ function e_abs resolve_abs_ir(e_abs in);
   e_abs out;
   begin
     out = in;
-    if (in == UABS_IR10) begin
-      case (ir[1:0])
-        2'd1: out = UABS_BC;
-        2'd2: out = UABS_DE;
-        2'd3: out = UABS_HL;
+    if (in == UABS_IR210) begin
+      case (ir[2:0])
+        3'd0: out = UABS_SP;
+        3'd1: out = UABS_BC;
+        3'd2, 3'd4, 3'd6: out = UABS_DE;
+        3'd3, 3'd5, 3'd7: out = UABS_HL;
         default: ;
       endcase
     end
@@ -928,8 +930,10 @@ always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(nc.abs));
 always @* cl_abits = resolve_abs_ir(nc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
-always @* cl_abi_inc = cl_pc_inc | nc.ab_inc;
-always @* cl_abi_dec = nc.ab_dec;
+always @* cl_abi_inc = cl_pc_inc | nc.ab_inc | cl_rpir_inc;
+always @* cl_abi_dec = nc.ab_dec | cl_rpir_dec;
+always @* cl_rpir_inc = nc.rpir & (ir[2:1] == 2'b10); // 3'd4-3'd5
+always @* cl_rpir_dec = nc.rpir & (ir[2:1] == 2'b11); // 3'd6-3'd7
 initial cl_sums_cco = 1'b1;
 always @* cl_carry = nc.cis == UCIS_CCO;
 always @* cl_one_addc = nc.cis == UCIS_1;
