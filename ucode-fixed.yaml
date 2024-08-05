@@ -131,11 +131,12 @@ types:
   - name: e_sdgs
     desc: special data generator select
     type: enum
-    width: 2
+    width: 3
     prefix: USDGS_
     values:
       - JRL                     # sign-ext. IR[5:0] (for JR)
       - JRH                     # sign-ext. IR[5] (for JR)
+      - CALF                    # EA for CALF
       - CALT                    # EA for CALT
       - INTVA                   # EA for interrupt vector
 

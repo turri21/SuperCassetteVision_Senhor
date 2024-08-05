@@ -702,6 +702,7 @@ always @* begin
   case (nc.sdgs)
     USDGS_JRL: sdg = {{3{ir[5]}}, ir[4:0]};
     USDGS_JRH: sdg = {8{ir[5]}};
+    USDGS_CALF: sdg = {5'b00001, ir[2:0]};
     USDGS_CALT: sdg = {1'b1, ir[5:0], nc.idx[0]};
     USDGS_INTVA: sdg = intva;
     default: sdg = 8'hxx;
