@@ -64,7 +64,7 @@ typedef enum reg [2:0]
 wire         resp;
 wire         cp1p, cp2p, cp2n;
 wire         cke_div12;
-wire [15:0]  pcl, pch;
+wire [7:0]   pcl, pch;
 wire [7:0]   pboe, pcoe;
 wire         irf1;
 
@@ -166,7 +166,6 @@ initial begin
   intv1 = 0;
   intv2 = 0;
   intp = 0;
-  intg = 0;
 end
 
 assign resp = ~RESETB;
@@ -192,9 +191,9 @@ always @* begin
   intps = 0;
   if (INT0)
     intps[II_INT0] = ~intp[II_INT0];
-  if (cke_div12 & (intv1 == 8'b0111))
+  if (cke_div12 & (intv1 == 4'b0111))
     intps[II_INT1] = 1'b1;
-  if (cke_div12 & (intv2 == 8'b0111))
+  if (cke_div12 & (intv2 == 4'b0111))
     intps[II_INT2] = 1'b1;
 end
 

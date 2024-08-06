@@ -22,8 +22,13 @@ wire        rom_ncs, wram_ncs, vram_ncs, cart_ncs;
 initial begin
   $timeformat(-6, 0, " us", 1);
 
-  $dumpfile("tb/bootrom_tb.vcd");
+`ifndef VERILATOR
+  $dumpfile("bootrom_tb.vcd");
   $dumpvars();
+`else
+  $dumpfile("bootrom_tb.verilator.vcd");
+  $dumpvars();
+`endif
 end
 
 upd7800 dut
@@ -44,8 +49,13 @@ upd7800 dut
    .M1(),
    .RDB(dut_rdb),
    .WRB(dut_wrb),
+   .PA_O(),
    .PB_I(8'b0),
-   .PC_I(8'h01)                 // pause switch off
+   .PB_O(),
+   .PB_OE(),
+   .PC_I(8'h01),                // pause switch off
+   .PC_O(),
+   .PC_OE()
    );
 
 bootrom rom
@@ -105,11 +115,11 @@ initial begin
   clk = 1;
 end
 
-initial forever begin :ckgen
+always begin :ckgen
   #0.125 clk = ~clk;
 end
 
-initial forever begin :cpgen
+always begin :cpgen
   @(posedge clk) cp2n <= 0; cp1p <= 1;
   @(posedge clk) cp1p <= 0; cp1n <= 1;
   @(posedge clk) cp1n <= 0; cp2p <= 1;
@@ -118,7 +128,7 @@ end
 
 wire cp2 = dut.cp2;
 
-initial forever begin :vblgen
+always begin :vblgen
   repeat (5000) @(posedge clk) ;
   vbl <= 1'b1;
   repeat (5000) @(posedge clk) ;
@@ -135,10 +145,11 @@ initial #0 begin
   dut.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #90 @(posedge clk) ;
+  #88 @(posedge clk) ;
   assert(dut.pc == 16'h0018);
   dut.b = 0;
   dut.c = 1;
+  #2 ;
 
   // Double 'block' in ClearScreen
   #678 @(posedge clk) ;
@@ -194,7 +205,7 @@ module bootrom
 logic [7:0] mem [1 << 12];
 
 initial begin
-  $readmemh("tb/bootrom.hex", mem);
+  $readmemh("bootrom.hex", mem);
 end
 
 always_comb begin
@@ -245,5 +256,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "cd .. && iverilog -g2012 -grelative-include -s bootrom_tb -o tb/bootrom_tb.vvp upd7800.sv tb/bootrom_tb.sv && tb/bootrom_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -s bootrom_tb -o bootrom_tb.vvp ../upd7800.sv bootrom_tb.sv && ./bootrom_tb.vvp"
 // End:
