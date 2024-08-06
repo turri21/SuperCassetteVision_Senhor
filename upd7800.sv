@@ -103,11 +103,10 @@ wire         m1_overlap, m1_skip;
 
 s_ird        ird;
 
-s_uc         uc;
+s_uc         ucp, uc;
 e_uaddr      uptr, uptr_next;
-
-s_nc         nc;
-t_naddr      nptr, nptr_next;
+s_nc         ncp, nc;
+t_naddr      nptr;
 
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
@@ -798,15 +797,20 @@ initial begin
 end
 
 always_ff @(posedge CLK) begin
-  if (cp2n) begin
-    uc <= urom[uptr];
-  end
+  ucp <= urom[uptr];
 end
 
-// TODO: register this
-always @uc.naddr begin
-  nptr = uc.naddr;
-  nc = nrom[nptr];
+assign nptr = ucp.naddr;
+
+always_ff @(posedge CLK) begin
+  ncp <= nrom[nptr];
+end
+
+always_ff @(posedge CLK) begin
+  if (cp2n) begin
+    uc <= ucp;
+    nc <= ncp;
+  end
 end
 
 always @* begin
@@ -829,7 +833,6 @@ always @* begin
     case (uc.bm)
       UBM_ADV: uptr_next = e_uaddr'(uptr_next + 1'd1);
       UBM_END: uptr_next = UA_IDLE;
-      //UBM_DA: uptr_next = uc.nua;
       default: ;
     endcase
   end
@@ -839,7 +842,7 @@ always @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_IDLE;
   end
-  else if (cp2p) begin
+  else if (cp1p) begin
     uptr <= uptr_next;
 
     if (of_done & ~of_skip) begin
