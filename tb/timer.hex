@@ -1,0 +1,13 @@
+48 // skit intft
+01
+fd // jr 0
+69 // mvi a,f9h
+f9
+4d // mov tm0,a
+c6
+69 // mvi a,00h
+00
+4d // mov tm1,a
+c7
+19 // stm
+ff // jr .

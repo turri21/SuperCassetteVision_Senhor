@@ -48,7 +48,8 @@ module upd7800
 `define psw_l0 psw[2]           // Word instruction string effect
 `define psw_cy psw[0]           // Carry
 
-`define IR_SOFTI 11'h072
+`define IR_SOFTI    11'h072
+`define IR_STM      11'h019
 
 `include "uc-types.svh"
 
@@ -67,6 +68,8 @@ wire         cke_div12;
 wire [7:0]   pcl, pch;
 wire [7:0]   pboe, pcoe;
 wire         irf1;
+wire [7:0]   pai, pbi, pci;
+wire         tc_uf;
 
 reg          resg;
 reg [3:0]    intv1, intv2;
@@ -83,6 +86,8 @@ reg [10:0]   ir;
 reg          ie;                // interrupt enable flag
 reg [7:0]    mk;                // interrupt mask reg.
 reg [7:0]    mb, mc, pao, pbo, pco;
+reg [11:0]   tm;
+reg [14:0]   tc;           // lower 3 bits are prescaler
 reg [15:0]   aor;
 reg [7:0]    dor;
 reg          rd_ext, wr_ext;
@@ -131,6 +136,7 @@ reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
              cl_bi_not, cl_bi_daa;
 reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
              cl_lsls, cl_rols, cl_lsrs, cl_rors;
+reg          cl_stm;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -195,6 +201,8 @@ always @* begin
     intps[II_INT1] = 1'b1;
   if (cke_div12 & (intv2 == 4'b0111))
     intps[II_INT2] = 1'b1;
+  if (tc_uf)
+    intps[II_INTT] = 1'b1;
 end
 
 always @* begin
@@ -268,10 +276,10 @@ always_comb intg = |intpm;
 // Interrupt flag selected by SK(N)IT instruction operand
 always_comb begin
   irfm = 0;
-  irfm[cl_irf] = 1'b1;
+  irfm[cl_irf] = cl_zero_irf;
 end
 
-assign irf1 = |(irfm & intpm);
+assign irf1 = |(irfm & intp);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -307,47 +315,6 @@ assign RDB = ~rd_ext;
 assign WRB = ~wr_ext;
 
 assign M1 = m1ext;
-
-
-//////////////////////////////////////////////////////////////////////
-// I/O Ports
-
-initial begin
-  pao = 0;
-  pbo = 0;
-  pco = 0;
-  mb = 8'hff;
-  mc = 8'hff;
-end
-
-// Port and Mode registers
-always @(posedge CLK) begin
-  if (resg) begin
-    pao <= 0;
-    pbo <= 0;
-    pco <= 0;
-    mb <= 8'hff;
-    mc <= 8'hff;
-  end
-  else if (cp2n) begin
-    if (nc.lts == ULTS_SPR) begin
-      case (cl_spr)
-        USPR_PA: pao <= idb;
-        USPR_PB: pbo <= idb;
-        USPR_PC: pco <= idb;
-        USPR_MB: mb <= idb;
-        USPR_MC: mc <= idb;
-        default: ;
-      endcase
-    end
-  end
-end
-
-assign pboe = ~mb;
-assign pcoe = {~mc[7], 5'b11110, ~mc[1:0]};
-
-assign PB_OE = pboe;
-assign PC_OE = pcoe;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -549,14 +516,14 @@ end
 // spro: special register output
 always @* begin
   case (cl_spr)
-    USPR_PA: spro = pao;
-    USPR_PB: spro = (PB_I & ~pboe) | (pbo & pboe);
-    USPR_PC: spro = (PC_I & ~pcoe) | (pco & pcoe);
+    USPR_PA: spro = pai;
+    USPR_PB: spro = pbi;
+    USPR_PC: spro = pci;
     USPR_MK: spro = mk;
     USPR_MB: spro = mb;
     USPR_MC: spro = mc;
-    //USPR_TM0: spro = tm0;
-    //USPR_TM1: spro = tm1;
+    USPR_TM0: spro = tm[7:0];
+    USPR_TM1: spro = {4'b0, tm[11:8]};
     default: spro = 8'hxx;
   endcase
 end
@@ -954,6 +921,99 @@ always @* cl_lsls = nc.aluop == UAO_LSL;
 always @* cl_rols = nc.aluop == UAO_ROL;
 always @* cl_lsrs = nc.aluop == UAO_LSR;
 always @* cl_rors = nc.aluop == UAO_ROR;
+always @* cl_stm = (ir == `IR_STM) & of_done & ~of_skip;
+
+
+//////////////////////////////////////////////////////////////////////
+// I/O Ports
+
+initial begin
+  pao = 0;
+  pbo = 0;
+  pco = 0;
+  mb = 8'hff;
+  mc = 8'hff;
+end
+
+// Port and Mode registers
+always @(posedge CLK) begin
+  if (resg) begin
+    pao <= 0;
+    pbo <= 0;
+    pco <= 0;
+    mb <= 8'hff;
+    mc <= 8'hff;
+  end
+  else if (cp2n) begin
+    if (nc.lts == ULTS_SPR) begin
+      case (cl_spr)
+        USPR_PA: pao <= idb;
+        USPR_PB: pbo <= idb;
+        USPR_PC: pco <= idb;
+        USPR_MB: mb <= idb;
+        USPR_MC: mc <= idb;
+        default: ;
+      endcase
+    end
+  end
+end
+
+assign pai = pao;
+assign pbi = (PB_I & ~pboe) | (pbo & pboe);
+assign pci = (PC_I & ~pcoe) | (pco & pcoe);
+
+assign pboe = ~mb;
+assign pcoe = {~mc[7], 5'b11110, ~mc[1:0]};
+
+assign PB_OE = pboe;
+assign PC_OE = pcoe;
+
+
+//////////////////////////////////////////////////////////////////////
+// Timer
+//
+// . 12-bit down counter, clocked by CP1/2 /8 prescaler
+// . When counter underflows or STM instruction executes:
+//   . Set interrupt II_INTT (underflow only)
+//   . Reload counter from special registers TM0 and TM1
+//   . Reset prescaler
+// . Not implemented: timer flip-flop, output T0
+
+initial begin
+  tm = 12'hfff;
+end
+
+// Timer registers
+always_ff @(posedge CLK) begin
+  if (resg) begin
+  end
+  else if (cp2n) begin
+    if (nc.lts == ULTS_SPR) begin
+      case (cl_spr)
+        USPR_TM0: tm[7:0] <= idb;
+        USPR_TM1: tm[11:8] <= idb[3:0];
+        default: ;
+      endcase
+    end
+  end
+end
+
+assign tc_uf = cp2n & ~|tc;
+
+always_ff @(posedge CLK) begin
+  if (resg) begin
+    tc <= 15'h7fff;
+  end
+  else if (cp2n) begin
+    if (tc_uf | cl_stm) begin
+      // Reset prescaler and reload counter
+      tc <= {tm, 3'b111};
+    end
+    else begin
+      tc <= tc - 1'd1;
+    end
+  end
+end
 
 
 endmodule

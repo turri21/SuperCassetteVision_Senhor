@@ -1,0 +1,65 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Tue Aug  6 15:57:28 2024
+[*]
+[dumpfile] "/Users/dhunter/src/upd7800/tb/timer_tb.vcd"
+[dumpfile_mtime] "Tue Aug  6 15:57:20 2024"
+[dumpfile_size] 38295
+[savefile] "/Users/dhunter/src/upd7800/tb/timer_tb.gtkw"
+[timestart] 0
+[size] 1288 600
+[pos] -1 -1
+*-23.391922 11500000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] timer_tb.
+[sst_width] 253
+[signals_width] 161
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+timer_tb.dut.CLK
+timer_tb.dut.CP1_POSEDGE
+timer_tb.dut.CP2_NEGEDGE
+timer_tb.dut.RESETB
+timer_tb.dut.resg
+timer_tb.intft
+@22
+timer_tb.dut.intps[4:0]
+timer_tb.dut.intpr[4:0]
+@28
+timer_tb.dut.cl_zero_irf
+timer_tb.dut.cl_stm
+@22
+timer_tb.dut.psw[7:0]
+timer_tb.dut.pc[15:0]
+timer_tb.dut.tm[11:0]
+timer_tb.dut.tc[14:0]
+@28
+timer_tb.dut.tc_uf
+[pattern_trace] 1
+[pattern_trace] 0
