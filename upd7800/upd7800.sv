@@ -11,6 +11,10 @@
 // . http://www.bitsavers.org/components/nec/_dataBooks/1981_NEC_Microcomputer_Catalog.pdf - includes uDP7801 data sheet, many other chips
 // . http://takeda-toshiya.my.coocan.jp/scv/index.html - EPOCH Super Cassette Vision emulator for Win32 / uPD7801 tiny disassembler
 
+// TODO:
+// . LOTS of instructions -- only those used by SCV boot ROM are implemented
+// . Set/clear of and skipping on L0/L1 PSW flags
+
 
 `timescale 1us / 1ns
 
