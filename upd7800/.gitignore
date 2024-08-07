@@ -1,6 +1,6 @@
-ucode-gen.yaml
-uc-at.svh
-uc-types.svh
-uc-ird.svh
-urom.mem
-nrom.mem
+/ucode-gen.yaml
+/uc-at.svh
+/uc-types.svh
+/uc-ird.svh
+/urom.svh
+/nrom.svh

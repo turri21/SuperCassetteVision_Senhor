@@ -757,13 +757,8 @@ always @* ird = ird_lut[ir];
 //////////////////////////////////////////////////////////////////////
 // Microcode
 
-s_uc    urom [1024];
-s_nc    nrom [256];
-
-initial begin
-  $readmemb("urom.mem", urom);
-  $readmemb("nrom.mem", nrom);
-end
+`include "urom.svh"
+`include "nrom.svh"
 
 always_ff @(posedge CLK) begin
   ucp <= urom[uptr];

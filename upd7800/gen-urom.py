@@ -129,8 +129,13 @@ with open('uc-ird.svh', 'w') as f:
             f.write(f"    ird_lut['h{a:03x}] = {v};\n")
 
 
-def gen_rom(f, tbl, rom_w):
-    for r in tbl['rows']:
+def gen_rom(f, tbl, stname, ident, rom_w):
+    rows = tbl['rows']
+
+    f.write(f"{stname} {ident} [{len(rows)}];\n")
+    f.write("initial begin\n")
+
+    for i, r in enumerate(rows):
         try:
             bs = '0' * rom_w
             for k, v in r.items():
@@ -148,15 +153,17 @@ def gen_rom(f, tbl, rom_w):
                 bv = f'{v:b}'
                 bv = '0' * (w - len(bv)) + bv
                 bs = bs[:start] + bv + bs[end:]
-            f.write(bs + "\n")
+            f.write(f"  {ident}[{i:4d}] = {rom_w}'b{bs};\n")
         except Exception as e:
             print(r)
             raise e
 
-
-with open('urom.mem', 'w') as f:
-    gen_rom(f, doc['urom'], urom_w)
+    f.write("end\n")
 
 
-with open('nrom.mem', 'w') as f:
-    gen_rom(f, doc['nrom'], nrom_w)
+with open('urom.svh', 'w') as f:
+    gen_rom(f, doc['urom'], 's_uc', 'urom', urom_w)
+
+
+with open('nrom.svh', 'w') as f:
+    gen_rom(f, doc['nrom'], 's_nc', 'nrom', nrom_w)
