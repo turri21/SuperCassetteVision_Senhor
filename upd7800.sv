@@ -551,6 +551,8 @@ always @* begin
     UABS_HL: ab = {h, l};
     UABS_VW: ab = {v, w};
     UABS_IDB_W: ab = {idb, w};
+    UABS_AOR: ab = aor;
+    UABS_NABI: ab = nabi;
     default: ab = 16'hxxxx;
   endcase
 end
@@ -669,6 +671,7 @@ always @* begin
     USDGS_CALF: sdg = {5'b00001, ir[2:0]};
     USDGS_CALT: sdg = {1'b1, ir[5:0], nc.idx[0]};
     USDGS_INTVA: sdg = intva;
+    USDGS_BIT: sdg = 8'b1 << ir[2:0];
     default: sdg = 8'hxx;
   endcase
 end
@@ -891,16 +894,16 @@ always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
 always @* cl_pc_inc = of_pc_inc | nc.pc_inc;
 always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec;
-always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec;
+always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec | (nc.ab_inc & nc.ab_dec);
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = (nc.lts == ULTS_IE) | (intg & of_done);
-always @* cl_abs = e_abs'(oft[0] ? UABS_PC : resolve_abs_ir(nc.abs));
+always @* cl_abs = resolve_abs_ir(nc.abs);
 always @* cl_abits = resolve_abs_ir(nc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
-always @* cl_abi_inc = cl_pc_inc | nc.ab_inc | cl_rpir_inc;
-always @* cl_abi_dec = nc.ab_dec | cl_rpir_dec;
+always @* cl_abi_inc = cl_pc_inc | (nc.ab_inc & ~nc.ab_dec) | cl_rpir_inc;
+always @* cl_abi_dec = (nc.ab_dec & ~nc.ab_inc) | cl_rpir_dec;
 always @* cl_rpir_inc = nc.rpir & (ir[2:1] == 2'b10); // 3'd4-3'd5
 always @* cl_rpir_dec = nc.rpir & (ir[2:1] == 2'b11); // 3'd6-3'd7
 initial cl_sums_cco = 1'b1;

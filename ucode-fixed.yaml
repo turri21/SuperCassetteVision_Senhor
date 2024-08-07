@@ -90,7 +90,7 @@ types:
   - name: e_abs
     desc: ab select
     type: enum
-    width: 3
+    width: 4
     prefix: UABS_
     values:
       - PC                      # (default)
@@ -101,6 +101,8 @@ types:
       - VW
       - IDB_W
       - IR210            # IR[2:0] encodes SP,BC,DE,HL,DE+,HL+,DE-,HL-
+      - AOR
+      - NABI
 
   - name: e_spr
     desc: special register
@@ -139,6 +141,7 @@ types:
       - CALF                    # EA for CALF
       - CALT                    # EA for CALT
       - INTVA                   # EA for interrupt vector
+      - BIT                     # bitmask for BIT
 
   - name: e_aluop
     desc: ALU operation

@@ -4,7 +4,7 @@
 //
 // This program is GPL licensed. See COPYING for the full license.
 
-`timescale 1us / 1ns
+`timescale 1us / 1ps
 
 module bootrom_tb();
 
@@ -18,6 +18,9 @@ wire [15:0] a;
 wire [7:0]  dut_db_o, rom_db, wram_db, vram_db;
 wire        dut_rdb, dut_wrb;
 wire        rom_ncs, wram_ncs, vram_ncs, cart_ncs;
+
+int         tvbl1 = 5000;
+int         tvbl0 = 5000;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -50,7 +53,7 @@ upd7800 dut
    .RDB(dut_rdb),
    .WRB(dut_wrb),
    .PA_O(),
-   .PB_I(8'b0),
+   .PB_I(8'hff),                // no buttons pressed
    .PB_O(),
    .PB_OE(),
    .PC_I(8'h01),                // pause switch off
@@ -116,7 +119,7 @@ initial begin
 end
 
 always begin :ckgen
-  #0.125 clk = ~clk;
+  #0.0625 clk = ~clk;
 end
 
 always begin :cpgen
@@ -129,54 +132,54 @@ end
 wire cp2 = dut.cp2;
 
 always begin :vblgen
-  repeat (5000) @(posedge clk) ;
+  repeat (tvbl0) @(posedge clk) ;
   vbl <= 1'b1;
-  repeat (5000) @(posedge clk) ;
+  repeat (tvbl1) @(posedge clk) ;
   vbl <= 1'b0;
 end
 
 initial #0 begin
-  #3 @(posedge clk) ;
+  #2 @(posedge clk) ;
   res = 0;
 
   // We're looping until C reaches 0 (inner loop).
-  #80 @(posedge clk) ;
+  #40 @(posedge clk) ;
   assert(dut.pc == 16'h0016);
   dut.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #88 @(posedge clk) ;
+  #44 @(posedge clk) ;
   assert(dut.pc == 16'h0018);
   dut.b = 0;
   dut.c = 1;
-  #2 ;
+  #1 ;
 
   // Double 'block' in ClearScreen
-  #678 @(posedge clk) ;
+  #339 @(posedge clk) ;
   assert(dut.pc == 16'h0a25);
   dut.c -= 8'hF8;
   dut.e += 8'hF8;
   dut.l += 8'hF8;
-  #43 @(posedge clk) ;
+  #21 @(posedge clk) ;
   assert(dut.pc == 16'h0a26);
   dut.c -= 8'hFD;
   dut.e += 8'hFD;
   dut.l += 8'hFD;
 
   // Double 'block' in ClearSpriteAttrs
-  #1996 @(posedge clk) ;
+  #999 @(posedge clk) ;
   assert(dut.pc == 16'h0a25);
   dut.c -= 8'hFC;
   dut.e += 8'hFC;
   dut.l += 8'hFC;
-  #43 @(posedge clk) ;
+  #21 @(posedge clk) ;
   assert(dut.pc == 16'h0a26);
   dut.c -= 8'hFD;
   dut.e += 8'hFD;
   dut.l += 8'hFD;
 
   // 16x 'block' in ClearSpritePatterns
-  #151 @(posedge clk) ;
+  #75 @(posedge clk) ;
   assert(dut.pc == 16'h0a55);
   dut.b -= 8'h0F;
   dut.c -= 8'hF8;
@@ -184,6 +187,10 @@ initial #0 begin
   dut.e += 8'hF8;
   dut.h += 8'h0F;
   dut.l += 8'hF8;
+
+  // Normal video timing
+  tvbl1 = 8 * 1558;
+  tvbl0 = 8 * 15109;
 
   #140000 @(posedge clk) ;
 
