@@ -6,6 +6,11 @@
 
 `timescale 1us / 1ps
 
+// Get to the main loop faster, by shorting loops.
+`ifndef VERILATOR
+`define FAST_MAIN 1
+`endif
+
 module bootrom_tb();
 
 reg         clk, res;
@@ -131,13 +136,26 @@ end
 
 wire cp2 = dut.cp2;
 
-always begin :vblgen
-  repeat (tvbl0) @(posedge clk) ;
-  vbl <= 1'b1;
-  repeat (tvbl1) @(posedge clk) ;
-  vbl <= 1'b0;
+initial begin :vblgen
+  @(negedge res) ;
+  forever begin
+    repeat (tvbl0) @(posedge clk) ;
+    vbl = 1'b1;
+    repeat (tvbl1) @(posedge clk) ;
+    vbl = 1'b0;
+  end
 end
 
+task normal_video();
+  begin
+    // Normal video timing
+    tvbl1 = 8 * 1558;
+    tvbl0 = 8 * 15109;
+  end
+endtask
+
+
+`ifdef FAST_MAIN
 initial #0 begin
   #2 @(posedge clk) ;
   res = 0;
@@ -188,14 +206,26 @@ initial #0 begin
   dut.h += 8'h0F;
   dut.l += 8'hF8;
 
-  // Normal video timing
-  tvbl1 = 8 * 1558;
-  tvbl0 = 8 * 15109;
+  normal_video();
 
-  #140000 @(posedge clk) ;
+  #(140e3) @(posedge clk) ;
+  $finish;
+end
+
+`else // FAST_MAIN
+
+initial #0 begin
+  normal_video();
+
+  #2 @(posedge clk) ;
+  res = 0;
+
+  #(500e3) @(posedge clk) ;
 
   $finish;
 end
+
+`endif
 
 endmodule
 
