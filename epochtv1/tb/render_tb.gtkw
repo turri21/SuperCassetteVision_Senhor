@@ -1,0 +1,56 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Thu Aug  8 06:27:20 2024
+[*]
+[dumpfile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.vcd"
+[dumpfile_mtime] "Thu Aug  8 06:26:37 2024"
+[dumpfile_size] 19125457
+[savefile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.gtkw"
+[timestart] 0
+[size] 1288 600
+[pos] -1 -1
+*-31.865459 1525550040 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] render_tb.
+[sst_width] 253
+[signals_width] 146
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+render_tb.dut.CE
+render_tb.dut.field
+@24
+render_tb.dut.row[8:0]
+render_tb.dut.col[8:0]
+@29
+render_tb.dut.HS
+@28
+render_tb.dut.VS
+render_tb.dut.VBL
+[pattern_trace] 1
+[pattern_trace] 0
