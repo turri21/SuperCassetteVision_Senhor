@@ -31,8 +31,8 @@ module epochtv1
    output [11:0] VAA,
    input [7:0]   VAD_I,
    output [7:0]  VAD_O,
-   input         nPARD,
-   input         nPAWR,
+   output        nVARD,
+   output        nVAWR,
 
    // VRAM address / data bus B, high byte
    output [11:0] VBA,
@@ -171,10 +171,6 @@ end
 //////////////////////////////////////////////////////////////////////
 // Sprite pipeline
 
-// HACK: Embedded VRAM. This will eventually be external.
-
-reg [15:0] vram [2048];
-
 enum reg [2:0]
 {
  SST_IDLE,
@@ -188,24 +184,26 @@ reg [6:0] spr_oam_idx;
 reg spr_olb_wsel;
 assign spr_olb_wsel = ~row[0];
 
-reg [15:0] pat;
+wire [15:0] pat;
 reg [11:0] spr_vram_addr;
 reg [7:0]  spr_y0;
 reg [3:0]  spr_y;
 reg        spr_dr;              // sprite left/right side
 
-always_ff @(posedge CLK) begin
-  pat <= vram[spr_vram_addr];
-end
+assign VAA = spr_vram_addr;
+assign nVARD = 1'b0;
+assign nVAWR = 1'b1;
+assign VBA = spr_vram_addr;
+assign nVBRD = 1'b0;
+assign nVBWR = 1'b1;
+assign pat = {VBD_I, VAD_I};
+
 assign spr_vram_addr = {oam_rbuf.pat, spr_y[3:1], spr_dr};
 assign spr_y0 = oam_rbuf.y*2 - 1'd1;
 assign spr_y = row - spr_y0;
 assign spr_dr = spr_st == SST_DRAW_R;
 
 always_ff @(posedge CLK) if (CE) begin
-integer i, j;
-reg [7:0] x;
-reg px;
   if (~(pre_render_row | render_row)) begin
     spr_st <= SST_IDLE;
   end
