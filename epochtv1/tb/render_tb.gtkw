@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Fri Aug  9 06:21:08 2024
+[*] Sat Aug 10 22:58:44 2024
 [*]
 [dumpfile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.vcd"
-[dumpfile_mtime] "Fri Aug  9 06:19:02 2024"
-[dumpfile_size] 19936754
+[dumpfile_mtime] "Sat Aug 10 22:58:25 2024"
+[dumpfile_size] 22968525
 [savefile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.gtkw"
-[timestart] 0
+[timestart] 1534320000
 [size] 1288 600
 [pos] -1 -1
-*-32.465458 1543883040 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.019493 1539238680 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -38,16 +38,58 @@
 [markername] ZZ
 [treeopen] render_tb.
 [sst_width] 253
-[signals_width] 146
+[signals_width] 234
 [sst_expanded] 1
 [sst_vpaned_height] 159
 @28
 render_tb.dut.CE
 render_tb.dut.field
-@25
-render_tb.dut.row[8:0]
 @24
+render_tb.dut.row[8:0]
 render_tb.dut.col[8:0]
+@200
+-
+@28
+render_tb.dut.render_row
+render_tb.dut.render_col
+@200
+-
+@24
+render_tb.dut.spr_st[2:0]
+@22
+render_tb.dut.spr_vram_addr[11:0]
+render_tb.dut.spr_oam_idx[6:0]
+@28
+render_tb.dut.spr_dr
+render_tb.dut.spr_dact
+@22
+render_tb.dut.spr_dpat[7:0]
+@28
+render_tb.dut.spr_dact_d
+@22
+render_tb.dut.spr_dsr[15:0]
+render_tb.dut.spr_dsx[7:0]
+render_tb.dut.spr_dclr[3:0]
+@28
+render_tb.dut.spr_dact_d2
+@200
+-
+@22
+render_tb.dut.olb_wa[5:0]
+render_tb.dut.olb_wd[39:0]
+render_tb.dut.olb_we[7:0]
+render_tb.dut.olb_ra[5:0]
+render_tb.dut.olb_rd[39:0]
+@200
+-
+@22
+render_tb.dut.spr_olb_rx[7:0]
+@24
+render_tb.dut.spr_olb_rrs[7:0]
+@22
+render_tb.dut.spr_px[4:0]
+@200
+-
 @28
 render_tb.dut.VBL
 render_tb.dut.DE
@@ -55,14 +97,5 @@ render_tb.dut.HS
 render_tb.dut.VS
 @22
 render_tb.dut.RGB[23:0]
-@200
--
-@28
-render_tb.dut.render_row
-render_tb.dut.render_col
-@24
-render_tb.dut.spr_x[7:0]
-@22
-render_tb.dut.spr_px[4:0]
 [pattern_trace] 1
 [pattern_trace] 0
