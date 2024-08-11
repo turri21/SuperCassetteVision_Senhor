@@ -13,8 +13,14 @@
 
 module scv
   (
-   input CLK, // clock (video XTAL * 2)
-   input RESB
+   input         CLK, // clock (video XTAL * 2)
+   input         RESB,
+
+   output        VID_PCE,
+   output        VID_DE,
+   output        VID_HS,
+   output        VID_VS,
+   output [23:0] VID_RGB
    );
 
 wire        cp1p, cp1n, cp2p, cp2n;
@@ -129,7 +135,7 @@ epochtv1 vdc
    .VBL(vbl),
    .DE(de),
    .HS(hs),
-   .VS(),
+   .VS(vs),
    .RGB(rgb)
    );
 
@@ -193,6 +199,12 @@ always_comb begin
   else if (cart_db_oe)
     cpu_db = 8'hFF;           // cart is absent
 end
+
+assign VID_PCE = vdc_ce;
+assign VID_DE = de;
+assign VID_HS = hs;
+assign VID_VS = vs;
+assign VID_RGB = rgb;
 
 endmodule
 
