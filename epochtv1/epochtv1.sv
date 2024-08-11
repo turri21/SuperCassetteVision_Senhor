@@ -65,6 +65,11 @@ localparam [8:0] FIRST_COL_HSYNC = 9'd0;
 localparam [8:0] LAST_COL_HSYNC = 9'd19;
 
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
+// left/right borders
+localparam [8:0] FIRST_COL_LEFT = 9'd20;
+localparam [8:0] LAST_COL_LEFT = 9'd27;
+localparam [8:0] FIRST_COL_RIGHT = 9'd220;
+localparam [8:0] LAST_COL_RIGHT = 9'd227;
 
 
 reg [8:0]    row, col;
@@ -385,9 +390,21 @@ assign spr_px = olb_rd[(spr_olb_rrs*5)+:5];
 // Sync generator
 
 reg  de, hsync, vsync, vbl;
+reg  visible;
+
+always_comb begin
+  // Enable DE for visible region...
+  visible = render_row & render_col;
+  // plus right border...
+  if (render_row)
+    visible = visible | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
+  // plus left border.
+  if (render_row)
+    visible = visible | ((col >= FIRST_COL_LEFT) & (col <= LAST_COL_LEFT));
+end
 
 always_ff @(posedge CLK) if (CE) begin
-  de <= render_row & render_col;
+  de <= visible;
 /* verilator lint_off UNSIGNED */
   hsync <= (col >= FIRST_COL_HSYNC) & (col <= LAST_COL_HSYNC);
 /* verilator lint_on UNSIGNED */
@@ -439,7 +456,7 @@ always @* begin
   endcase
 end
 
-assign RGB = cg;
+assign RGB = DE ? cg : 0;
 
 
 endmodule
