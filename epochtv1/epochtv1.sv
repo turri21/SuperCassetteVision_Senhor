@@ -19,7 +19,7 @@ module epochtv1
    input         CE, // pixel clock enable
 
    // CPU address / data bus
-   output [12:0] A,
+   input [12:0]  A,
    input [7:0]   DB_I,
    output [7:0]  DB_O,
    output        DB_OE,
@@ -51,26 +51,28 @@ module epochtv1
 
 
 // Timing is a complete guess. Partially inspired by VIC6560 (4MHz PCLK).
-localparam [9:0] NUM_ROWS = 9'd262;
-localparam [9:0] NUM_COLS = 9'd260;
+localparam [8:0] NUM_ROWS = 9'd262;
+localparam [8:0] NUM_COLS = 9'd260;
 
-localparam [9:0] FIRST_ROW_RENDER = 9'd21;
-localparam [9:0] LAST_ROW_RENDER = 9'd21 + 9'd222 - 1'd1;
-localparam [9:0] FIRST_ROW_VSYNC = 9'd253;
-localparam [9:0] LAST_ROW_VSYNC = 9'd261;
+localparam [8:0] FIRST_ROW_RENDER = 9'd21;
+localparam [8:0] LAST_ROW_RENDER = 9'd21 + 9'd222 - 1'd1;
+localparam [8:0] FIRST_ROW_VSYNC = 9'd253;
+localparam [8:0] LAST_ROW_VSYNC = 9'd261;
 
-localparam [9:0] FIRST_COL_RENDER = 9'd28;
-localparam [9:0] LAST_COL_RENDER = 9'd28 + 9'd192 - 1'd1;
-localparam [9:0] FIRST_COL_HSYNC = 9'd0;
-localparam [9:0] LAST_COL_HSYNC = 9'd19;
+localparam [8:0] FIRST_COL_RENDER = 9'd28;
+localparam [8:0] LAST_COL_RENDER = 9'd28 + 9'd192 - 1'd1;
+localparam [8:0] FIRST_COL_HSYNC = 9'd0;
+localparam [8:0] LAST_COL_HSYNC = 9'd19;
 
-localparam [9:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
+localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
 
 
 reg [8:0]    row, col;
 reg          field;
 wire         pre_render_row;
 wire         render_row, render_col;
+wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
+wire         cpu_rd, cpu_wr;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -110,9 +112,19 @@ reg [7:0] chr [1024];
 
 reg [7:0] bgm [512];
 
+wire [8:0] bgm_a;
+reg [7:0]  bgm_rbuf, bgm_wbuf;
+wire       bgm_we;
 
-//////////////////////////////////////////////////////////////////////
-// Background pipeline
+always_ff @(posedge CLK) begin
+  bgm_rbuf <= bgm[bgm_a];
+  if (bgm_we)
+    bgm[bgm_a] <= bgm_wbuf;
+end
+
+assign bgm_a = cpu_sel_bgm ? A[8:0] : 'X;
+assign bgm_we = cpu_sel_bgm & cpu_wr;
+assign bgm_wbuf = DB_I;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -132,10 +144,80 @@ typedef struct packed
 
 s_objattr oam [128];
 
-s_objattr  oam_rbuf;
+reg [6:0] oam_a;
+s_objattr oam_rbuf;
+wire      oam_we;
+wire [3:0] oam_ws;
+wire [31:0] oam_wbuf;
+
+assign oam_a = cpu_sel_oam ? A[8:2] : spr_oam_idx;
+assign oam_we = cpu_sel_oam & cpu_wr;
+assign oam_wbuf = {4{DB_I}};
+assign oam_ws = 4'b1 << A[1:0];
+
 always_ff @(posedge CLK) begin
-  oam_rbuf <= oam[spr_oam_idx];
+  oam_rbuf <= oam[oam_a];
+  if (oam_we) begin
+    for (int i = 0; i < 4; i++) begin
+      if (oam_ws[i]) begin
+        oam[oam_a][(i*8)+:8] <= oam_wbuf[(i*8)+:8];
+      end
+    end
+  end
 end
+
+
+//////////////////////////////////////////////////////////////////////
+// CPU address / data bus interface
+
+reg [7:0] cpu_do;
+
+// Address decoder
+assign cpu_sel_vram = ~CSB & (A[12] == 1'b0);     // $0000 - $0FFF
+assign cpu_sel_bgm = ~CSB & (A[12:9] == 4'b1000); // $1000 - $11FF
+assign cpu_sel_oam = ~CSB & (A[12:9] == 4'b1001); // $1200 - $13FF
+assign cpu_sel_reg = ~CSB & (A[12:9] == 4'b1010); // $1400 - $15FF
+
+assign cpu_rd = ~(CSB | RDB);
+assign cpu_wr = ~(CSB | WRB);
+
+always_ff @(posedge CLK) if (CE) begin
+  if (cpu_rd) begin
+    if (cpu_sel_vram)
+      cpu_do <= A[0] ? VBD_I : VAD_I;
+    else if (cpu_sel_bgm)
+      cpu_do <= bgm_rbuf;
+    else if (cpu_sel_oam)
+      cpu_do <= oam_rbuf[(A[1:0]*8)+:8];
+    else if (cpu_sel_reg)
+      cpu_do <= 0; //TODO
+  end
+end
+
+assign DB_O = DB_OE ? cpu_do : 8'hzz;
+assign DB_OE = cpu_rd;
+
+
+//////////////////////////////////////////////////////////////////////
+// VRAM address / data bus interface
+
+reg [11:0] va;
+
+assign va = cpu_sel_vram ? A[12:1] : spr_vram_addr;
+
+assign VAA = va;
+assign VAD_O = DB_I;
+assign nVARD = 1'b0;
+assign nVAWR = ~(cpu_sel_vram & cpu_wr & ~A[0]);
+assign VBA = va;
+assign VBD_O = DB_I;
+assign nVBRD = 1'b0;
+assign nVBWR = ~(cpu_sel_vram & cpu_wr & A[0]);
+
+
+
+//////////////////////////////////////////////////////////////////////
+// Background pipeline
 
 
 //////////////////////////////////////////////////////////////////////
@@ -186,21 +268,15 @@ assign spr_olb_wsel = ~row[0];
 
 wire [15:0] pat;
 reg [11:0] spr_vram_addr;
-reg [7:0]  spr_y0;
+reg [8:0]  spr_y0;
 reg [3:0]  spr_y;
 reg        spr_dr;              // sprite left/right side
 
-assign VAA = spr_vram_addr;
-assign nVARD = 1'b0;
-assign nVAWR = 1'b1;
-assign VBA = spr_vram_addr;
-assign nVBRD = 1'b0;
-assign nVBWR = 1'b1;
 assign pat = {VBD_I, VAD_I};
 
-assign spr_vram_addr = {oam_rbuf.pat, spr_y[3:1], spr_dr};
+assign spr_vram_addr = {1'b0, oam_rbuf.pat, spr_y[3:1], spr_dr};
 assign spr_y0 = oam_rbuf.y*2 - 1'd1;
-assign spr_y = row - spr_y0;
+assign spr_y = 4'(row - spr_y0);
 assign spr_dr = spr_st == SST_DRAW_R;
 
 always_ff @(posedge CLK) if (CE) begin
@@ -270,19 +346,25 @@ end
 assign olb_wa = {spr_olb_wsel, spr_dsx[7:3]};
 assign olb_wd = {8{1'b1, spr_dclr}};
 
+function is_spr_dsr_set(int off);
+reg [4:0] p;
+  begin
+    p = 5'd8 + off[4:0] - 5'(spr_dsx[2:0]);
+    is_spr_dsr_set = spr_dsr[4'(p)];
+  end
+endfunction  
+
 always @* begin
   olb_we = 0;
   if (spr_dact_d | spr_dact_d2) begin
     for (int i = 0; i < 8; i++) begin
-    reg [4:0] p;
-      p = 5'd8 + i[4:0] - spr_dsx[2:0];
-      olb_we[i[2:0]] = spr_dsr[p];
+      olb_we[i[2:0]] = is_spr_dsr_set(i);
     end
   end
 end
 
 wire [7:0] spr_olb_rx;
-reg [7:0]  spr_olb_rrs;
+reg [2:0]  spr_olb_rrs;
 wire       spr_olb_rsel;
 wire [4:0] spr_px;
 
@@ -306,7 +388,9 @@ reg  de, hsync, vsync, vbl;
 
 always_ff @(posedge CLK) if (CE) begin
   de <= render_row & render_col;
+/* verilator lint_off UNSIGNED */
   hsync <= (col >= FIRST_COL_HSYNC) & (col <= LAST_COL_HSYNC);
+/* verilator lint_on UNSIGNED */
   vsync <= (row >= FIRST_ROW_VSYNC) & (row <= LAST_ROW_VSYNC);
   vbl <= ~render_row;
 end

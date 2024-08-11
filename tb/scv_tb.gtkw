@@ -1,0 +1,74 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sun Aug 11 18:55:31 2024
+[*]
+[dumpfile] "/Users/dhunter/src/scv/tb/scv_tb.vcd"
+[dumpfile_mtime] "Sun Aug 11 18:53:41 2024"
+[dumpfile_size] 277435279
+[savefile] "/Users/dhunter/src/scv/tb/scv_tb.gtkw"
+[timestart] 0
+[size] 1288 600
+[pos] -1 -1
+*-34.544254 19719498600 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] scv_tb.
+[treeopen] scv_tb.dut.
+[sst_width] 253
+[signals_width] 216
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+scv_tb.dut.CLK
+scv_tb.dut.RESB
+@22
+scv_tb.dut.vdc.A[12:0]
+scv_tb.dut.vdc.DB_I[7:0]
+scv_tb.dut.vdc.DB_O[7:0]
+@28
+scv_tb.dut.vdc.DB_OE
+scv_tb.dut.vdc.CE
+scv_tb.dut.vdc.RDB
+scv_tb.dut.vdc.WRB
+scv_tb.dut.vdc.CSB
+scv_tb.dut.vdc.VBL
+scv_tb.dut.vdc.cpu_sel_bgm
+scv_tb.dut.vdc.cpu_sel_oam
+scv_tb.dut.vdc.cpu_sel_vram
+scv_tb.dut.vdc.cpu_sel_reg
+scv_tb.dut.vdc.cpu_rd
+scv_tb.dut.vdc.cpu_wr
+@22
+scv_tb.dut.vdc.oam_a[6:0]
+scv_tb.dut.vdc.oam_rbuf[31:0]
+scv_tb.dut.vdc.oam_wbuf[31:0]
+@28
+scv_tb.dut.vdc.oam_we
+@22
+scv_tb.dut.vdc.oam_ws[3:0]
+[pattern_trace] 1
+[pattern_trace] 0

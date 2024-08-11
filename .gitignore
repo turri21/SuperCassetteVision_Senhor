@@ -1,3 +1,4 @@
 **/*.vcd
 **/*.vvp
 **/obj_dir/
+/bootrom.hex

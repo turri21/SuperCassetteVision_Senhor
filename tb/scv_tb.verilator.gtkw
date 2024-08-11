@@ -1,0 +1,63 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sun Aug 11 06:24:24 2024
+[*]
+[dumpfile] "/Users/dhunter/src/scv/tb/scv_tb.verilator.vcd"
+[dumpfile_mtime] "Sun Aug 11 06:15:21 2024"
+[dumpfile_size] 975200257
+[savefile] "/Users/dhunter/src/scv/tb/scv_tb.verilator.gtkw"
+[timestart] 195651690000
+[size] 1288 600
+[pos] -1 -1
+*-22.728922 195667515360 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] TOP.
+[treeopen] TOP.scv_tb.
+[treeopen] TOP.scv_tb.dut.
+[sst_width] 253
+[signals_width] 137
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+TOP.scv_tb.dut.CLK
+TOP.scv_tb.dut.RESB
+@22
+TOP.scv_tb.dut.vdc.A[12:0]
+TOP.scv_tb.dut.vdc.DB_I[7:0]
+@23
+TOP.scv_tb.dut.vdc.DB_O[7:0]
+@28
+TOP.scv_tb.dut.vdc.CE
+TOP.scv_tb.dut.vdc.RDB
+TOP.scv_tb.dut.vdc.WRB
+TOP.scv_tb.dut.vdc.CSB
+TOP.scv_tb.dut.vdc.VBL
+TOP.scv_tb.dut.vdc.cpu_bgm_sel
+TOP.scv_tb.dut.vdc.cpu_rd
+[pattern_trace] 1
+[pattern_trace] 0
