@@ -75,7 +75,7 @@ localparam [8:0] LAST_COL_RIGHT = 9'd227;
 reg [8:0]    row, col;
 reg          field;
 wire         pre_render_row;
-wire         render_row, render_col;
+wire         render_row, render_col, render_px;
 wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
 wire         cpu_rd, cpu_wr;
 
@@ -394,7 +394,7 @@ reg  visible;
 
 always_comb begin
   // Enable DE for visible region...
-  visible = render_row & render_col;
+  visible = render_px;
   // plus right border...
   if (render_row)
     visible = visible | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
@@ -421,12 +421,20 @@ assign VS = vsync;
 //////////////////////////////////////////////////////////////////////
 // Render pipeline
 
-wire [3:0] pd = spr_px[4] ? spr_px[3:0] : 0;
+reg [3:0] pd;
+
+always_comb begin
+  pd = 4'd1; // black borders
+  if (render_px) begin
+    pd = spr_px[4] ? spr_px[3:0] : 0;
+  end
+end
 
 assign pre_render_row = (row >= FIRST_ROW_PRE_RENDER) & (row < FIRST_ROW_RENDER);
 
 assign render_row = (row >= FIRST_ROW_RENDER) & (row <= LAST_ROW_RENDER);
 assign render_col = (col >= FIRST_COL_RENDER) & (col <= LAST_COL_RENDER);
+assign render_px = render_row & render_col;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -456,7 +464,7 @@ always @* begin
   endcase
 end
 
-assign RGB = DE ? cg : 0;
+assign RGB = cg;
 
 
 endmodule
