@@ -30,7 +30,12 @@ end
 scv dut
   (
    .CLK(clk),
-   .RESB(~res)
+   .RESB(~res),
+   .VID_PCE(),
+   .VID_DE(),
+   .VID_HS(),
+   .VID_VS(),
+   .VID_RGB()
    );
 
 initial begin

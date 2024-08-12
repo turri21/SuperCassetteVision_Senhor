@@ -46,7 +46,7 @@ wire [11:0] vaa, vba;
 wire [7:0]  vad_i, vad_o, vbd_i, vbd_o;
 wire        nvard, nvawr, nvbrd, nvbwr;
 wire        vbl;
-wire        de, hs;
+wire        de, hs, vs;
 wire [23:0] rgb;
 
 wire        cart_ncs;
