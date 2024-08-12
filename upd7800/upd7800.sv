@@ -813,6 +813,7 @@ always @(posedge CLK) begin
   else if (cp1p) begin
     uptr <= uptr_next;
 
+`ifndef VIVADO
     if (of_done & ~of_skip) begin
       assert (ir == 0 || uptr_next != UA_IDLE);
       else begin
@@ -820,6 +821,7 @@ always @(posedge CLK) begin
         $fatal(1);
       end
     end
+`endif
   end
 end
 
