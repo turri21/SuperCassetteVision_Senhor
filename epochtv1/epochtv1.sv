@@ -72,7 +72,7 @@ reg          field;
 wire         pre_render_row;
 wire         render_row, render_col;
 wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
-wire         cpu_rd, cpu_wr;
+wire         cpu_rd, cpu_wr, cpu_rdwr;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ always_ff @(posedge CLK) begin
     bgm[bgm_a] <= bgm_wbuf;
 end
 
-assign bgm_a = cpu_sel_bgm ? A[8:0] : 'X;
+assign bgm_a = (cpu_sel_bgm & cpu_rdwr) ? A[8:0] : 'X;
 assign bgm_we = cpu_sel_bgm & cpu_wr;
 assign bgm_wbuf = DB_I;
 
@@ -150,7 +150,7 @@ wire      oam_we;
 wire [3:0] oam_ws;
 wire [31:0] oam_wbuf;
 
-assign oam_a = cpu_sel_oam ? A[8:2] : spr_oam_idx;
+assign oam_a = (cpu_sel_oam & cpu_rdwr) ? A[8:2] : spr_oam_idx;
 assign oam_we = cpu_sel_oam & cpu_wr;
 assign oam_wbuf = {4{DB_I}};
 assign oam_ws = 4'b1 << A[1:0];
@@ -180,6 +180,7 @@ assign cpu_sel_reg = ~CSB & (A[12:9] == 4'b1010); // $1400 - $15FF
 
 assign cpu_rd = ~(CSB | RDB);
 assign cpu_wr = ~(CSB | WRB);
+assign cpu_rdwr = cpu_rd | cpu_wr;
 
 always_ff @(posedge CLK) if (CE) begin
   if (cpu_rd) begin
@@ -203,7 +204,7 @@ assign DB_OE = cpu_rd;
 
 reg [11:0] va;
 
-assign va = cpu_sel_vram ? A[12:1] : spr_vram_addr;
+assign va = (cpu_sel_vram & cpu_rdwr) ? A[12:1] : spr_vram_addr;
 
 assign VAA = va;
 assign VAD_O = DB_I;
@@ -261,6 +262,9 @@ enum reg [2:0]
  SST_DRAW_R
 } spr_st;
 
+wire spr_stall;
+reg  spr_stall_d;
+
 reg [6:0] spr_oam_idx;
 
 reg spr_olb_wsel;
@@ -281,6 +285,13 @@ assign spr_y0 = spr_oa.y*2 - 1'd1;
 assign spr_y = 4'(row - spr_y0);
 assign spr_dr = spr_st == SST_DRAW_R;
 
+// spr_stall deassertion needs to lag cpu_rdwr deassertion by 1x CE,
+// to give memories a chance to recover.
+always_ff @(posedge CLK) if (CE) begin
+  spr_stall_d <= cpu_rdwr;
+end
+assign spr_stall = cpu_rdwr | spr_stall_d;
+
 always_ff @(posedge CLK) if (CE) begin
   if (~(pre_render_row | render_row)) begin
     spr_st <= SST_IDLE;
@@ -289,7 +300,7 @@ always_ff @(posedge CLK) if (CE) begin
     spr_oam_idx <= 0;
     spr_st <= SST_EVAL;
   end
-  else begin
+  else if (~spr_stall) begin
     if (spr_st == SST_EVAL) begin
       spr_st <= SST_EVAL;
     end
@@ -331,18 +342,20 @@ always @* begin
 end
 
 always_ff @(posedge CLK) if (CE) begin
-  spr_dsr <= {spr_dpat, spr_dsr[15:8]};
+  if (~spr_stall) begin
+    spr_dsr <= {spr_dpat, spr_dsr[15:8]};
 
-  spr_dact_d <= spr_dact;
-  if (spr_st == SST_DRAW_L) begin
-    spr_dsx <= spr_oa.x*2;
-    spr_dclr <= spr_oa.color;
-  end
-  else if (spr_dact_d) begin
-    spr_dsx <= spr_dsx + 8'd8;
-  end
+    spr_dact_d <= spr_dact;
+    if (spr_st == SST_DRAW_L) begin
+      spr_dsx <= spr_oa.x*2;
+      spr_dclr <= spr_oa.color;
+    end
+    else if (spr_dact_d) begin
+      spr_dsx <= spr_dsx + 8'd8;
+    end
 
-  spr_dact_d2 <= spr_dact_d;
+    spr_dact_d2 <= spr_dact_d;
+  end
 end
 
 assign olb_wa = {spr_olb_wsel, spr_dsx[7:3]};
