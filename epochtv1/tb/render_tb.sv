@@ -34,9 +34,12 @@ epochtv1 dut
    .CE(ce),
 
    .A(a),
-   .DB_I(8'hzz),
+   .DB_I('Z),
    .DB_O(),
    .DB_OE(),
+   .RDB(1'b1),
+   .WRB(1'b1),
+   .CSB(1'b1),
 
    .VAA(vaa),
    .VAD_I(vad_i),
