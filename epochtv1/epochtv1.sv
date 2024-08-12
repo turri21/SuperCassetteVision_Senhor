@@ -142,10 +142,10 @@ typedef struct packed
     reg         link_y;
 } s_objattr;
 
-s_objattr oam [128];
+reg [31:0] oam [128];
 
 reg [6:0] oam_a;
-s_objattr oam_rbuf;
+reg [31:0] oam_rbuf;
 wire      oam_we;
 wire [3:0] oam_ws;
 wire [31:0] oam_wbuf;
@@ -266,16 +266,18 @@ reg [6:0] spr_oam_idx;
 reg spr_olb_wsel;
 assign spr_olb_wsel = ~row[0];
 
-wire [15:0] pat;
+wire [15:0] spr_pat;
+s_objattr  spr_oa;
 reg [11:0] spr_vram_addr;
 reg [8:0]  spr_y0;
 reg [3:0]  spr_y;
 reg        spr_dr;              // sprite left/right side
 
-assign pat = {VBD_I, VAD_I};
+assign spr_pat = {VBD_I, VAD_I};
+assign spr_oa = oam_rbuf;
 
-assign spr_vram_addr = {1'b0, oam_rbuf.pat, spr_y[3:1], spr_dr};
-assign spr_y0 = oam_rbuf.y*2 - 1'd1;
+assign spr_vram_addr = {1'b0, spr_oa.pat, spr_y[3:1], spr_dr};
+assign spr_y0 = spr_oa.y*2 - 1'd1;
 assign spr_y = 4'(row - spr_y0);
 assign spr_dr = spr_st == SST_DRAW_R;
 
@@ -323,7 +325,7 @@ always @* begin
   if ((spr_st == SST_DRAW_L) | (spr_st == SST_DRAW_R)) begin
     spr_dact = 1'b1;
     for (int i = 0; i < 8; i++) begin
-      spr_dpat[i] = pat[4'd15 - {~i[2], spr_y[0], i[1:0]}];
+      spr_dpat[i] = spr_pat[4'd15 - {~i[2], spr_y[0], i[1:0]}];
     end
   end
 end
@@ -333,8 +335,8 @@ always_ff @(posedge CLK) if (CE) begin
 
   spr_dact_d <= spr_dact;
   if (spr_st == SST_DRAW_L) begin
-    spr_dsx <= oam_rbuf.x*2;
-    spr_dclr <= oam_rbuf.color;
+    spr_dsx <= spr_oa.x*2;
+    spr_dclr <= spr_oa.color;
   end
   else if (spr_dact_d) begin
     spr_dsx <= spr_dsx + 8'd8;
