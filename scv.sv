@@ -215,7 +215,7 @@ module clkgen
    // CLK: 2 * video XTAL = 2 * 14.318181 MHz
    input  CLK,
 
-   // 2-phase CPU clock: CLK / 7 = 4.090909 MHz
+   // 2-phase CPU clock: CLK / 14 = 2.045454 MHz
    output CP1_POSEDGE, // clock phase 1, +ve edge
    output CP1_NEGEDGE, //  "             -ve edge
    output CP2_POSEDGE, // clock phase 2, +ve edge
@@ -225,22 +225,22 @@ module clkgen
    output VDC_CE
    );
 
-reg [2:0] ccnt;
+reg [3:0] ccnt;
 
 initial begin
   ccnt = 0;
 end
 
 always_ff @(posedge CLK) begin
-  ccnt <= (ccnt == 3'd6) ? 0 : ccnt + 1'd1;
+  ccnt <= (ccnt == 4'd13) ? 0 : ccnt + 1'd1;
 end
 
-assign CP2_NEGEDGE = ccnt == 3'd0;
-assign CP1_POSEDGE = ccnt == 3'd1;
-assign CP1_NEGEDGE = ccnt == 3'd2;
-assign CP2_POSEDGE = ccnt == 3'd3;
+assign CP2_NEGEDGE = ccnt == 4'd0;
+assign CP1_POSEDGE = ccnt == 4'd2;
+assign CP1_NEGEDGE = ccnt == 4'd4;
+assign CP2_POSEDGE = ccnt == 4'd6;
 
-assign VDC_CE = CP1_POSEDGE;
+assign VDC_CE = (ccnt == 4'd2) | (ccnt == 4'd9);
 
 endmodule
 
