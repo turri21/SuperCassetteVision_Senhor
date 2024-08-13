@@ -410,12 +410,14 @@ reg  visible;
 always_comb begin
   // Enable DE for visible region...
   visible = render_px;
+`ifdef EPOCHTV1_BORDERS
   // plus right border...
   if (render_row)
     visible = visible | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
   // plus left border.
   if (render_row)
     visible = visible | ((col >= FIRST_COL_LEFT) & (col <= LAST_COL_LEFT));
+`endif
 end
 
 always_ff @(posedge CLK) if (CE) begin
@@ -437,10 +439,15 @@ assign VS = vsync;
 // Render pipeline
 
 reg [3:0] pd;
+reg       render_px_d;
+
+always_ff @(posedge CLK) if (CE) begin
+  render_px_d <= render_px;
+end
 
 always_comb begin
   pd = 4'd1; // black borders
-  if (render_px) begin
+  if (render_px_d) begin
     pd = spr_px[4] ? spr_px[3:0] : 0;
   end
 end
