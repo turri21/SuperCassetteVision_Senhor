@@ -237,36 +237,50 @@ wire [5:0]  olb_wa;
 wire [4:0]  olb_wd;
 reg [7:0]   olb_we;
 wire [5:0]  olb_ra;
-wire [39:0] olb_rd;
+reg [39:0]  olb_rd;
 wire        olb_re;
 wire        olb_rc;
 genvar      olb_gi;
 
-// Declare one buffer per write enable, so Quartus will infer a RAM.
+// Declare one array per row. Each array should infer a simple
+// dual-port RAM.
 generate
-  for (olb_gi = 0; olb_gi < 8; olb_gi++) begin :olb_inst
+  for (olb_gi = 0; olb_gi < 2; olb_gi++) begin :olb_row
 
-  reg [5:0] olb_mem [64];
-  reg [4:0] olb_rbuf;
+  reg [39:0] mem [32];
+  reg [4:0]  addr;
+  reg [39:0] rbuf, wbuf;
+  reg [7:0]  we;
 
-    always_ff @(posedge CLK) if (CE) begin
-      if (olb_we[olb_gi]) begin
-        olb_mem[olb_wa] <= olb_wd;
+    always_ff @(posedge CLK) begin
+      rbuf <= mem[addr];
+      for (int i = 0; i < 8; i++) begin
+        if (we[i]) begin
+          mem[addr][(i*5)+:5] <= wbuf[(i*5)+:5];
+        end
+      end
+    end
+
+    always @* begin
+      if (olb_wa[5] == olb_gi[0]) begin
+        // This row is being written to.
+        addr = olb_wa[4:0];
+        wbuf = {8{olb_wd}};
+        we = olb_we;
+      end
+      else if (olb_ra[5] == olb_gi[0]) begin
+        // This row is being read from.
+        addr = olb_ra[4:0];
+        wbuf = 0;
+        we = {8{olb_rc}};
       end
     end
 
     always_ff @(posedge CLK) if (CE) begin
-      // Note: Avoid same port simultaneous read+write; might be
-      // synth'd as write before read.
-      if (olb_re) begin
-        olb_rbuf <= olb_mem[olb_ra];
-      end
-      else if (olb_rc) begin
-        olb_mem[olb_ra] <= 0;
+      if ((olb_ra[5] == olb_gi[0]) & olb_re) begin
+        olb_rd <= rbuf;
       end
     end
-
-    assign olb_rd[(olb_gi*5)+:5] = olb_rbuf;
   end
 endgenerate
 
