@@ -242,6 +242,8 @@ wire        olb_re;
 wire        olb_rc;
 genvar      olb_gi;
 
+wire [39:0] olb_rbuf [2];
+
 // Declare one array per row. Each array should infer a simple
 // dual-port RAM.
 generate
@@ -249,11 +251,11 @@ generate
 
   reg [39:0] mem [32];
   reg [4:0]  addr;
-  reg [39:0] rbuf, wbuf;
+  reg [39:0] wbuf;
   reg [7:0]  we;
 
     always_ff @(posedge CLK) begin
-      rbuf <= mem[addr];
+      olb_rbuf[olb_gi] <= mem[addr];
       for (int i = 0; i < 8; i++) begin
         if (we[i]) begin
           mem[addr][(i*5)+:5] <= wbuf[(i*5)+:5];
@@ -275,14 +277,15 @@ generate
         we = {8{olb_rc}};
       end
     end
-
-    always_ff @(posedge CLK) if (CE) begin
-      if ((olb_ra[5] == olb_gi[0]) & olb_re) begin
-        olb_rd <= rbuf;
-      end
-    end
   end
 endgenerate
+
+always_ff @(posedge CLK) if (CE) begin
+  if (olb_re) begin
+    olb_rd <= olb_rbuf[olb_ra[5]]; // select read row
+  end
+end
+
 
 //////////////////////////////////////////////////////////////////////
 // Sprite pipeline
