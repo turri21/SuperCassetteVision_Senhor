@@ -231,30 +231,44 @@ assign nVBWR = ~(cpu_sel_vram & cpu_wr & A[0]);
 // - 8 pixels wide to enable writing 1/2 sprite in one cycle
 // - pixel = 4 bit color + 1 bit opaque
 // - two full rows, used in ping-pong fashion
-// - olb_rc: clears after read, to prepare for next row
+// - olb_rc: clear (write 0) to prepare for next row
 
 wire [5:0]  olb_wa;
-wire [39:0] olb_wd;
+wire [4:0]  olb_wd;
 reg [7:0]   olb_we;
 wire [5:0]  olb_ra;
-reg [39:0]  olb_rd;
+wire [39:0] olb_rd;
+wire        olb_re;
 wire        olb_rc;
+genvar      olb_gi;
 
-reg [39:0]  olb_mem [64];
+// Declare one buffer per write enable, so Quartus will infer a RAM.
+generate
+  for (olb_gi = 0; olb_gi < 8; olb_gi++) begin :olb_inst
 
-always_ff @(posedge CLK) if (CE) begin
-  for (int i = 0; i < 8; i++) begin
-    if (olb_we[i])
-      olb_mem[olb_wa][(i*5)+:5] <= olb_wd[(i*5)+:5];
+  reg [5:0] olb_mem [64];
+  reg [4:0] olb_rbuf;
+
+    always_ff @(posedge CLK) if (CE) begin
+      if (olb_we[olb_gi]) begin
+        olb_mem[olb_wa] <= olb_wd;
+      end
+    end
+
+    always_ff @(posedge CLK) if (CE) begin
+      // Note: Avoid same port simultaneous read+write; might be
+      // synth'd as write before read.
+      if (olb_re) begin
+        olb_rbuf <= olb_mem[olb_ra];
+      end
+      else if (olb_rc) begin
+        olb_mem[olb_ra] <= 0;
+      end
+    end
+
+    assign olb_rd[(olb_gi*5)+:5] = olb_rbuf;
   end
-end
-
-always_ff @(posedge CLK) if (CE) begin
-  olb_rd <= olb_mem[olb_ra];
-  if (olb_rc)
-    olb_mem[olb_ra] <= 0;
-end
-
+endgenerate
 
 //////////////////////////////////////////////////////////////////////
 // Sprite pipeline
@@ -364,7 +378,7 @@ always_ff @(posedge CLK) if (CE) begin
 end
 
 assign olb_wa = {spr_olb_wsel, spr_dsx[7:3]};
-assign olb_wd = {8{1'b1, spr_dclr}};
+assign olb_wd = {1'b1, spr_dclr};
 
 function is_spr_dsr_set(int off);
 reg [4:0] p;
@@ -392,6 +406,7 @@ assign spr_olb_rsel = row[0];
 assign spr_olb_rx = col[7:0];
 
 assign olb_ra = {spr_olb_rsel, spr_olb_rx[7:3]};
+assign olb_re = ~|spr_olb_rx[2:0];
 assign olb_rc = &spr_olb_rx[2:0];
 
 always_ff @(posedge CLK) if (CE) begin

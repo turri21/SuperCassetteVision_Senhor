@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Aug 10 22:58:44 2024
+[*] Tue Aug 13 10:40:13 2024
 [*]
 [dumpfile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.vcd"
-[dumpfile_mtime] "Sat Aug 10 22:58:25 2024"
-[dumpfile_size] 22968525
+[dumpfile_mtime] "Tue Aug 13 10:38:53 2024"
+[dumpfile_size] 25280169
 [savefile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.gtkw"
-[timestart] 1534320000
+[timestart] 1534280000
 [size] 1288 600
 [pos] -1 -1
-*-21.019493 1539238680 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.019493 1538994240 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -37,6 +37,7 @@
 [markername] YY
 [markername] ZZ
 [treeopen] render_tb.
+[treeopen] render_tb.dut.
 [sst_width] 253
 [signals_width] 234
 [sst_expanded] 1
@@ -76,17 +77,18 @@ render_tb.dut.spr_dact_d2
 -
 @22
 render_tb.dut.olb_wa[5:0]
-render_tb.dut.olb_wd[39:0]
+render_tb.dut.olb_wd[4:0]
 render_tb.dut.olb_we[7:0]
 render_tb.dut.olb_ra[5:0]
 render_tb.dut.olb_rd[39:0]
+@28
+render_tb.dut.olb_re
+render_tb.dut.olb_rc
 @200
 -
 @22
 render_tb.dut.spr_olb_rx[7:0]
-@24
-render_tb.dut.spr_olb_rrs[7:0]
-@22
+render_tb.dut.spr_olb_rrs[2:0]
 render_tb.dut.spr_px[4:0]
 @200
 -
