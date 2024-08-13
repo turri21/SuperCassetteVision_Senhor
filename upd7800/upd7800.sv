@@ -59,11 +59,11 @@ module upd7800
 
 typedef enum reg [2:0]
 {
-    II_INT0 = 0,                // priority 2
-    II_INTT = 1,                // priority 3
-    II_INT1 = 2,                // priority 4
-    II_INT2 = 3,                // priority 5
-    II_INTS = 4                 // priority 6
+    II_INT0 = 3'd0,             // priority 2
+    II_INTT = 3'd1,             // priority 3
+    II_INT1 = 3'd2,             // priority 4
+    II_INT2 = 3'd3,             // priority 5
+    II_INTS = 3'd4              // priority 6
 } e_int_idx;
 
 wire         resp;
@@ -861,6 +861,7 @@ endfunction
 function e_spr resolve_sprs(e_sprs in);
   reg [3:0] out;
   begin
+    out = 'X;
     if (in == USRS_IR2) begin
       out = {1'b0, ir[2:0]};
     end
