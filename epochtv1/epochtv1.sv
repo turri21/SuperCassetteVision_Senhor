@@ -151,22 +151,18 @@ reg [31:0] oam [128];
 
 reg [6:0] oam_a;
 reg [31:0] oam_rbuf;
-wire      oam_we;
-wire [3:0] oam_ws;
+wire [3:0] oam_we;
 wire [31:0] oam_wbuf;
 
 assign oam_a = (cpu_sel_oam & cpu_rdwr) ? A[8:2] : spr_oam_idx;
-assign oam_we = cpu_sel_oam & cpu_wr;
 assign oam_wbuf = {4{DB_I}};
-assign oam_ws = 4'b1 << A[1:0];
+assign oam_we = 4'(cpu_sel_oam & cpu_wr) << A[1:0];
 
 always_ff @(posedge CLK) begin
   oam_rbuf <= oam[oam_a];
-  if (oam_we) begin
-    for (int i = 0; i < 4; i++) begin
-      if (oam_ws[i]) begin
-        oam[oam_a][(i*8)+:8] <= oam_wbuf[(i*8)+:8];
-      end
+  for (int i = 0; i < 4; i++) begin
+    if (oam_we[i]) begin
+      oam[oam_a][(i*8)+:8] <= oam_wbuf[(i*8)+:8];
     end
   end
 end
