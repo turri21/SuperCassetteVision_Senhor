@@ -268,7 +268,7 @@ generate
         wbuf = {8{olb_wd}};
         we = olb_we;
       end
-      else if (olb_ra[5] == olb_gi[0]) begin
+      else /*if (olb_ra[5] == olb_gi[0])*/ begin
         // This row is being read from.
         addr = olb_ra[4:0];
         wbuf = 0;
