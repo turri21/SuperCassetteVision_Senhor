@@ -1,0 +1,2142 @@
+ird:
+  rows:
+  - _at: '[0x0a, 0x0f]'
+    at:
+    - 10
+    - 15
+    uaddr: MOV_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x1a, 0x1f]'
+    at:
+    - 26
+    - 31
+    uaddr: MOV_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x68, 0x6f]'
+    at:
+    - 104
+    - 111
+    uaddr: MOV_RF_IR210_IMM
+    skipn: 1
+  - _at: '0x28'
+    at: 40
+    uaddr: LD_A_WA
+    skipn: 1
+  - _at: '0x04'
+    at: 4
+    uaddr: LDX_SP_IMM
+    skipn: 2
+  - _at: '0x14'
+    at: 20
+    uaddr: LDX_BC_IMM
+    skipn: 2
+  - _at: '0x24'
+    at: 36
+    uaddr: LDX_DE_IMM
+    skipn: 2
+  - _at: '0x34'
+    at: 52
+    uaddr: LDX_HL_IMM
+    skipn: 2
+  - _at: '[0x29, 0x2f]'
+    at:
+    - 41
+    - 47
+    uaddr: LDAX
+  - _at: '[0x3a, 0x3d]'
+    at:
+    - 58
+    - 61
+    uaddr: STX_A
+  - _at: '[0x48, 0x4b]'
+    at:
+    - 72
+    - 75
+    uaddr: STX_RF_W
+    skipn: 1
+  - _at: '0x38'
+    at: 56
+    uaddr: STW_A
+    skipn: 1
+  - _at: '0x71'
+    at: 113
+    uaddr: STW_IMM
+    skipn: 2
+  - _at: '0x21'
+    at: 33
+    uaddr: TABLE
+  - _at: '0x31'
+    at: 49
+    uaddr: BLOCK
+  - _at: '0x05'
+    at: 5
+    uaddr: AND_WA_IMM
+    skipn: 2
+  - _at: '0x15'
+    at: 21
+    uaddr: OR_WA_IMM
+    skipn: 2
+  - _at: '0x07'
+    at: 7
+    uaddr: AND_A_IMM
+    skipn: 1
+  - _at: '0x16'
+    at: 22
+    uaddr: XOR_A_IMM
+    skipn: 1
+  - _at: '0x17'
+    at: 23
+    uaddr: OR_A_IMM
+    skipn: 1
+  - _at: '0x45'
+    at: 69
+    uaddr: ON_WA_IMM
+    skipn: 1
+  - _at: '0x65'
+    at: 101
+    uaddr: NEQ_WA_IMM
+    skipn: 1
+  - _at: '0x27'
+    at: 39
+    uaddr: GT_A_IMM
+    skipn: 1
+  - _at: '0x37'
+    at: 55
+    uaddr: LT_A_IMM
+    skipn: 1
+  - _at: '0x47'
+    at: 71
+    uaddr: ON_A_IMM
+    skipn: 1
+  - _at: '0x57'
+    at: 87
+    uaddr: OFF_A_IMM
+    skipn: 1
+  - _at: '0x67'
+    at: 103
+    uaddr: NEQ_A_IMM
+    skipn: 1
+  - _at: '0x77'
+    at: 119
+    uaddr: EQ_A_IMM
+    skipn: 1
+  - _at: '0x26'
+    at: 38
+    uaddr: ADDNC_A_IMM
+    skipn: 1
+  - _at: '0x36'
+    at: 54
+    uaddr: SUBNB_A_IMM
+    skipn: 1
+  - _at: '0x46'
+    at: 70
+    uaddr: ADD_A_IMM
+    skipn: 1
+  - _at: '0x56'
+    at: 86
+    uaddr: ADC_A_IMM
+    skipn: 1
+  - _at: '0x66'
+    at: 102
+    uaddr: SUB_A_IMM
+    skipn: 1
+  - _at: '0x76'
+    at: 118
+    uaddr: SBB_A_IMM
+    skipn: 1
+  - _at: '0x20'
+    at: 32
+    uaddr: INCR_WA
+  - _at: '0x30'
+    at: 48
+    uaddr: DECR_WA
+  - _at: '[0x41, 0x43]'
+    at:
+    - 65
+    - 67
+    uaddr: INCR_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x51, 0x53]'
+    at:
+    - 81
+    - 83
+    uaddr: DECR_RF_IR210
+    m1_overlap: 1
+  - _at: '0x02'
+    at: 2
+    uaddr: INC_SP
+  - _at: '0x12'
+    at: 18
+    uaddr: INC_BC
+  - _at: '0x22'
+    at: 34
+    uaddr: INC_DE
+  - _at: '0x32'
+    at: 50
+    uaddr: INC_HL
+  - _at: '0x03'
+    at: 3
+    uaddr: DEC_SP
+  - _at: '0x13'
+    at: 19
+    uaddr: DEC_BC
+  - _at: '0x23'
+    at: 35
+    uaddr: DEC_DE
+  - _at: '0x33'
+    at: 51
+    uaddr: DEC_HL
+  - _at: '0x61'
+    at: 97
+    uaddr: DAA
+    m1_overlap: 1
+  - _at: '[0xc0, 0xff]'
+    at:
+    - 192
+    - 255
+    uaddr: JR
+  - _at: '0x4e'
+    at: 78
+    uaddr: JRE_P
+    skipn: 1
+  - _at: '0x4f'
+    at: 79
+    uaddr: JRE_N
+    skipn: 1
+  - _at: '0x54'
+    at: 84
+    uaddr: JMP
+    skipn: 2
+  - _at: '0x73'
+    at: 115
+    uaddr: JB
+    m1_overlap: 1
+  - _at: '[0x78, 0x7f]'
+    at:
+    - 120
+    - 127
+    uaddr: CALF
+    skipn: 1
+  - _at: '[0x80, 0xbf]'
+    at:
+    - 128
+    - 191
+    uaddr: CALT
+  - _at: '0x72'
+    at: 114
+    uaddr: INT
+  - _at: '0x08'
+    at: 8
+    uaddr: RET
+  - _at: '0x62'
+    at: 98
+    uaddr: RETI
+  - _at: '[0x58, 0x5f]'
+    at:
+    - 88
+    - 95
+    uaddr: BIT
+    skipn: 1
+  - _at: '0x00'
+    at: 0
+    uaddr: IDLE
+    m1_overlap: 1
+  - _at: '0x19'
+    at: 25
+    uaddr: STM
+    m1_overlap: 1
+  - _at: '0x130'
+    at: 304
+    uaddr: RLL_A_
+    m1_overlap: 1
+  - _at: '0x131'
+    at: 305
+    uaddr: RLR_A_
+    m1_overlap: 1
+  - _at: '0x132'
+    at: 306
+    uaddr: RLL_C_
+    m1_overlap: 1
+  - _at: '0x133'
+    at: 307
+    uaddr: RLR_C_
+    m1_overlap: 1
+  - _at: '0x134'
+    at: 308
+    uaddr: SLL_A_
+    m1_overlap: 1
+  - _at: '0x135'
+    at: 309
+    uaddr: SLR_A_
+    m1_overlap: 1
+  - _at: '0x136'
+    at: 310
+    uaddr: SLL_C_
+    m1_overlap: 1
+  - _at: '0x137'
+    at: 311
+    uaddr: SLR_C_
+    m1_overlap: 1
+  - _at: '0x10e'
+    at: 270
+    uaddr: PUSH_VA
+  - _at: '0x10f'
+    at: 271
+    uaddr: POP_VA
+  - _at: '0x11e'
+    at: 286
+    uaddr: PUSH_BC
+  - _at: '0x11f'
+    at: 287
+    uaddr: POP_BC
+  - _at: '0x12e'
+    at: 302
+    uaddr: PUSH_DE
+  - _at: '0x12f'
+    at: 303
+    uaddr: POP_DE
+  - _at: '0x13e'
+    at: 318
+    uaddr: PUSH_HL
+  - _at: '0x13f'
+    at: 319
+    uaddr: POP_HL
+  - _at: '[0x100, 0x104]'
+    at:
+    - 256
+    - 260
+    uaddr: SKIP_I
+    m1_overlap: 1
+  - _at: '0x10a'
+    at: 266
+    uaddr: SKIP_C
+    m1_overlap: 1
+  - _at: '[0x110, 0x114]'
+    at:
+    - 272
+    - 276
+    uaddr: SKIP_NI
+    m1_overlap: 1
+  - _at: '0x11a'
+    at: 282
+    uaddr: SKIP_NC
+    m1_overlap: 1
+  - _at: '0x120'
+    at: 288
+    uaddr: EI
+    m1_overlap: 1
+  - _at: '0x124'
+    at: 292
+    uaddr: DI
+    m1_overlap: 1
+  - _at: '[0x2c0, 0x2c9]'
+    at:
+    - 704
+    - 713
+    uaddr: MOV_A_SPR_IR3
+    m1_overlap: 1
+  - _at: '[0x3c0, 0x3c9]'
+    at:
+    - 960
+    - 969
+    uaddr: MOV_SPR_IR3_A
+    m1_overlap: 1
+  - _at: '[0x420, 0x427]'
+    at:
+    - 1056
+    - 1063
+    uaddr: ADDNC_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x430, 0x437]'
+    at:
+    - 1072
+    - 1079
+    uaddr: SUBNB_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x440, 0x447]'
+    at:
+    - 1088
+    - 1095
+    uaddr: ADD_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x450, 0x457]'
+    at:
+    - 1104
+    - 1111
+    uaddr: ADC_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x460, 0x467]'
+    at:
+    - 1120
+    - 1127
+    uaddr: SUB_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x470, 0x477]'
+    at:
+    - 1136
+    - 1143
+    uaddr: SBB_RF_IR210_A
+    m1_overlap: 1
+  - _at: '[0x4a0, 0x427]'
+    at:
+    - 1184
+    - 1063
+    uaddr: ADDNC_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x4b0, 0x4b7]'
+    at:
+    - 1200
+    - 1207
+    uaddr: SUBNB_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x4c0, 0x4c7]'
+    at:
+    - 1216
+    - 1223
+    uaddr: ADD_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x4d0, 0x4d7]'
+    at:
+    - 1232
+    - 1239
+    uaddr: ADC_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x4e0, 0x4e7]'
+    at:
+    - 1248
+    - 1255
+    uaddr: SUB_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x4f0, 0x4f7]'
+    at:
+    - 1264
+    - 1271
+    uaddr: SBB_A_RF_IR210
+    m1_overlap: 1
+  - _at: '[0x520, 0x527]'
+    at:
+    - 1312
+    - 1319
+    uaddr: ADDNC_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x530, 0x537]'
+    at:
+    - 1328
+    - 1335
+    uaddr: SUBNB_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x540, 0x547]'
+    at:
+    - 1344
+    - 1351
+    uaddr: ADD_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x550, 0x557]'
+    at:
+    - 1360
+    - 1367
+    uaddr: ADC_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x558, 0x55f]'
+    at:
+    - 1368
+    - 1375
+    uaddr: OFF_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x560, 0x567]'
+    at:
+    - 1376
+    - 1383
+    uaddr: SUB_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x570, 0x577]'
+    at:
+    - 1392
+    - 1399
+    uaddr: SBB_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x588, 0x58f]'
+    at:
+    - 1416
+    - 1423
+    uaddr: AND_SPR_IR2_IMM
+    skipn: 1
+  - _at: '[0x590, 0x597]'
+    at:
+    - 1424
+    - 1431
+    uaddr: XOR_SPR_IR2_IMM
+    skipn: 1
+  - _at: '[0x598, 0x59f]'
+    at:
+    - 1432
+    - 1439
+    uaddr: OR_SPR_IR2_IMM
+    skipn: 1
+  - _at: '[0x548, 0x54f]'
+    at:
+    - 1352
+    - 1359
+    uaddr: ON_RF_IR210_IMM
+    skipn: 1
+  - _at: '[0x5c8, 0x5cf]'
+    at:
+    - 1480
+    - 1487
+    uaddr: ON_SPR_IR2_IMM
+    skipn: 1
+  - _at: '[0x5d8, 0x5df]'
+    at:
+    - 1496
+    - 1503
+    uaddr: OFF_SPR_IR2_IMM
+    skipn: 1
+  - _at: '[0x668, 0x66f]'
+    at:
+    - 1640
+    - 1647
+    uaddr: LD_IR210_ABS
+    skipn: 2
+  - _at: '[0x678, 0x67f]'
+    at:
+    - 1656
+    - 1663
+    uaddr: ST_IR210_ABS
+    skipn: 2
+  - _at: '[0x6c1, 0x6c7]'
+    at:
+    - 1729
+    - 1735
+    uaddr: ADD
+  - _at: '[0x6e1, 0x6e7]'
+    at:
+    - 1761
+    - 1767
+    uaddr: SUB
+  - _at: '0x7c0'
+    at: 1984
+    uaddr: ADD_A_WA
+    skipn: 1
+  - _at: '0x788'
+    at: 1928
+    uaddr: AND_A_WA
+    skipn: 1
+  - _at: '0x798'
+    at: 1944
+    uaddr: OR_A_WA
+    skipn: 1
+urom:
+  rows:
+  - uaddr: IDLE
+    naddr: 0
+    bm: END
+  - uaddr: SKIP_OP2
+    naddr: 1
+  - naddr: 2
+  - naddr: 0
+  - uaddr: SKIP_OP1
+    naddr: 1
+  - naddr: 2
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: MOV_A_RF_IR210
+    naddr: 4
+  - naddr: 0
+  - naddr: 0
+    bm: END
+  - uaddr: MOV_RF_IR210_A
+    naddr: 5
+  - naddr: 0
+  - naddr: 0
+    bm: END
+  - uaddr: MOV_RF_IR210_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 6
+    m1: 1
+    bm: END
+  - uaddr: LD_A_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 9
+    m1: 1
+    bm: END
+  - uaddr: LDX_SP_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 10
+  - naddr: 1
+  - naddr: 2
+  - naddr: 11
+    m1: 1
+    bm: END
+  - uaddr: LDX_BC_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 12
+  - naddr: 1
+  - naddr: 2
+  - naddr: 13
+    m1: 1
+    bm: END
+  - uaddr: LDX_DE_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 14
+  - naddr: 1
+  - naddr: 2
+  - naddr: 15
+    m1: 1
+    bm: END
+  - uaddr: LDX_HL_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 16
+  - naddr: 1
+  - naddr: 2
+  - naddr: 17
+    m1: 1
+    bm: END
+  - uaddr: LDAX
+    naddr: 18
+  - naddr: 2
+  - naddr: 9
+    m1: 1
+    bm: END
+  - uaddr: STX_A
+    naddr: 19
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: STX_RF_W
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 20
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: STW_A
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 21
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: STW_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 1
+  - naddr: 2
+  - naddr: 22
+  - naddr: 23
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: TABLE
+    naddr: 24
+  - naddr: 0
+  - naddr: 0
+  - naddr: 25
+  - naddr: 26
+  - naddr: 0
+  - naddr: 27
+  - naddr: 0
+  - naddr: 0
+  - naddr: 28
+  - naddr: 2
+  - naddr: 29
+  - naddr: 30
+  - naddr: 2
+  - naddr: 13
+    m1: 1
+    bm: END
+  - uaddr: BLOCK
+    naddr: 31
+  - naddr: 32
+  - naddr: 7
+  - naddr: 33
+  - naddr: 34
+  - naddr: 0
+  - naddr: 35
+  - naddr: 36
+  - naddr: 37
+    m1: 1
+    bm: END
+  - uaddr: AND_WA_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 38
+  - naddr: 1
+  - naddr: 2
+  - naddr: 39
+  - naddr: 23
+  - naddr: 3
+  - naddr: 40
+    m1: 1
+    bm: END
+  - uaddr: OR_WA_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 38
+  - naddr: 1
+  - naddr: 2
+  - naddr: 41
+  - naddr: 23
+  - naddr: 3
+  - naddr: 40
+    m1: 1
+    bm: END
+  - uaddr: AND_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 39
+    m1: 1
+  - naddr: 43
+    bm: END
+  - uaddr: XOR_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 44
+    m1: 1
+  - naddr: 43
+    bm: END
+  - uaddr: OR_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 41
+    m1: 1
+  - naddr: 43
+    bm: END
+  - uaddr: ON_WA_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 38
+  - naddr: 1
+  - naddr: 2
+  - naddr: 39
+    m1: 1
+  - naddr: 45
+    bm: END
+  - uaddr: NEQ_WA_IMM
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 38
+  - naddr: 1
+  - naddr: 2
+  - naddr: 46
+    m1: 1
+  - naddr: 47
+    bm: END
+  - uaddr: GT_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 46
+    m1: 1
+  - naddr: 49
+    bm: END
+  - uaddr: LT_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 46
+    m1: 1
+  - naddr: 50
+    bm: END
+  - uaddr: ON_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 39
+    m1: 1
+  - naddr: 45
+    bm: END
+  - uaddr: OFF_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 39
+    m1: 1
+  - naddr: 51
+    bm: END
+  - uaddr: NEQ_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 46
+    m1: 1
+  - naddr: 47
+    bm: END
+  - uaddr: EQ_A_IMM
+    naddr: 1
+  - naddr: 48
+  - naddr: 46
+    m1: 1
+  - naddr: 52
+    bm: END
+  - uaddr: ADDNC_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 53
+    m1: 1
+  - naddr: 54
+    bm: END
+  - uaddr: SUBNB_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 46
+    m1: 1
+  - naddr: 55
+    bm: END
+  - uaddr: ADD_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 53
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: ADC_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 57
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: SUB_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 46
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: SBB_A_IMM
+    naddr: 42
+  - naddr: 2
+  - naddr: 58
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: INCR_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 59
+  - naddr: 23
+  - naddr: 3
+  - naddr: 49
+    m1: 1
+    bm: END
+  - uaddr: DECR_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 2
+  - naddr: 60
+  - naddr: 23
+  - naddr: 3
+  - naddr: 50
+    m1: 1
+    bm: END
+  - uaddr: INCR_RF_IR210
+    naddr: 61
+  - naddr: 62
+    bm: END
+  - uaddr: DECR_RF_IR210
+    naddr: 63
+  - naddr: 64
+    bm: END
+  - uaddr: INC_SP
+    naddr: 65
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: INC_BC
+    naddr: 66
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: INC_DE
+    naddr: 67
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: INC_HL
+    naddr: 68
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: DEC_SP
+    naddr: 69
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: DEC_BC
+    naddr: 70
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: DEC_DE
+    naddr: 71
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: DEC_HL
+    naddr: 72
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: DAA
+    naddr: 73
+  - naddr: 56
+    bm: END
+  - uaddr: JR
+    naddr: 24
+  - naddr: 74
+  - naddr: 75
+  - naddr: 76
+  - naddr: 77
+  - naddr: 78
+  - naddr: 79
+  - naddr: 80
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: JRE_P
+    naddr: 1
+  - naddr: 81
+  - naddr: 82
+  - naddr: 76
+  - naddr: 83
+  - naddr: 80
+  - naddr: 0
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: JRE_N
+    naddr: 1
+  - naddr: 81
+  - naddr: 82
+  - naddr: 76
+  - naddr: 84
+  - naddr: 80
+  - naddr: 0
+  - naddr: 0
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: JMP
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 85
+  - naddr: 86
+  - naddr: 87
+    m1: 1
+    bm: END
+  - uaddr: JB
+    naddr: 88
+    bm: END
+  - uaddr: CALF
+    naddr: 89
+  - naddr: 2
+  - naddr: 90
+  - naddr: 91
+  - naddr: 3
+  - naddr: 69
+  - naddr: 92
+  - naddr: 3
+  - naddr: 93
+  - naddr: 85
+  - naddr: 94
+  - naddr: 95
+    m1: 1
+    bm: END
+  - uaddr: CALT
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 91
+  - naddr: 3
+  - naddr: 69
+  - naddr: 92
+  - naddr: 3
+  - naddr: 96
+  - naddr: 97
+  - naddr: 98
+  - naddr: 95
+  - naddr: 97
+  - naddr: 2
+  - naddr: 87
+    m1: 1
+    bm: END
+  - uaddr: INT
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 99
+  - naddr: 3
+  - naddr: 69
+  - naddr: 91
+  - naddr: 3
+  - naddr: 69
+  - naddr: 92
+  - naddr: 3
+  - naddr: 96
+  - naddr: 100
+  - naddr: 0
+  - naddr: 0
+  - naddr: 101
+  - naddr: 102
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: RET
+    naddr: 103
+  - naddr: 104
+  - naddr: 95
+  - naddr: 103
+  - naddr: 104
+  - naddr: 87
+    m1: 1
+    bm: END
+  - uaddr: RETI
+    naddr: 103
+  - naddr: 104
+  - naddr: 95
+  - naddr: 103
+  - naddr: 104
+  - naddr: 87
+  - naddr: 103
+  - naddr: 104
+  - naddr: 105
+    m1: 1
+    bm: END
+  - uaddr: BIT
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 8
+  - naddr: 106
+  - naddr: 107
+    m1: 1
+  - naddr: 108
+    bm: END
+  - uaddr: STM
+    naddr: 0
+    bm: END
+  - uaddr: RLL_A_
+    naddr: 109
+  - naddr: 110
+  - naddr: 111
+    bm: END
+  - uaddr: RLR_A_
+    naddr: 109
+  - naddr: 112
+  - naddr: 111
+    bm: END
+  - uaddr: RLL_C_
+    naddr: 113
+  - naddr: 110
+  - naddr: 114
+    bm: END
+  - uaddr: RLR_C_
+    naddr: 113
+  - naddr: 112
+  - naddr: 114
+    bm: END
+  - uaddr: SLL_A_
+    naddr: 109
+  - naddr: 115
+  - naddr: 111
+    bm: END
+  - uaddr: SLR_A_
+    naddr: 109
+  - naddr: 116
+  - naddr: 111
+    bm: END
+  - uaddr: SLL_C_
+    naddr: 113
+  - naddr: 115
+  - naddr: 114
+    bm: END
+  - uaddr: SLR_C_
+    naddr: 113
+  - naddr: 116
+  - naddr: 114
+    bm: END
+  - uaddr: PUSH_VA
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 117
+  - naddr: 3
+  - naddr: 69
+  - naddr: 118
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: POP_VA
+    naddr: 119
+  - naddr: 2
+  - naddr: 9
+  - naddr: 119
+  - naddr: 2
+  - naddr: 120
+    m1: 1
+    bm: END
+  - uaddr: PUSH_BC
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 121
+  - naddr: 3
+  - naddr: 69
+  - naddr: 122
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: POP_BC
+    naddr: 119
+  - naddr: 2
+  - naddr: 12
+  - naddr: 119
+  - naddr: 2
+  - naddr: 13
+    m1: 1
+    bm: END
+  - uaddr: PUSH_DE
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 123
+  - naddr: 3
+  - naddr: 69
+  - naddr: 124
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: POP_DE
+    naddr: 119
+  - naddr: 2
+  - naddr: 14
+  - naddr: 119
+  - naddr: 2
+  - naddr: 15
+    m1: 1
+    bm: END
+  - uaddr: PUSH_HL
+    naddr: 0
+  - naddr: 0
+  - naddr: 69
+  - naddr: 125
+  - naddr: 3
+  - naddr: 69
+  - naddr: 126
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: POP_HL
+    naddr: 119
+  - naddr: 2
+  - naddr: 16
+  - naddr: 119
+  - naddr: 2
+  - naddr: 17
+    m1: 1
+    bm: END
+  - uaddr: SKIP_I
+    naddr: 127
+    bm: END
+  - uaddr: SKIP_C
+    naddr: 128
+    bm: END
+  - uaddr: SKIP_NI
+    naddr: 129
+    bm: END
+  - uaddr: SKIP_NC
+    naddr: 130
+    bm: END
+  - uaddr: EI
+    naddr: 131
+    bm: END
+  - uaddr: DI
+    naddr: 132
+    bm: END
+  - uaddr: MOV_A_SPR_IR3
+    naddr: 133
+  - naddr: 0
+  - naddr: 0
+    bm: END
+  - uaddr: MOV_SPR_IR3_A
+    naddr: 134
+  - naddr: 0
+  - naddr: 0
+    bm: END
+  - uaddr: ADDNC_RF_IR210_A
+    naddr: 135
+  - naddr: 136
+  - naddr: 64
+    bm: END
+  - uaddr: SUBNB_RF_IR210_A
+    naddr: 135
+  - naddr: 137
+  - naddr: 62
+    bm: END
+  - uaddr: ADD_RF_IR210_A
+    naddr: 135
+  - naddr: 136
+  - naddr: 138
+    bm: END
+  - uaddr: ADC_RF_IR210_A
+    naddr: 135
+  - naddr: 139
+  - naddr: 138
+    bm: END
+  - uaddr: SUB_RF_IR210_A
+    naddr: 135
+  - naddr: 137
+  - naddr: 138
+    bm: END
+  - uaddr: SBB_RF_IR210_A
+    naddr: 135
+  - naddr: 140
+  - naddr: 138
+    bm: END
+  - uaddr: ADDNC_A_RF_IR210
+    naddr: 109
+  - naddr: 141
+  - naddr: 54
+    bm: END
+  - uaddr: SUBNB_A_RF_IR210
+    naddr: 109
+  - naddr: 142
+  - naddr: 55
+    bm: END
+  - uaddr: ADD_A_RF_IR210
+    naddr: 109
+  - naddr: 141
+  - naddr: 56
+    bm: END
+  - uaddr: ADC_A_RF_IR210
+    naddr: 109
+  - naddr: 143
+  - naddr: 56
+    bm: END
+  - uaddr: SUB_A_RF_IR210
+    naddr: 109
+  - naddr: 142
+  - naddr: 56
+    bm: END
+  - uaddr: SBB_A_RF_IR210
+    naddr: 109
+  - naddr: 144
+  - naddr: 56
+    bm: END
+  - uaddr: ADDNC_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 53
+    m1: 1
+  - naddr: 64
+    bm: END
+  - uaddr: SUBNB_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 46
+    m1: 1
+  - naddr: 62
+    bm: END
+  - uaddr: ADD_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 53
+    m1: 1
+  - naddr: 138
+    bm: END
+  - uaddr: ADC_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 57
+    m1: 1
+  - naddr: 138
+    bm: END
+  - uaddr: OFF_RF_IR210_IMM
+    naddr: 1
+  - naddr: 146
+  - naddr: 39
+    m1: 1
+  - naddr: 51
+    bm: END
+  - uaddr: SUB_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 46
+    m1: 1
+  - naddr: 138
+    bm: END
+  - uaddr: SBB_RF_IR210_IMM
+    naddr: 145
+  - naddr: 2
+  - naddr: 58
+    m1: 1
+  - naddr: 138
+    bm: END
+  - uaddr: AND_SPR_IR2_IMM
+    naddr: 147
+  - naddr: 2
+  - naddr: 39
+    m1: 1
+  - naddr: 148
+    bm: END
+  - uaddr: XOR_SPR_IR2_IMM
+    naddr: 147
+  - naddr: 2
+  - naddr: 44
+    m1: 1
+  - naddr: 148
+    bm: END
+  - uaddr: OR_SPR_IR2_IMM
+    naddr: 147
+  - naddr: 2
+  - naddr: 41
+    m1: 1
+  - naddr: 148
+    bm: END
+  - uaddr: ON_RF_IR210_IMM
+    naddr: 1
+  - naddr: 146
+  - naddr: 39
+    m1: 1
+  - naddr: 45
+    bm: END
+  - uaddr: ON_SPR_IR2_IMM
+    naddr: 1
+  - naddr: 149
+  - naddr: 39
+    m1: 1
+  - naddr: 45
+    bm: END
+  - uaddr: OFF_SPR_IR2_IMM
+    naddr: 1
+  - naddr: 149
+  - naddr: 39
+    m1: 1
+  - naddr: 51
+    bm: END
+  - uaddr: LD_IR210_ABS
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 1
+  - naddr: 2
+  - naddr: 22
+  - naddr: 28
+  - naddr: 2
+  - naddr: 6
+    m1: 1
+    bm: END
+  - uaddr: ST_IR210_ABS
+    naddr: 1
+  - naddr: 150
+  - naddr: 7
+  - naddr: 1
+  - naddr: 2
+  - naddr: 22
+  - naddr: 28
+  - naddr: 3
+  - naddr: 0
+    m1: 1
+    bm: END
+  - uaddr: ADD
+    naddr: 18
+  - naddr: 48
+  - naddr: 53
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: SUB
+    naddr: 18
+  - naddr: 48
+  - naddr: 46
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: ADD_A_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 151
+  - naddr: 2
+  - naddr: 53
+    m1: 1
+  - naddr: 56
+    bm: END
+  - uaddr: AND_A_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 151
+  - naddr: 2
+  - naddr: 39
+    m1: 1
+  - naddr: 43
+    bm: END
+  - uaddr: OR_A_WA
+    naddr: 1
+  - naddr: 2
+  - naddr: 7
+  - naddr: 151
+  - naddr: 2
+  - naddr: 41
+  - naddr: 43
+    bm: END
+nrom:
+  rows:
+  - naddr: 0
+  - naddr: 1
+    aout: 1
+    pc_inc: 1
+  - naddr: 2
+    load: 1
+  - naddr: 3
+    store: 1
+  - naddr: 4
+    idbs: RF
+    rfos: IR210
+    lts: RF
+    rfts: A
+  - naddr: 5
+    idbs: RF
+    rfos: A
+    lts: RF
+    rfts: IR210
+  - naddr: 6
+    idbs: DB
+    lts: RF
+    rfts: IR210
+  - naddr: 7
+    idbs: DB
+    lts: RF
+    rfts: W
+  - naddr: 8
+    abs: VW
+    aout: 1
+  - naddr: 9
+    idbs: DB
+    lts: RF
+    rfts: A
+  - naddr: 10
+    idbs: DB
+    rfts: SPL
+    lts: RF
+  - naddr: 11
+    idbs: DB
+    rfts: SPH
+    lts: RF
+  - naddr: 12
+    idbs: DB
+    rfts: C
+    lts: RF
+  - naddr: 13
+    idbs: DB
+    rfts: B
+    lts: RF
+  - naddr: 14
+    idbs: DB
+    rfts: E
+    lts: RF
+  - naddr: 15
+    idbs: DB
+    rfts: D
+    lts: RF
+  - naddr: 16
+    idbs: DB
+    rfts: L
+    lts: RF
+  - naddr: 17
+    idbs: DB
+    rfts: H
+    lts: RF
+  - naddr: 18
+    abs: IR210
+    aout: 1
+    abits: IR210
+    rpir: 1
+  - naddr: 19
+    idbs: RF
+    rfos: A
+    lts: DOR
+    abs: IR210
+    aout: 1
+    abits: IR210
+    rpir: 1
+  - naddr: 20
+    idbs: RF
+    rfos: W
+    lts: DOR
+    abs: IR210
+    aout: 1
+    abits: IR210
+    rpir: 1
+  - naddr: 21
+    rfos: A
+    idbs: RF
+    lts: DOR
+    abs: VW
+    aout: 1
+  - naddr: 22
+    idbs: DB
+    lts: AI
+    bi0: 1
+    aluop: SUM
+  - naddr: 23
+    idbs: CO
+    lts: DOR
+    abs: VW
+    aout: 1
+  - naddr: 24
+    idbs: RF
+    rfos: PCL
+    lts: AI
+  - naddr: 25
+    idbs: RF
+    rfos: A
+    lts: BI
+    aluop: SUM
+    cis: 1
+  - naddr: 26
+    idbs: CO
+    lts: RF
+    rfts: W
+  - naddr: 27
+    idbs: RF
+    rfos: PCH
+    lts: AI
+    aluop: SUM
+    bi0: 1
+    cis: CCO
+  - naddr: 28
+    idbs: CO
+    abs: IDB_W
+    aout: 1
+  - naddr: 29
+    idbs: DB
+    lts: RF
+    rfts: C
+    abs: AOR
+  - naddr: 30
+    abs: NABI
+    aout: 1
+    ab_inc: 1
+  - naddr: 31
+    abs: HL
+    aout: 1
+  - naddr: 32
+    abs: HL
+    ab_inc: 1
+    abits: HL
+    load: 1
+  - naddr: 33
+    rfos: W
+    idbs: RF
+    lts: DOR
+    abs: DE
+    aout: 1
+  - naddr: 34
+    store: 1
+    abs: DE
+    ab_inc: 1
+    abits: DE
+  - naddr: 35
+    rfos: C
+    idbs: RF
+    lts: AI
+    aluop: DEC
+  - naddr: 36
+    rfts: C
+    idbs: CO
+    lts: RF
+  - naddr: 37
+    pswsk: NC
+    abs: PC
+    ab_dec: 1
+  - naddr: 38
+    idbs: DB
+    lts: AI
+  - naddr: 39
+    idbs: DB
+    lts: BI
+    aluop: AND
+  - naddr: 40
+    pswz: 1
+  - naddr: 41
+    idbs: DB
+    lts: BI
+    aluop: OR
+  - naddr: 42
+    aout: 1
+    pc_inc: 1
+    idbs: RF
+    rfos: A
+    lts: AI
+  - naddr: 43
+    idbs: CO
+    lts: RF
+    rfts: A
+    pswz: 1
+  - naddr: 44
+    idbs: DB
+    lts: BI
+    aluop: EOR
+  - naddr: 45
+    pswsk: NZ
+    pswz: 1
+  - naddr: 46
+    idbs: DB
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: 1
+  - naddr: 47
+    pswsk: NZ
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 48
+    idbs: RF
+    rfos: A
+    lts: AI
+    load: 1
+  - naddr: 49
+    pswsk: C
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 50
+    pswsk: NC
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 51
+    pswsk: Z
+    pswz: 1
+  - naddr: 52
+    pswsk: Z
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 53
+    idbs: DB
+    lts: BI
+    aluop: SUM
+  - naddr: 54
+    idbs: CO
+    lts: RF
+    rfts: A
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+    pswsk: NC
+  - naddr: 55
+    idbs: CO
+    lts: RF
+    rfts: A
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+    pswsk: C
+  - naddr: 56
+    idbs: CO
+    lts: RF
+    rfts: A
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 57
+    idbs: DB
+    lts: BI
+    aluop: SUM
+    cis: PSW_CY
+  - naddr: 58
+    idbs: DB
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: PSW_CY
+  - naddr: 59
+    idbs: DB
+    lts: AI
+    aluop: INC
+  - naddr: 60
+    idbs: DB
+    lts: AI
+    aluop: DEC
+  - naddr: 61
+    idbs: RF
+    rfos: IR210
+    lts: AI
+    aluop: INC
+  - naddr: 62
+    idbs: CO
+    lts: RF
+    rfts: IR210
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+    pswsk: C
+  - naddr: 63
+    idbs: RF
+    rfos: IR210
+    lts: AI
+    aluop: DEC
+  - naddr: 64
+    idbs: CO
+    lts: RF
+    rfts: IR210
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+    pswsk: NC
+  - naddr: 65
+    abs: SP
+    ab_inc: 1
+    abits: SP
+  - naddr: 66
+    abs: BC
+    ab_inc: 1
+    abits: BC
+  - naddr: 67
+    abs: DE
+    ab_inc: 1
+    abits: DE
+  - naddr: 68
+    abs: HL
+    ab_inc: 1
+    abits: HL
+  - naddr: 69
+    abs: SP
+    ab_dec: 1
+    abits: SP
+  - naddr: 70
+    abs: BC
+    ab_dec: 1
+    abits: BC
+  - naddr: 71
+    abs: DE
+    ab_dec: 1
+    abits: DE
+  - naddr: 72
+    abs: HL
+    ab_dec: 1
+    abits: HL
+  - naddr: 73
+    idbs: RF
+    rfos: A
+    lts: AI
+    daa: 1
+    aluop: SUM
+  - naddr: 74
+    idbs: SDG
+    sdgs: JRL
+    lts: BI
+  - naddr: 75
+    aluop: SUM
+    cis: 0
+  - naddr: 76
+    idbs: CO
+    lts: RF
+    rfts: PCL
+  - naddr: 77
+    rfos: PCH
+    idbs: RF
+    lts: AI
+  - naddr: 78
+    idbs: SDG
+    sdgs: JRH
+    lts: BI
+  - naddr: 79
+    aluop: SUM
+    cis: CCO
+  - naddr: 80
+    idbs: CO
+    lts: RF
+    rfts: PCH
+  - naddr: 81
+    rfos: PCL
+    idbs: RF
+    lts: AI
+    load: 1
+  - naddr: 82
+    idbs: DB
+    lts: BI
+    aluop: SUM
+    cis: 0
+  - naddr: 83
+    rfos: PCH
+    idbs: RF
+    lts: AI
+    bi0: 1
+    bin: false
+    aluop: SUM
+    cis: CCO
+  - naddr: 84
+    rfos: PCH
+    idbs: RF
+    lts: AI
+    bi0: 1
+    bin: true
+    aluop: SUM
+    cis: CCO
+  - naddr: 85
+    abs: PC
+    aout: 1
+  - naddr: 86
+    idbs: RF
+    rfos: W
+    lts: RF
+    rfts: PCL
+    load: 1
+  - naddr: 87
+    idbs: DB
+    lts: RF
+    rfts: PCH
+  - naddr: 88
+    abs: BC
+    aout: 1
+    abits: PC
+    ab_inc: 1
+    ab_dec: 1
+  - naddr: 89
+    pc_inc: 1
+  - naddr: 90
+    idbs: DB
+    lts: RF
+    rfts: W
+    abs: SP
+    ab_dec: 1
+    abits: SP
+  - naddr: 91
+    idbs: RF
+    rfos: PCH
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 92
+    idbs: RF
+    rfos: PCL
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 93
+    abs: PC
+    ab_dec: 1
+    abits: PC
+  - naddr: 94
+    load: 1
+    idbs: SDG
+    sdgs: CALF
+    lts: RF
+    rfts: PCH
+  - naddr: 95
+    idbs: DB
+    lts: RF
+    rfts: PCL
+  - naddr: 96
+    idx: 0
+    idbs: SDG
+    sdgs: CALT
+    lts: RF
+    rfts: W
+  - naddr: 97
+    idbs: 0
+    abs: IDB_W
+    aout: 1
+  - naddr: 98
+    load: 1
+    idx: 1
+    idbs: SDG
+    sdgs: CALT
+    lts: RF
+    rfts: W
+  - naddr: 99
+    idbs: RF
+    rfos: PSW
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 100
+    idbs: 0
+    lts: RF
+    rfts: PCH
+  - naddr: 101
+    idbs: SDG
+    sdgs: INTVA
+    lts: RF
+    rfts: PCL
+  - naddr: 102
+    pswsk: 0
+  - naddr: 103
+    abs: SP
+    aout: 1
+  - naddr: 104
+    load: 1
+    abs: SP
+    ab_inc: 1
+    abits: SP
+  - naddr: 105
+    idbs: DB
+    lts: RF
+    rfts: PSW
+  - naddr: 106
+    load: 1
+    idbs: SDG
+    sdgs: BIT
+    lts: BI
+  - naddr: 107
+    idbs: DB
+    lts: AI
+    aluop: AND
+  - naddr: 108
+    pswsk: NZ
+  - naddr: 109
+    idbs: RF
+    rfos: A
+    lts: AI
+  - naddr: 110
+    aluop: ROL
+    cis: PSW_CY
+  - naddr: 111
+    idbs: CO
+    lts: RF
+    rfts: A
+    pswcy: 1
+  - naddr: 112
+    aluop: ROR
+    cis: PSW_CY
+  - naddr: 113
+    idbs: RF
+    rfos: C
+    lts: AI
+  - naddr: 114
+    idbs: CO
+    lts: RF
+    rfts: C
+    pswcy: 1
+  - naddr: 115
+    aluop: LSL
+  - naddr: 116
+    aluop: LSR
+  - naddr: 117
+    idbs: RF
+    rfos: V
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 118
+    idbs: RF
+    rfos: A
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 119
+    abs: SP
+    aout: 1
+    ab_inc: 1
+    abits: SP
+  - naddr: 120
+    idbs: DB
+    lts: RF
+    rfts: V
+  - naddr: 121
+    idbs: RF
+    rfos: B
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 122
+    idbs: RF
+    rfos: C
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 123
+    idbs: RF
+    rfos: D
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 124
+    idbs: RF
+    rfos: E
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 125
+    idbs: RF
+    rfos: H
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 126
+    idbs: RF
+    rfos: L
+    lts: DOR
+    abs: SP
+    aout: 1
+  - naddr: 127
+    pswsk: I
+  - naddr: 128
+    pswsk: C
+  - naddr: 129
+    pswsk: NI
+  - naddr: 130
+    pswsk: NC
+  - naddr: 131
+    idx: 1
+    lts: IE
+  - naddr: 132
+    idx: 0
+    lts: IE
+  - naddr: 133
+    idbs: SPR
+    sprs: IR3
+    lts: RF
+    rfts: A
+  - naddr: 134
+    idbs: RF
+    rfos: A
+    lts: SPR
+    sprs: IR3
+  - naddr: 135
+    idbs: RF
+    rfos: IR210
+    lts: AI
+  - naddr: 136
+    idbs: RF
+    rfos: A
+    lts: BI
+    aluop: SUM
+  - naddr: 137
+    idbs: RF
+    rfos: A
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: 1
+  - naddr: 138
+    idbs: CO
+    lts: RF
+    rfts: IR210
+    pswz: 1
+    pswcy: 1
+    pswhc: 1
+  - naddr: 139
+    idbs: RF
+    rfos: A
+    lts: BI
+    aluop: SUM
+    cis: PSW_CY
+  - naddr: 140
+    idbs: RF
+    rfos: A
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: PSW_CY
+  - naddr: 141
+    idbs: RF
+    rfos: IR210
+    lts: BI
+    aluop: SUM
+  - naddr: 142
+    idbs: RF
+    rfos: IR210
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: 1
+  - naddr: 143
+    idbs: RF
+    rfos: IR210
+    lts: BI
+    aluop: SUM
+    cis: PSW_CY
+  - naddr: 144
+    idbs: RF
+    rfos: IR210
+    lts: BI
+    aluop: SUM
+    bin: 1
+    cis: PSW_CY
+  - naddr: 145
+    aout: 1
+    pc_inc: 1
+    idbs: RF
+    rfos: IR210
+    lts: AI
+  - naddr: 146
+    idbs: RF
+    rfos: IR210
+    lts: AI
+    load: 1
+  - naddr: 147
+    aout: 1
+    pc_inc: 1
+    idbs: SPR
+    sprs: IR2
+    lts: AI
+  - naddr: 148
+    idbs: CO
+    lts: SPR
+    sprs: IR2
+    pswz: 1
+  - naddr: 149
+    idbs: SPR
+    sprs: IR2
+    lts: AI
+    load: 1
+  - naddr: 150
+    load: 1
+    idbs: RF
+    rfos: IR210
+    lts: DOR
+  - naddr: 151
+    abs: VW
+    aout: 1
+    idbs: RF
+    rfos: A
+    lts: AI
