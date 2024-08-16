@@ -172,6 +172,8 @@ module emu
 	input         OSD_STATUS
 );
 
+wire        clk_sys;
+
 ///////// Default values for ports not used in this core /////////
 
 assign ADC_BUS  = 'Z;
@@ -206,7 +208,7 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
-	"SuperCassetteVision;;",
+	"SCV;;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	//"O[2],TV Mode,NTSC,PAL;",
@@ -224,6 +226,13 @@ wire   [1:0] buttons;
 wire [127:0] status;
 wire  [10:0] ps2_key;
 
+wire         ioctl_download;
+wire [7:0]   ioctl_index;
+wire         ioctl_wr;
+wire [24:0]  ioctl_addr;
+wire [7:0]   ioctl_dout;
+wire         ioctl_wait;
+
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys),
@@ -237,12 +246,41 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.status(status),
 	.status_menumask({status[5]}),
 	
-	.ps2_key(ps2_key)
+	.ps2_key(ps2_key),
+
+	.ioctl_download(ioctl_download),
+	.ioctl_index(ioctl_index),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
+	.ioctl_wait(ioctl_wait)
 );
+
+//////////////////////////////////////////////////////////////////////
+// Download manager
+
+reg          rominit_sel_boot, rominit_sel_chr;
+reg [11:0]   rominit_addr;
+reg [7:0]    rominit_data;
+reg          rominit_valid;
+
+assign ioctl_wait = 0;
+
+assign rominit_sel_boot = (ioctl_addr <= 24'h1000);
+assign rominit_sel_chr = (ioctl_addr <= 24'h1400) & ~rominit_sel_boot;
+assign rominit_data = ioctl_dout;
+assign rominit_valid = ioctl_download & ioctl_wr & ~ioctl_wait;
+
+always_comb begin
+  rominit_addr = 0;
+  if (rominit_sel_boot)
+    rominit_addr[11:0] = ioctl_addr[11:0];
+  else if (rominit_sel_chr)
+    rominit_addr[9:0] = ioctl_addr[9:0];
+end
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys;
 pll pll
 (
 	.refclk(CLK_50M),
@@ -253,21 +291,25 @@ pll pll
 wire reset = RESET | status[0] | buttons[1];
 
 scv scv
-(
-	.CLK(clk_sys),
-	.RESB(~reset),
-	
-	.VID_PCE(CE_PIXEL),
-	.VID_DE(VGA_DE),
-	.VID_HS(VGA_HS),
-	.VID_VS(VGA_VS),
-	.VID_RGB({VGA_R, VGA_G, VGA_B})
-);
+  (
+   .CLK(clk_sys),
+   .RESB(~reset),
+
+   .ROMINIT_SEL_BOOT(rominit_sel_boot),
+   .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_ADDR(rominit_addr),
+   .ROMINIT_DATA(rominit_data),
+   .ROMINIT_VALID(rominit_valid),
+
+   .VID_PCE(CE_PIXEL),
+   .VID_DE(VGA_DE),
+   .VID_HS(VGA_HS),
+   .VID_VS(VGA_VS),
+   .VID_RGB({VGA_R, VGA_G, VGA_B})
+   );
 
 assign CLK_VIDEO = clk_sys;
 
-reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
+assign LED_USER = ioctl_download;
 
 endmodule

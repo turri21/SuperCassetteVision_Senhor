@@ -35,5 +35,5 @@ int main(int argc, char** argv, char**) {
 }
 
 // Local Variables:
-// compile-command: "verilator --cc --exe scv_tb.cpp --build -j 0 --timing --assert --trace --top-module scv_tb -DSCV_BOOTROM_INIT_FROM_HEX --relative-includes ../scv.sv ../upd7800/upd7800.sv ../epochtv1/epochtv1.sv ../epochtv1/dpram.sv scv_tb.sv"
+// compile-command: "verilator --cc --exe scv_tb.cpp --build -j 0 --timing --assert --trace --top-module scv_tb --relative-includes ../scv.sv ../upd7800/upd7800.sv ../epochtv1/epochtv1.sv ../epochtv1/dpram.sv scv_tb.sv"
 // End:

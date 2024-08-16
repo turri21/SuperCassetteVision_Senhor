@@ -16,6 +16,12 @@ module scv
    input         CLK, // clock (video XTAL * 2)
    input         RESB,
 
+   input         ROMINIT_SEL_BOOT,
+   input         ROMINIT_SEL_CHR,
+   input [11:0]  ROMINIT_ADDR,
+   input [7:0]   ROMINIT_DATA,
+   input         ROMINIT_VALID,
+
    output        VID_PCE,
    output        VID_DE,
    output        VID_HS,
@@ -91,6 +97,12 @@ upd7800 cpu
 
 bootrom rom
   (
+`ifndef SCV_BOOTROM_INIT_FROM_HEX
+   .INIT_CLK(CLK),
+   .INIT_ADDR(ROMINIT_ADDR[11:0]),
+   .INIT_DATA(ROMINIT_DATA),
+   .INIT_VALID(ROMINIT_SEL_BOOT & ROMINIT_VALID),
+`endif
    .A(cpu_a[11:0]),
    .DB(rom_db),
    .nCS(rom_ncs)
@@ -111,6 +123,11 @@ epochtv1 vdc
   (
    .CLK(CLK),
    .CE(vdc_ce),
+
+   //.ROMINIT_SEL_CHR(ROMINIT_SEL_CHR),
+   //.ROMINIT_ADDR(ROMINIT_ADDR),
+   //.ROMINIT_DATA(ROMINIT_DATA),
+   //.ROMINIT_VALID(ROMINIT_VALID),
 
    .A(cpu_a[12:0]),
    .DB_I(cpu_db),
@@ -248,6 +265,12 @@ endmodule
 
 module bootrom
   (
+`ifndef SCV_BOOTROM_INIT_FROM_HEX
+   input            INIT_CLK,
+   input [11:0]     INIT_ADDR,
+   input [7:0]      INIT_DATA,
+   input            INIT_VALID,
+`endif
    input [11:0]     A,
    output reg [7:0] DB,
    input            nCS
@@ -255,13 +278,23 @@ module bootrom
 
 logic [7:0] mem [1 << 12];
 
+`ifdef SCV_BOOTROM_INIT_FROM_HEX
 initial begin
   $readmemh("bootrom.hex", mem);
 end
+`endif
 
 always_comb begin
   DB = nCS ? 8'hzz : mem[A];
 end
+
+`ifndef SCV_BOOTROM_INIT_FROM_HEX
+always @(posedge INIT_CLK) begin
+  if (INIT_VALID) begin
+    mem[INIT_ADDR] = INIT_DATA;
+  end
+end
+`endif
 
 endmodule
 
