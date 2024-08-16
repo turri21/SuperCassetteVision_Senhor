@@ -78,5 +78,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s scv_tb -o scv_tb.vvp ../scv.sv ../upd7800/upd7800.sv ../epochtv1/epochtv1.sv ../epochtv1/dpram.sv scv_tb.sv && ./scv_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -D SCV_BOOTROM_INIT_FROM_HEX -s scv_tb -o scv_tb.vvp ../scv.sv ../upd7800/upd7800.sv ../epochtv1/epochtv1.sv ../epochtv1/dpram.sv scv_tb.sv && ./scv_tb.vvp"
 // End:

@@ -156,7 +156,7 @@ wire [31:0] oam_wbuf;
 
 assign oam_a = (cpu_sel_oam & cpu_rdwr) ? A[8:2] : spr_oam_idx;
 assign oam_wbuf = {4{DB_I}};
-assign oam_we = 4'(cpu_sel_oam & cpu_wr) << A[1:0];
+assign oam_we = {3'b0, (cpu_sel_oam & cpu_wr)} << A[1:0];
 
 always_ff @(posedge CLK) begin
   oam_rbuf <= oam[oam_a];
@@ -238,7 +238,7 @@ wire        olb_re;
 wire        olb_rc;
 genvar      olb_gi;
 
-wire [39:0] olb_rbuf [2];
+reg [39:0]  olb_rbuf [2];
 
 // Declare one array per row. Each array should infer a simple
 // dual-port RAM.
