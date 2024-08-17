@@ -259,25 +259,28 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 //////////////////////////////////////////////////////////////////////
 // Download manager
 
-reg          rominit_sel_boot, rominit_sel_chr;
-reg [11:0]   rominit_addr;
-reg [7:0]    rominit_data;
-reg          rominit_valid;
+wire         rominit_sel_boot, rominit_sel_chr;
+wire [11:0]  rominit_addr;
+wire [7:0]   rominit_data;
+wire         rominit_valid;
 
-assign ioctl_wait = 0;
+rominit rominit
+  (
+   .CLK_SYS(clk_sys),
 
-assign rominit_sel_boot = (ioctl_addr < 24'h1000);
-assign rominit_sel_chr = (ioctl_addr < 24'h1400) & ~rominit_sel_boot;
-assign rominit_data = ioctl_dout;
-assign rominit_valid = ioctl_download & ioctl_wr & ~ioctl_wait;
+   .IOCTL_DOWNLOAD(ioctl_download),
+   .IOCTL_INDEX(ioctl_index),
+   .IOCTL_WR(ioctl_wr),
+   .IOCTL_ADDR(ioctl_addr),
+   .IOCTL_DOUT(ioctl_dout),
+   .IOCTL_WAIT(ioctl_wait),
 
-always_comb begin
-  rominit_addr = 0;
-  if (rominit_sel_boot)
-    rominit_addr[11:0] = ioctl_addr[11:0];
-  else if (rominit_sel_chr)
-    rominit_addr[9:0] = ioctl_addr[9:0];
-end
+   .ROMINIT_SEL_BOOT(rominit_sel_boot),
+   .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_ADDR(rominit_addr),
+   .ROMINIT_DATA(rominit_data),
+   .ROMINIT_VALID(rominit_valid)
+   );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 

@@ -2,5 +2,6 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/scv.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/upd7800/upd7800.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/epochtv1/epochtv1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/epochtv1/dpram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/rominit.sv
 set_global_assignment -name SDC_FILE scv.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE scv.sv
