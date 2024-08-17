@@ -266,8 +266,8 @@ reg          rominit_valid;
 
 assign ioctl_wait = 0;
 
-assign rominit_sel_boot = (ioctl_addr <= 24'h1000);
-assign rominit_sel_chr = (ioctl_addr <= 24'h1400) & ~rominit_sel_boot;
+assign rominit_sel_boot = (ioctl_addr < 24'h1000);
+assign rominit_sel_chr = (ioctl_addr < 24'h1400) & ~rominit_sel_boot;
 assign rominit_data = ioctl_dout;
 assign rominit_valid = ioctl_download & ioctl_wr & ~ioctl_wait;
 
