@@ -970,6 +970,7 @@ assign pci = (PC_I & ~pcoe) | (pco & pcoe);
 assign pboe = ~mb;
 assign pcoe = {~mc[7], 5'b11110, ~mc[1:0]};
 
+assign PA_O = pao;
 assign PB_OE = pboe;
 assign PC_OE = pcoe;
 

@@ -11,6 +11,8 @@
 
 `timescale 1us / 1ns
 
+import scv_pkg::*;
+
 module scv
   (
    input         CLK, // clock (video XTAL * 2)
@@ -21,6 +23,8 @@ module scv
    input [11:0]  ROMINIT_ADDR,
    input [7:0]   ROMINIT_DATA,
    input         ROMINIT_VALID,
+
+   input         hmi_t HMI,
 
    output        VID_PCE,
    output        VID_DE,
@@ -58,6 +62,8 @@ wire [23:0] rgb;
 wire        cart_ncs;
 wire        rom_db_oe, cart_db_oe;
 
+wire [7:0]  pao, pbi, pci, pco;
+
 clkgen clkgen
   (
    .CLK(CLK),
@@ -86,12 +92,12 @@ upd7800 cpu
    .M1(),
    .RDB(cpu_rdb),
    .WRB(cpu_wrb),
-   .PA_O(),
-   .PB_I(8'hff),                // no buttons pressed
+   .PA_O(pao),
+   .PB_I(pbi),
    .PB_O(),
    .PB_OE(),
-   .PC_I(8'h01),                // pause switch off
-   .PC_O(),
+   .PC_I(pci),
+   .PC_O(pco),
    .PC_OE()
    );
 
@@ -194,6 +200,15 @@ dpram #(.DWIDTH(8), .AWIDTH(12)) vramb
    .DO2()
    );
 
+hmi2key hmi2key
+  (
+   .HMI(HMI),
+
+   .KEY_COL(pao),
+   .KEY_ROW(pbi),
+   .PAUSE(pci[0])
+   );
+
 assign rom_ncs = |cpu_a[15:12];
 assign wram_ncs = ~&cpu_a[15:7];    // 'hFF80-'hFFFF
 assign vdc_ncs = (cpu_a & ~16'h1fff) != 16'h2000;
@@ -216,6 +231,9 @@ always_comb begin
   else if (cart_db_oe)
     cpu_db = 8'hFF;           // cart is absent
 end
+
+assign pbi = 8'hff;             // no buttons pressed
+assign pci[7:1] = 0;            // unused
 
 assign VID_PCE = vdc_ce;
 assign VID_DE = de;

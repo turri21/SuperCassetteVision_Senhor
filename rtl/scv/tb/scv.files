@@ -1,0 +1,8 @@
+../scv_pkg.sv
+../scv.sv
+../hmi2key.sv
+
+../upd7800/upd7800.sv
+
+../epochtv1/epochtv1.sv
+../epochtv1/dpram.sv

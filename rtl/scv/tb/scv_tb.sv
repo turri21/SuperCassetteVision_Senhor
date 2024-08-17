@@ -13,6 +13,8 @@
 
 module scv_tb();
 
+import scv_pkg::*;
+
 reg         clk, res;
 
 reg         rominit_active;
@@ -21,6 +23,8 @@ reg         rominit_sel_boot, rominit_sel_chr;
 reg [11:0]  rominit_addr;
 reg [7:0]   rominit_data;
 reg         rominit_valid;
+
+hmi_t       hmi;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -45,6 +49,8 @@ scv dut
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
 
+   .HMI(hmi),
+
    .VID_PCE(),
    .VID_DE(),
    .VID_HS(),
@@ -60,6 +66,8 @@ initial begin
   rominit_sel_boot = 0;
   rominit_sel_chr = 0;
   rominit_valid = 0;
+
+  hmi = 0;
 end
 
 initial forever begin :ckgen
@@ -134,5 +142,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s scv_tb -o scv_tb.vvp ../scv.sv ../upd7800/upd7800.sv ../epochtv1/epochtv1.sv ../epochtv1/dpram.sv scv_tb.sv && ./scv_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -s scv_tb -o scv_tb.vvp -f scv.files scv_tb.sv && ./scv_tb.vvp"
 // End:

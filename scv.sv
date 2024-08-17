@@ -172,6 +172,8 @@ module emu
 	input         OSD_STATUS
 );
 
+import scv_pkg::hmi_t;
+
 wire        clk_sys;
 
 ///////// Default values for ports not used in this core /////////
@@ -282,6 +284,23 @@ rominit rominit
    .ROMINIT_VALID(rominit_valid)
    );
 
+//////////////////////////////////////////////////////////////////////
+// Connect keyboard to HMI
+
+wire        pressed = ps2_key[9];
+hmi_t       hmi;
+
+initial hmi = 0;
+
+always @(posedge sys_clk) begin
+  case (ps2_key[8:0])
+    'h05:       hmi.pause <= pressed;  // F1
+    'h16, 'h69: hmi.num[1] <= pressed; // 1
+    default: ;
+  endcase
+end
+
+
 ///////////////////////   CLOCKS   ///////////////////////////////
 
 pll pll
@@ -303,6 +322,8 @@ scv scv
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
+
+   .HMI(hmi),
 
    .VID_PCE(CE_PIXEL),
    .VID_DE(VGA_DE),
