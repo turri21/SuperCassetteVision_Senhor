@@ -9,23 +9,21 @@ It is hoped that, in the future, hardware will be acquired, examined (nicely), a
 ## Features
 - Just enough to boot the internal ROM, run its built-in video test, and render it.
 
-## Building from source
-
-Today, the boot ROM must be available at FPGA design compile time:
-- Acquire upd7801g.s01 (MD5 sum 635a978fd40db9a18ee44eff449fc126)
-- Convert to hexadecimal bytes, one per line (as expected by Verilog function $readmemh)
-- Copy to rtl/scv/bootrom.hex
-
-These steps will be replaced by a runtime boot.rom loader.
-
 ## Installation
-(Copy boot.rom...)
+- Copy the latest *.rbf from releases/ to the root of the SD card
+- Build boot.rom (see below)
+- Create a folder on the SD card named "SCV" and copy boot.rom to it
 
 ## How to build boot.rom
-(Placeholder...)
+Acquire these two files:
+- upd7801g.s01 (MD5 sum 635a978fd40db9a18ee44eff449fc126)
+- epochtv.chr (MD5 sum 929617bc739e58e550fe9025cae4158b)
+
+Concatenate the files to create boot.rom. Windows example:
+
+`COPY /B upd7801g.s01 +epochtv.chr boot.rom`
 
 ## TODOs
-- Load boot.rom
 - CPU (uPD7801G)
   - LOTS of instructions
   - Set/clear of and skipping on L0/L1 PSW flags
