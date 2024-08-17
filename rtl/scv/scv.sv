@@ -232,7 +232,6 @@ always_comb begin
     cpu_db = 8'hFF;           // cart is absent
 end
 
-assign pbi = 8'hff;             // no buttons pressed
 assign pci[7:1] = 0;            // unused
 
 assign VID_PCE = vdc_ce;

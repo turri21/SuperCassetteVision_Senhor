@@ -217,6 +217,8 @@ localparam CONF_STR = {
 	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
+	"J,Trig 1,Trig 2;",
+	"jn,A|Y|L,B|X|R;",
 	"v,0;", // [optional] config version 0-99. 
 	        // If CONF_STR options are changed in incompatible way, then change version number too,
 			  // so all options will get default values on first start.
@@ -226,6 +228,7 @@ localparam CONF_STR = {
 wire forced_scandoubler;
 wire   [1:0] buttons;
 wire [127:0] status;
+wire [31:0]  joystick_0, joystick_1;
 wire  [10:0] ps2_key;
 
 wire         ioctl_download;
@@ -248,6 +251,8 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.status(status),
 	.status_menumask({status[5]}),
 	
+ 	.joystick_0(joystick_0),
+	.joystick_1(joystick_1),
 	.ps2_key(ps2_key),
 
 	.ioctl_download(ioctl_download),
@@ -285,21 +290,21 @@ rominit rominit
    );
 
 //////////////////////////////////////////////////////////////////////
-// Connect keyboard to HMI
+// Connect joysticks and keyboard to HMI
 
-wire        pressed = ps2_key[9];
 hmi_t       hmi;
 
-initial hmi = 0;
+joykey joykey
+  (
+   .CLK_SYS(clk_sys),
 
-always @(posedge sys_clk) begin
-  case (ps2_key[8:0])
-    'h05:       hmi.pause <= pressed;  // F1
-    'h16, 'h69: hmi.num[1] <= pressed; // 1
-    default: ;
-  endcase
-end
+   .JOYSTICK_0(joystick_0),
+   .JOYSTICK_1(joystick_1),
 
+   .PS2_KEY(ps2_key),
+
+   .HMI(hmi)
+   );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
