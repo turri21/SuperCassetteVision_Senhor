@@ -14,7 +14,7 @@ It is hoped that, in the future, hardware will be acquired, examined (nicely), a
 - Build boot.rom (see below)
 - Create a folder on the SD card named "SCV" and copy boot.rom to it
 
-## How to build boot.rom
+### How to build boot.rom
 Acquire these two files:
 - upd7801g.s01 (MD5 sum 635a978fd40db9a18ee44eff449fc126)
 - epochtv.chr (MD5 sum 929617bc739e58e550fe9025cae4158b)
@@ -22,6 +22,22 @@ Acquire these two files:
 Concatenate the files to create boot.rom. Windows example:
 
 `COPY /B upd7801g.s01 +epochtv.chr boot.rom`
+
+
+## Usage
+
+### Keyboard
+* 0-9 - SELECT numbered keys
+* Backspace, numpad ./Del - SELECT CL key
+* Enter - SELECT EN key
+* F1 - PAUSE button
+
+### Joysticks
+Up to two digital joysticks are mapped to the two controllers. Each controller has two **Trig** buttons.
+
+
+## Known issues
+Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented.
 
 ## TODOs
 - CPU (uPD7801G)
@@ -32,6 +48,5 @@ Concatenate the files to create boot.rom. Windows example:
   - Registers ($3400-3)
   - Background (characters, bitmap)
   - Most sprite features: size, linking, ...
-- Controllers
 - Audio (uPD1771C)
 - Cartridges
