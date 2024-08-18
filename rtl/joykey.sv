@@ -30,7 +30,8 @@ end
 always @(posedge CLK_SYS) begin
   if (ps2_toggle ^ ps2_toggle_d) begin
     case (PS2_KEY[8:0])
-      'h005:        HMI.pause <= pressed; // F1
+      // TODO: Enable pause when sound bypassed/working
+      //'h005:        HMI.pause <= pressed; // F1
       'h045, 'h070: HMI.num[0] <= pressed;
       'h016, 'h069: HMI.num[1] <= pressed;
       'h01E, 'h072: HMI.num[2] <= pressed;

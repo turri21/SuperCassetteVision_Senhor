@@ -30,14 +30,14 @@ Concatenate the files to create boot.rom. Windows example:
 * 0-9 - SELECT numbered keys
 * Backspace, numpad ./Del - SELECT CL key
 * Enter - SELECT EN key
-* F1 - PAUSE button
+* F1 - PAUSE button (disabled for now)
 
 ### Joysticks
 Up to two digital joysticks are mapped to the two controllers. Each controller has two **Trig** buttons.
 
 
 ## Known issues
-Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented.
+Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
 ## TODOs
 - CPU (uPD7801G)
