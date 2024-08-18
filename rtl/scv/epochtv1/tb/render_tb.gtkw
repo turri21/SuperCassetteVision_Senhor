@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Tue Aug 13 10:40:13 2024
+[*] Sun Aug 18 18:11:32 2024
 [*]
-[dumpfile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.vcd"
-[dumpfile_mtime] "Tue Aug 13 10:38:53 2024"
-[dumpfile_size] 25280169
-[savefile] "/Users/dhunter/src/scv/epochtv1/tb/render_tb.gtkw"
-[timestart] 1534280000
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.vcd"
+[dumpfile_mtime] "Sun Aug 18 18:11:32 2024"
+[dumpfile_size] 4788224
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.gtkw"
+[timestart] 0
 [size] 1288 600
 [pos] -1 -1
-*-21.019493 1538994240 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.019493 244440 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -50,6 +50,27 @@ render_tb.dut.row[8:0]
 render_tb.dut.col[8:0]
 @200
 -
+@c00200
+-cpu bus
+@22
+render_tb.dut.A[12:0]
+render_tb.dut.DB_I[7:0]
+render_tb.dut.DB_O[7:0]
+@28
+render_tb.dut.RDB
+render_tb.dut.WRB
+render_tb.dut.CSB
+@1401200
+-cpu bus
+@c00201
+-ioreg
+@23
+render_tb.dut.ioreg0[7:0]
+render_tb.dut.ioreg1[7:0]
+render_tb.dut.ioreg2[7:0]
+render_tb.dut.ioreg3[7:0]
+@1401201
+-ioreg
 @28
 render_tb.dut.render_row
 render_tb.dut.render_col

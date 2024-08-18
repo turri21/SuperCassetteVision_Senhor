@@ -10,10 +10,11 @@ module render_tb();
 
 reg         clk, res;
 reg [2:0]   ccnt;
+reg [12:0]  a;
 reg [7:0]   din;
+reg         rdb, wrb, csb;
 
 wire        ce;
-wire [12:0] a;
 wire [7:0]  dout;
 wire [11:0] vaa, vba;
 wire [7:0]  vad_i, vad_o, vbd_i, vbd_o;
@@ -34,12 +35,12 @@ epochtv1 dut
    .CE(ce),
 
    .A(a),
-   .DB_I('Z),
-   .DB_O(),
+   .DB_I(din),
+   .DB_O(dout),
    .DB_OE(),
-   .RDB(1'b1),
-   .WRB(1'b1),
-   .CSB(1'b1),
+   .RDB(rdb),
+   .WRB(wrb),
+   .CSB(csb),
 
    .VAA(vaa),
    .VAD_I(vad_i),
@@ -103,6 +104,10 @@ initial begin
   ccnt = 0;
   res = 1;
   clk = 1;
+
+  rdb = 1;
+  wrb = 1;
+  csb = 1;
 end
 
 initial forever begin :ckgen
@@ -153,6 +158,24 @@ endtask
 
 //////////////////////////////////////////////////////////////////////
 
+task ioreg_write(input [1:0] rs, input [7:0] v);
+  while (!ce)
+    @(posedge clk) ;
+  a <= {11'h500, rs};
+  din <= v;
+  wrb <= 0;
+  csb <= 0;
+
+  @(posedge clk) ;
+  while (!ce)
+    @(posedge clk) ;
+  wrb <= 1;
+  csb <= 1;
+  
+endtask
+
+//////////////////////////////////////////////////////////////////////
+
 integer fpic, pice;
 initial begin
   fpic = $fopen("render.hex", "w");
@@ -175,9 +198,20 @@ final
 
 //////////////////////////////////////////////////////////////////////
 
+event init_regs;
+
+always @(init_regs) begin
+  ioreg_write(0, 8'h00);
+  ioreg_write(1, 8'h01);
+  ioreg_write(2, 8'h00);
+  ioreg_write(3, 8'h00);
+end
+
 initial #0 begin
   load_chr("epochtv.chr");
   load_rams("vram.bin");
+
+  -> init_regs;
 
   #17000 $finish;
 end

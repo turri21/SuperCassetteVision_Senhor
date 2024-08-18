@@ -81,6 +81,47 @@ wire         cpu_rd, cpu_wr, cpu_rdwr;
 
 
 //////////////////////////////////////////////////////////////////////
+// MMIO registers ($1400-$1403)
+
+reg [7:0]    ioreg0, ioreg1, ioreg2, ioreg3;
+reg [7:0]    ioreg_do;
+
+initial begin
+  ioreg0 = 0;
+  ioreg1 = 0;
+  ioreg2 = 0;
+  ioreg3 = 0;
+end
+
+always @(posedge CLK) begin
+  if (cpu_sel_reg & cpu_wr) begin
+    case (A[1:0])
+      2'd0: ioreg0 <= DB_I;
+      2'd1: ioreg1 <= DB_I;
+      2'd2: ioreg2 <= DB_I;
+      2'd3: ioreg3 <= DB_I;
+    endcase
+  end
+end
+
+always @* begin
+  ioreg_do = 8'hxx;
+  case (A[1:0])
+    2'd0: ioreg_do = ioreg0;
+    2'd1: ioreg_do = ioreg1;
+    2'd2: ioreg_do = ioreg2;
+    2'd3: ioreg_do = ioreg3;
+    default: ;
+  endcase
+end
+
+// Handy aliases
+
+wire [3:0]   clr_bg = ioreg1[3:0];
+wire [3:0]   clr_fg = ioreg1[7:4]; // high-resolution mode only
+
+
+//////////////////////////////////////////////////////////////////////
 // Video counter
 
 initial begin
@@ -192,7 +233,7 @@ always_ff @(posedge CLK) if (CE) begin
     else if (cpu_sel_oam)
       cpu_do <= oam_rbuf[(A[1:0]*8)+:8];
     else if (cpu_sel_reg)
-      cpu_do <= 0; //TODO
+      cpu_do <= ioreg_do;
   end
 end
 
@@ -476,7 +517,7 @@ end
 always_comb begin
   pd = 4'd1; // black borders
   if (render_px_d) begin
-    pd = spr_px[4] ? spr_px[3:0] : 0;
+    pd = spr_px[4] ? spr_px[3:0] : clr_bg;
   end
 end
 
