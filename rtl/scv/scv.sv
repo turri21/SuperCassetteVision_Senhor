@@ -20,7 +20,8 @@ module scv
 
    input         ROMINIT_SEL_BOOT,
    input         ROMINIT_SEL_CHR,
-   input [11:0]  ROMINIT_ADDR,
+   input         ROMINIT_SEL_CART,
+   input [24:0]  ROMINIT_ADDR,
    input [7:0]   ROMINIT_DATA,
    input         ROMINIT_VALID,
 
@@ -49,6 +50,9 @@ wire        wram_ncs;
 wire        wram_db_oe;
 wire [7:0]  wram_db;
 
+wire        cart_ncs;
+wire [7:0]  cart_db;
+
 wire [7:0]  vdc_db_o;
 wire        vdc_db_oe;
 wire        vdc_ncs;
@@ -59,7 +63,6 @@ wire        vbl;
 wire        de, hs, vs;
 wire [23:0] rgb;
 
-wire        cart_ncs;
 wire        rom_db_oe, cart_db_oe;
 
 wire [7:0]  pao, pbi, pci, pco;
@@ -209,6 +212,21 @@ hmi2key hmi2key
    .PAUSE(pci[0])
    );
 
+cart cart
+  (
+   .CLK(CLK),
+
+   .INIT_ADDR(ROMINIT_ADDR[16:0]),
+   .INIT_DATA(ROMINIT_DATA),
+   .INIT_VALID(ROMINIT_SEL_CART & ROMINIT_VALID),
+
+   .CFG_ROM_AW(5'd13),          // TODO: control this somehow
+
+   .A(cpu_a[14:0]),
+   .DB(cart_db),
+   .nCS(cart_ncs)
+   );
+
 assign rom_ncs = |cpu_a[15:12];
 assign wram_ncs = ~&cpu_a[15:7];    // 'hFF80-'hFFFF
 assign vdc_ncs = (cpu_a & ~16'h1fff) != 16'h2000;
@@ -229,7 +247,7 @@ always_comb begin
   else if (vdc_db_oe)
     cpu_db = vdc_db_o;
   else if (cart_db_oe)
-    cpu_db = 8'hFF;           // cart is absent
+    cpu_db = cart_db;
 end
 
 assign pci[7:1] = 0;            // unused

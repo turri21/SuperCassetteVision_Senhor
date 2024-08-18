@@ -17,12 +17,13 @@ module rominit
 
    output        ROMINIT_SEL_BOOT, 
    output        ROMINIT_SEL_CHR,
-   output [11:0] ROMINIT_ADDR,
+   output        ROMINIT_SEL_CART,
+   output [16:0] ROMINIT_ADDR,
    output [7:0]  ROMINIT_DATA,
    output        ROMINIT_VALID
    );
 
-reg [11:0] addr;
+reg [16:0] addr;
 
 assign IOCTL_WAIT = 0;
 
@@ -38,6 +39,8 @@ always_comb begin
     addr[11:0] = IOCTL_ADDR[11:0];
   else if (ROMINIT_SEL_CHR)
     addr[9:0] = IOCTL_ADDR[9:0];
+  else if (ROMINIT_SEL_CART)
+    addr[16:0] = IOCTL_ADDR[16:0];
 end
 
 endmodule

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Aug 11 18:55:31 2024
+[*] Sun Aug 18 07:53:32 2024
 [*]
-[dumpfile] "/Users/dhunter/src/scv/tb/scv_tb.vcd"
-[dumpfile_mtime] "Sun Aug 11 18:53:41 2024"
-[dumpfile_size] 277435279
-[savefile] "/Users/dhunter/src/scv/tb/scv_tb.gtkw"
-[timestart] 0
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.vcd"
+[dumpfile_mtime] "Sun Aug 18 07:50:44 2024"
+[dumpfile_size] 5347026
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.gtkw"
+[timestart] 1082290000
 [size] 1288 600
 [pos] -1 -1
-*-34.544254 19719498600 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-22.036085 1098094320 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -38,6 +38,8 @@
 [markername] ZZ
 [treeopen] scv_tb.
 [treeopen] scv_tb.dut.
+[treeopen] scv_tb.dut.cart.
+[treeopen] scv_tb.dut.cart.rom.
 [sst_width] 253
 [signals_width] 216
 [sst_expanded] 1
@@ -45,6 +47,20 @@
 @28
 scv_tb.dut.CLK
 scv_tb.dut.RESB
+@800200
+-cpu
+@28
+scv_tb.dut.cpu.CP2_NEGEDGE
+@22
+scv_tb.dut.cpu.A[15:0]
+scv_tb.dut.cpu.DB_I[7:0]
+scv_tb.dut.cpu.DB_O[7:0]
+@28
+scv_tb.dut.cpu.WRB
+@1000200
+-cpu
+@c00200
+-vdc
 @22
 scv_tb.dut.vdc.A[12:0]
 scv_tb.dut.vdc.DB_I[7:0]
@@ -66,9 +82,15 @@ scv_tb.dut.vdc.cpu_wr
 scv_tb.dut.vdc.oam_a[6:0]
 scv_tb.dut.vdc.oam_rbuf[31:0]
 scv_tb.dut.vdc.oam_wbuf[31:0]
-@28
-scv_tb.dut.vdc.oam_we
+@1401200
+-vdc
+@800200
+-cart
 @22
-scv_tb.dut.vdc.oam_ws[3:0]
+scv_tb.dut.cart.rom.A[14:0]
+@28
+scv_tb.dut.cart.rom.nCS
+@1000200
+-cart
 [pattern_trace] 1
 [pattern_trace] 0

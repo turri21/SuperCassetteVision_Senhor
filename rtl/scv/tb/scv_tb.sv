@@ -1,4 +1,4 @@
-// Super Cassette Vision testbench: boot with no cart
+// Super Cassette Vision testbench: boot with (no) cart
 //
 // Copyright (c) 2024 David Hunter
 //
@@ -19,8 +19,8 @@ reg         clk, res;
 
 reg         rominit_active;
 integer     rominit_fin;
-reg         rominit_sel_boot, rominit_sel_chr;
-reg [11:0]  rominit_addr;
+reg         rominit_sel_boot, rominit_sel_chr, rominit_sel_cart;
+reg [24:0]  rominit_addr;
 reg [7:0]   rominit_data;
 reg         rominit_valid;
 
@@ -45,6 +45,7 @@ scv dut
 
    .ROMINIT_SEL_BOOT(rominit_sel_boot),
    .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_SEL_CART(rominit_sel_cart),
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
@@ -65,6 +66,7 @@ initial begin
   rominit_active = 0;
   rominit_sel_boot = 0;
   rominit_sel_chr = 0;
+  rominit_sel_cart = 0;
   rominit_valid = 0;
 
   hmi = 0;
@@ -95,21 +97,38 @@ logic [7:0] data;
   end
 end
 
-task rominit_boot;
-  rominit_fin = $fopen("upd7801g.s01", "r");
+task rominit_go(input string fn);
+  rominit_fin = $fopen(fn, "r");
   assert(rominit_fin != 0) else $finish;
-
-  rominit_sel_boot = '1;
   rominit_active = '1;
   while (rominit_active)
     @(posedge clk) ;
   @(posedge clk) ;
+  $fclose(rominit_fin);
+endtask
+
+task rominit_boot;
+  rominit_sel_boot = '1;
+  rominit_go("upd7801g.s01");
+  rominit_sel_boot = '0;
+endtask
+
+task rominit_chr;
+  rominit_sel_chr = '1;
+  rominit_go("epochtv.chr");
+  rominit_sel_chr = '0;
+endtask
+
+task rominit_cart;
+  rominit_sel_cart = '1;
+  rominit_go("cart.bin");
+  rominit_sel_cart = '0;
 endtask
 
 initial #0 begin
-`ifndef SCV_BOOTROM_INIT_FROM_HEX
   rominit_boot();
-`endif
+  rominit_chr();
+  rominit_cart();
 
   #2 @(posedge clk) ;
   res = 0;

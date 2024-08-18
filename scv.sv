@@ -266,8 +266,8 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 //////////////////////////////////////////////////////////////////////
 // Download manager
 
-wire         rominit_sel_boot, rominit_sel_chr;
-wire [11:0]  rominit_addr;
+wire         rominit_sel_boot, rominit_sel_chr, rominit_sel_cart;
+wire [16:0]  rominit_addr;
 wire [7:0]   rominit_data;
 wire         rominit_valid;
 
@@ -284,6 +284,7 @@ rominit rominit
 
    .ROMINIT_SEL_BOOT(rominit_sel_boot),
    .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_SEL_CART(rominit_sel_cart),
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid)
@@ -324,6 +325,7 @@ scv scv
 
    .ROMINIT_SEL_BOOT(rominit_sel_boot),
    .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_SEL_CART(rominit_sel_cart),
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
