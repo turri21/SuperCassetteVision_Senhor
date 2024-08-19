@@ -39,14 +39,14 @@ Up to two digital joysticks are mapped to the two controllers. Each controller h
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
+The background is not aligned with the sprites.
+
 ## TODOs
 - CPU (uPD7801G)
   - LOTS of instructions
   - Set/clear of and skipping on L0/L1 PSW flags
   - Fix timing of special register instructions (e.g., 'ANI sr2, byte' is 11 steps, should be 17)
 - Video (Epoch TV-1)
-  - Registers ($3400-3)
-  - Background (characters, bitmap)
   - Most sprite features: size, linking, ...
 - Audio (uPD1771C)
 - Cartridges

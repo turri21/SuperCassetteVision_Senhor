@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Aug 18 18:11:32 2024
+[*] Mon Aug 19 06:38:05 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.vcd"
-[dumpfile_mtime] "Sun Aug 18 18:11:32 2024"
-[dumpfile_size] 4788224
+[dumpfile_mtime] "Mon Aug 19 06:30:34 2024"
+[dumpfile_size] 43458682
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.gtkw"
-[timestart] 0
+[timestart] 1255790000
 [size] 1288 600
 [pos] -1 -1
-*-21.019493 244440 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.019493 1258132680 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -48,8 +48,6 @@ render_tb.dut.field
 @24
 render_tb.dut.row[8:0]
 render_tb.dut.col[8:0]
-@200
--
 @c00200
 -cpu bus
 @22
@@ -62,26 +60,52 @@ render_tb.dut.WRB
 render_tb.dut.CSB
 @1401200
 -cpu bus
-@c00201
+@800200
 -ioreg
-@23
+@22
 render_tb.dut.ioreg0[7:0]
 render_tb.dut.ioreg1[7:0]
 render_tb.dut.ioreg2[7:0]
 render_tb.dut.ioreg3[7:0]
-@1401201
+@1000200
 -ioreg
+@800200
+-bgr
+@22
+render_tb.dut.bgr_tx[4:0]
+render_tb.dut.bgr_ty[4:0]
 @28
-render_tb.dut.render_row
-render_tb.dut.render_col
-@200
--
-@24
-render_tb.dut.spr_st[2:0]
+render_tb.dut.bgr_xwin
+render_tb.dut.bgr_ywin
+render_tb.dut.bgr_bm
+@22
+render_tb.dut.bgr_bm_bgc[3:0]
+render_tb.dut.bgr_bm_fgc[3:0]
+@28
+render_tb.dut.bgr_bm_hipat[1:0]
+@22
+render_tb.dut.bgr_bm_lopat[3:0]
+render_tb.dut.bgr_bm_pat[7:0]
+@28
+render_tb.dut.bgr_ch
+@22
+render_tb.dut.bgr_ch_bgc[3:0]
+render_tb.dut.bgr_ch_fgc[3:0]
+render_tb.dut.bgr_ch_pat[7:0]
+render_tb.dut.bgr_bgc[3:0]
+render_tb.dut.bgr_fgc[3:0]
+render_tb.dut.bgr_px[7:0]
+render_tb.dut.bgr_wa[4:0]
+render_tb.dut.bgr_we[7:0]
+@1000200
+-bgr
+@800200
+-spr
 @22
 render_tb.dut.spr_vram_addr[11:0]
-render_tb.dut.spr_oam_idx[6:0]
+render_tb.dut.oam_idx[6:0]
 @28
+render_tb.dut.spr_dl
 render_tb.dut.spr_dr
 render_tb.dut.spr_dact
 @22
@@ -94,25 +118,40 @@ render_tb.dut.spr_dsx[7:0]
 render_tb.dut.spr_dclr[3:0]
 @28
 render_tb.dut.spr_dact_d2
-@200
--
+@1000200
+-spr
+@800200
+-olb
 @22
 render_tb.dut.olb_wa[5:0]
-render_tb.dut.olb_wd[4:0]
+render_tb.dut.olb_wd[31:0]
 render_tb.dut.olb_we[7:0]
 render_tb.dut.olb_ra[5:0]
-render_tb.dut.olb_rd[39:0]
+render_tb.dut.olb_rd[31:0]
 @28
 render_tb.dut.olb_re
-render_tb.dut.olb_rc
-@200
--
+@1000200
+-olb
+@800200
+-sbofp
+@24
+render_tb.dut.sbofp_st[3:0]
 @22
-render_tb.dut.spr_olb_rx[7:0]
-render_tb.dut.spr_olb_rrs[2:0]
-render_tb.dut.spr_px[4:0]
-@200
--
+render_tb.dut.sbofp_wdc_bg[3:0]
+render_tb.dut.sbofp_wdc_fg[3:0]
+render_tb.dut.sbofp_wds[7:0]
+render_tb.dut.sbofp_rx[7:0]
+render_tb.dut.sbofp_rrs[2:0]
+render_tb.dut.sbofp_px[3:0]
+@1000200
+-sbofp
+@c00200
+-out
+@28
+render_tb.dut.render_row
+render_tb.dut.render_col
+@22
+render_tb.dut.pd[3:0]
 @28
 render_tb.dut.VBL
 render_tb.dut.DE
@@ -120,5 +159,7 @@ render_tb.dut.HS
 render_tb.dut.VS
 @22
 render_tb.dut.RGB[23:0]
+@1401200
+-out
 [pattern_trace] 1
 [pattern_trace] 0

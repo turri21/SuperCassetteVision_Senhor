@@ -13,6 +13,7 @@ reg [2:0]   ccnt;
 reg [12:0]  a;
 reg [7:0]   din;
 reg         rdb, wrb, csb;
+reg [7:0]   ioreg [4];
 
 wire        ce;
 wire [7:0]  dout;
@@ -152,8 +153,11 @@ integer fin, code, i;
   end
 
   code = $fread(tmp, fin, 0, 4);
-  //dut.reg0 = tmp[0];
-  
+  ioreg[0] = tmp[0];
+  ioreg[1] = tmp[1];
+  ioreg[2] = tmp[2];
+  ioreg[3] = tmp[3];
+
 endtask
 
 //////////////////////////////////////////////////////////////////////
@@ -201,15 +205,15 @@ final
 event init_regs;
 
 always @(init_regs) begin
-  ioreg_write(0, 8'h00);
-  ioreg_write(1, 8'h01);
-  ioreg_write(2, 8'h00);
-  ioreg_write(3, 8'h00);
+  ioreg_write(0, ioreg[0]);
+  ioreg_write(1, ioreg[1]);
+  ioreg_write(2, ioreg[2]);
+  ioreg_write(3, ioreg[3]);
 end
 
 initial #0 begin
   load_chr("epochtv.chr");
-  load_rams("vram.bin");
+  load_rams("text-vram.bin");
 
   -> init_regs;
 

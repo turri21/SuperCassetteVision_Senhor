@@ -106,7 +106,10 @@ integer fin, code, i;
   end
 
   code = $fread(tmp, fin, 0, 4);
-  //dut.vdc.reg0 = tmp[0];
+  dut.vdc.ioreg0 = tmp[0];
+  dut.vdc.ioreg1 = tmp[1];
+  dut.vdc.ioreg2 = tmp[2];
+  dut.vdc.ioreg3 = tmp[3];
   
 endtask
 
@@ -122,6 +125,10 @@ int i;
     ctl.vdc.bgm[i] = dut.vdc.bgm[i];
   for (i = 0; i < 128; i++)
     ctl.vdc.oam[i] = dut.vdc.oam[i];
+  ctl.vdc.ioreg0 = dut.vdc.ioreg0;
+  ctl.vdc.ioreg1 = dut.vdc.ioreg1;
+  ctl.vdc.ioreg2 = dut.vdc.ioreg2;
+  ctl.vdc.ioreg3 = dut.vdc.ioreg3;
 endtask
 
 
@@ -158,7 +165,7 @@ initial #0 begin
 reg [7:0] tmp;
 reg [8:0] aoff;
   load_chr("epochtv.chr");
-  load_rams("vram.bin");
+  load_rams("text-vram.bin");
   copy_to_ctl();
 
   dut_a = 0;
