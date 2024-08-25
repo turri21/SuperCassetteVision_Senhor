@@ -25,10 +25,17 @@ module rominit
 
 reg [16:0] addr;
 
+wire [5:0] index_menusub = IOCTL_INDEX[5:0];
+wire [7:0] index_file_ext = IOCTL_INDEX[13:6];
+
+wire       load_boot = (index_menusub == 0);
+wire       load_cart = (index_menusub == 1);
+
 assign IOCTL_WAIT = 0;
 
-assign ROMINIT_SEL_BOOT = (IOCTL_ADDR < 24'h1000);
-assign ROMINIT_SEL_CHR = (IOCTL_ADDR < 24'h1400) & ~ROMINIT_SEL_BOOT;
+assign ROMINIT_SEL_BOOT = load_boot & (IOCTL_ADDR < 24'h1000);
+assign ROMINIT_SEL_CHR = load_boot & (IOCTL_ADDR < 24'h1400) & ~ROMINIT_SEL_BOOT;
+assign ROMINIT_SEL_CART = load_cart;
 assign ROMINIT_DATA = IOCTL_DOUT;
 assign ROMINIT_VALID = IOCTL_DOWNLOAD & IOCTL_WR & ~IOCTL_WAIT;
 assign ROMINIT_ADDR = addr;
