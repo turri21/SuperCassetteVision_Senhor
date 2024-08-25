@@ -23,7 +23,7 @@ logic [7:0] mem [1 << 17];
 logic [16:0] a;
 
 assign a[16:15] = 0;
-assign a[14:0] = A & ((15'd1 << CFG_AW) - 1);
+assign a[14:0] = A & ((15'd1 << CFG_AW) - 1'd1);
 
 always @(posedge CLK) begin
   DB <= nCS ? 8'hxx : mem[a];

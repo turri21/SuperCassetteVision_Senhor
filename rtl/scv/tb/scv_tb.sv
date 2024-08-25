@@ -129,6 +129,7 @@ initial #0 begin
   rominit_boot();
   rominit_chr();
   rominit_cart();
+  $display("ROMs loaded.");
 
   #2 @(posedge clk) ;
   res = 0;

@@ -18,6 +18,12 @@ module epochtv1
    input         CLK, // clock (XTAL * 2)
    input         CE, // pixel clock enable
 
+   // ROM initialization
+   input         ROMINIT_SEL_CHR,
+   input [9:0]   ROMINIT_ADDR,
+   input [7:0]   ROMINIT_DATA,
+   input         ROMINIT_VALID,
+
    // CPU address / data bus
    input [12:0]  A,
    input [7:0]   DB_I,
@@ -170,6 +176,12 @@ reg [7:0] chr [1024];
 
 wire [9:0] chr_a;
 reg [7:0]  chr_rbuf;
+
+always_ff @(posedge CLK) begin
+  if (ROMINIT_SEL_CHR & ROMINIT_VALID) begin
+    chr[ROMINIT_ADDR] <= ROMINIT_DATA;
+  end
+end
 
 always_ff @(posedge CLK) begin
   chr_rbuf <= chr[chr_a];
