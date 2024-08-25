@@ -86,6 +86,7 @@ types:
       - BI
       - IE
       - SPR                     # special reg.
+      - PSW_CY
 
   - name: e_abs
     desc: ab select
@@ -150,7 +151,8 @@ types:
     prefix: UAO_
     values:
       - NOP
-      - SUM
+      - SUM                     # add
+      - SUB                     # subtract
       - INC
       - DEC
       - OR
@@ -160,6 +162,9 @@ types:
       - ROL
       - LSR
       - ROR
+      - DIL                    # take low digit
+      - DIH                    # take high digit
+      - DIS                    # swap digits
 
   - name: e_cis
     desc: ALU carry in select
@@ -180,13 +185,17 @@ types:
     values:
       - PSW_SK                  # (default) no change
       - 1                       # set (for RETS)
-      - C
+      - C                       # ALU CCO
       - NC
-      - Z
+      - Z                       # ALU CO==0
       - NZ
       - I                       # INT*F set
       - NI                      # INT*F clear
       - 0                       # reset
+      - PSW_C
+      - PSW_NC
+      - PSW_Z
+      - PSW_NZ
 
 
 ######################################################################

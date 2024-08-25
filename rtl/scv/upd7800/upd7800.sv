@@ -12,7 +12,7 @@
 // . http://takeda-toshiya.my.coocan.jp/scv/index.html - EPOCH Super Cassette Vision emulator for Win32 / uPD7801 tiny disassembler
 
 // TODO:
-// . LOTS of instructions -- only those used by SCV boot ROM are implemented
+// . Unimplemented instructions -- see gen-ucode.py
 // . Set/clear of and skipping on L0/L1 PSW flags
 
 
@@ -98,6 +98,8 @@ reg          rd_ext, wr_ext;
 reg [7:0]    rfo, spro, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
+reg [8:0]    alu_co;
+reg          alu_cho, alu_cco;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 reg [15:0]   uabi, nabi;
 reg          skso;
@@ -136,10 +138,11 @@ e_idbs       cl_idbs;
 reg          cl_abi_inc, cl_abi_dec;
 reg          cl_rpir_inc, cl_rpir_dec;
 reg          cl_idb_abil, cl_idb_abih;
-reg          cl_sums_cco, cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
+reg          cl_carry, cl_one_addc, cl_c_addc, cl_zero_bi,
              cl_bi_not, cl_bi_daa;
-reg          cl_clrs, cl_sums, cl_incs, cl_decs, cl_ors, cl_ands, cl_eors,
-             cl_lsls, cl_rols, cl_lsrs, cl_rors;
+reg          cl_clrs, cl_sums, cl_subs, cl_incs, cl_decs, cl_ors, cl_ands,
+             cl_eors, cl_lsls, cl_rols, cl_lsrs, cl_rors, cl_dils, cl_dihs,
+             cl_diss;
 reg          cl_stm;
 
 
@@ -510,6 +513,8 @@ always @* begin
     URFS_H: rfo = h;
     URFS_L: rfo = l;
     URFS_PSW: rfo = psw;
+    URFS_SPL: rfo = sp[7:0];
+    URFS_SPH: rfo = sp[15:8];
     URFS_PCL: rfo = pcl;
     URFS_PCH: rfo = pch;
     URFS_W: rfo = w;
@@ -578,7 +583,7 @@ always @(posedge CLK) begin
   end
 end
 
-always @* addc = (cl_carry & cco) | (cl_one_addc | cl_incs) | (cl_c_addc & `psw_cy);
+always @* addc = (cl_carry & cco) | (cl_one_addc | cl_incs | cl_decs) | (cl_c_addc & `psw_cy);
 always @* notbi = cl_bi_not | cl_decs;
 always @* pdah = `psw_cy | (ai[7:4] > 4'h9) |
                  (~`psw_hc & (ai[3:0] > 4'h9) & (ai[7:4] == 4'h9));
@@ -598,16 +603,26 @@ always @* begin
 end
 
 // Maths
+always @* begin :sums_subs
+reg [4:0] hsum, lsum;
+reg       sub;
+  sub = cl_subs | cl_decs;
+  lsum = ai[3:0] + ibi[3:0] + {3'b0, addc ^ sub};
+  hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
+  alu_co = {hsum[3:0], lsum[3:0]};
+  // TODO: SW emulators say one thing, while the UCOM-87AD user
+  // manual says another. Who's right?
+  // alu_cho = lsum[4] ^ sub;      // What the user manual says
+  alu_cho = sub ? lsum[3:0] > ai[3:0]
+            : lsum[3:0] < ai[3:0]; // What the SW emulators say
+  alu_cco = hsum[4] ^ sub;
+end
+
 always @(posedge CLK) if (cp2n) begin
-  if (cl_sums | cl_incs | cl_decs) begin :sums
-  reg [4:0] hsum, lsum;
-    lsum = ai[3:0] + ibi[3:0] + {3'b0, addc};
-    hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
-    co <= {hsum[3:0], lsum[3:0]};
-    if (cl_sums_cco)
-      cco <= (cl_bi_daa) ? pdac : hsum[4];
-    //cvo <= (ai[7] == ibi[7]) & (ai[7] != hsum[3]);
-    cho <= lsum > 5'd9;
+  if (cl_sums | cl_subs | cl_incs | cl_decs) begin
+    co <= alu_co;
+    cho <= alu_cho;
+    cco <= (cl_bi_daa) ? pdac : alu_cco;
   end
   else if (cl_ors)
     co <= ai | ibi;
@@ -619,6 +634,12 @@ always @(posedge CLK) if (cp2n) begin
     {cco, co} <= {ai[7:0], addc & cl_rols};
   else if (cl_lsrs | cl_rors)
     {co, cco} <= {addc & cl_rors, ai[7:0]};
+  else if (cl_dils)
+    co[3:0] <= ai[3:0];
+  else if (cl_dihs)
+    co[7:4] <= ai[7:4];
+  else if (cl_diss)
+    co <= {ai[3:0], ai[7:4]};
 end
 
 
@@ -663,6 +684,10 @@ always @* begin
     USKS_I: skso = irf1;
     USKS_NI: skso = ~irf1;
     USKS_0: skso = 1'b0;
+    USKS_PSW_C: skso = `psw_cy;
+    USKS_PSW_NC: skso = ~`psw_cy;
+    USKS_PSW_Z: skso = `psw_z;
+    USKS_PSW_NZ: skso = ~`psw_z;
     default: skso = 1'bx;
   endcase
 end
@@ -875,8 +900,8 @@ endfunction
 always @* cl_idb_psw = (cl_rfts == URFS_PSW);
 always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;
-initial cl_zero_c = 0;
-initial cl_one_c = 0;
+always @* cl_zero_c = (nc.lts == ULTS_PSW_CY) & (nc.idx[0] == 1'b0);
+always @* cl_one_c = (nc.lts == ULTS_PSW_CY) & (nc.idx[0] == 1'b1);
 always @* cl_cho_hc = nc.pswhc;
 always @* cl_sks_sk = (of_done & ~intg) | (nc.pswsk != USKS_PSW_SK);
 always @* cl_pswsk = e_sks'((of_done & ~intg) ? USKS_0 : nc.pswsk);
@@ -908,7 +933,6 @@ always @* cl_abi_inc = cl_pc_inc | (nc.ab_inc & ~nc.ab_dec) | cl_rpir_inc;
 always @* cl_abi_dec = (nc.ab_dec & ~nc.ab_inc) | cl_rpir_dec;
 always @* cl_rpir_inc = nc.rpir & (ir[2:1] == 2'b10); // 3'd4-3'd5
 always @* cl_rpir_dec = nc.rpir & (ir[2:1] == 2'b11); // 3'd6-3'd7
-initial cl_sums_cco = 1'b1;
 always @* cl_carry = nc.cis == UCIS_CCO;
 always @* cl_one_addc = nc.cis == UCIS_1;
 always @* cl_c_addc = nc.cis == UCIS_PSW_CY;
@@ -917,6 +941,7 @@ always @* cl_bi_not = nc.bin;
 always @* cl_bi_daa = nc.daa;
 initial cl_clrs = 0;
 always @* cl_sums = nc.aluop == UAO_SUM;
+always @* cl_subs = nc.aluop == UAO_SUB;
 always @* cl_incs = nc.aluop == UAO_INC;
 always @* cl_decs = nc.aluop == UAO_DEC;
 always @* cl_ors =  nc.aluop == UAO_OR;
@@ -926,6 +951,9 @@ always @* cl_lsls = nc.aluop == UAO_LSL;
 always @* cl_rols = nc.aluop == UAO_ROL;
 always @* cl_lsrs = nc.aluop == UAO_LSR;
 always @* cl_rors = nc.aluop == UAO_ROR;
+always @* cl_dils = nc.aluop == UAO_DIL;
+always @* cl_dihs = nc.aluop == UAO_DIH;
+always @* cl_diss = nc.aluop == UAO_DIS;
 always @* cl_stm = (ir == `IR_STM) & of_done & ~of_skip;
 
 

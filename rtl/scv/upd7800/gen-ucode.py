@@ -4,6 +4,10 @@
 #
 # This program is GPL licensed. See COPYING for the full license.
 
+# TODO:
+# . EX, EXX -- second GP register bank
+# . SIO, PEN, PEX, PER, IN, OUT (not implemented in MAME)
+
 import yaml
 
 
@@ -166,13 +170,17 @@ def load_wa(ir, nsteps, dst):
     ucs.step(idb_rd('DB') | idb_wr(dst))
     ird_row(ir, nsteps, 1, ucs)
 
-def load_imm16(ir, nsteps, reg):
+def rpa_to_reglh(rpa):
     regl, regh = {
         'SP': ('SPL', 'SPH'),
         'BC': ('C', 'B'),
         'DE': ('E', 'D'),
         'HL': ('L', 'H'),
-    }[reg]
+    }[rpa]
+    return regl, regh
+
+def load_imm16(ir, nsteps, reg):
+    regl, regh = rpa_to_reglh(reg)
 
     ucs = ucode_seq(f'LDX_{reg}_IMM')
     ucs.step(nc_pc_out_inc)
@@ -203,8 +211,32 @@ def load_abs(ir, nsteps):
     # W -> abl -> aorl, CO -> idb -> abh -> aorh
     ucs.step({'idbs': 'CO'} | aor_wr('IDB_W'))
     ucs.step(nc_load)
-    # DB -> idb -> PCH
+    # DB -> idb -> r2
     ucs.step(idb_rd('DB') | idb_wr('RF_IR210'))
+    ird_row(ir, nsteps, 2, ucs)
+
+def load_ind(ir, nsteps, reg):
+    regl, regh = rpa_to_reglh(reg)
+
+    ucs = ucode_seq(f'L{reg}D')
+    # Fetch word lo
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_w)
+    # Fetch word hi
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_co)
+    # rpal <- (word)
+    ucs.step({'idbs': 'CO'} | aor_wr('IDB_W'))    # {CO, W} -> aor
+    ucs.step(nc_load)
+    ucs.step(idb_rd('DB') | idb_wr(regl) |
+             {'abs': 'AOR'})    # setup for ab_inc
+    # rpah <- (word+1)
+    # HACK ALERT. I am not proud of this.
+    ucs.step(aor_wr('NABI') | {'ab_inc': 1})      # {CO, W} + 1 -> aor
+    ucs.step(nc_load)
+    ucs.step(idb_rd('DB') | idb_wr(regh))
     ird_row(ir, nsteps, 2, ucs)
 
 def storex(ir, nsteps, src):
@@ -268,6 +300,30 @@ def store_abs(ir, nsteps):
     ucs.step(nc_idle)
     ird_row(ir, nsteps, 2, ucs)
 
+def store_ind(ir, nsteps, reg):
+    regl, regh = rpa_to_reglh(reg)
+
+    ucs = ucode_seq(f'S{reg}D')
+    # Fetch word lo
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_w)
+    # Fetch word hi
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load | idb_rd(regl) | idb_wr('DOR'))
+    ucs.step(nc_write_db_to_co)
+    # (word) <- rpal
+    ucs.step({'idbs': 'CO'} | aor_wr('IDB_W'))    # {CO, W} -> aor
+    ucs.step(nc_store)
+    ucs.step({'abs': 'AOR'})    # setup for ab_inc
+    # (word+1) <- rpah
+    # HACK ALERT. I am not proud of this.
+    ucs.step(idb_rd(regh) | idb_wr('DOR') |
+             aor_wr('NABI') | {'ab_inc': 1})      # {CO, W} + 1 -> aor
+    ucs.step(nc_store)
+    ucs.step(nc_idle)
+    ird_row(ir, nsteps, 2, ucs)
+
 # TABLE: C <- (PC+2+A), B <- (PC+2+A+1)
 def table(ir, nsteps):
     ucs = ucode_seq('TABLE')
@@ -313,22 +369,27 @@ def block(ir, nsteps):
     # CO -> idb -> C
     ucs.step({'rfts': 'C', 'idbs': 'CO', 'lts': 'RF'})
     # !CCO -> PSW.SK, repeat ins. until skipped
-    ucs.step({'pswsk': 'NC', 'abs': 'PC', 'ab_dec': 1})
+    ucs.step({'pswsk': 'C', 'abs': 'PC', 'ab_dec': 1})
     ird_row(ir, nsteps, 0, ucs)
 
 ######################################################################
 # Math / logic / test
 
-def logic(ir, nsteps, op, dst, src):
+def math_logic_test(ir, nsteps, op, dst, src, skip=''):
     imm = src == 'IMM'
+    ind = src == 'IND'
     swa = src == 'WA'
     dwa = dst == 'WA'
     noper = imm + (swa or dwa)
 
-    ucname = f'{op}_{dst}_{src}'
-    src = 'DB' if (imm or swa) else src
+    ucname = f'{op}{skip}_{dst}_{src}'
+    src = 'DB' if (imm or ind or swa) else src
     dst = 'DB' if dwa else dst
     ncop = {
+        'ADD': {'aluop': 'SUM'},
+        'ADC': {'aluop': 'SUM', 'cis': 'PSW_CY'},
+        'SUB': {'aluop': 'SUB', 'bin': 1},
+        'SBB': {'aluop': 'SUB', 'bin': 1, 'cis': 'PSW_CY'},
         'AND': {'aluop': 'AND'},
         'OR': {'aluop': 'OR'},
         'XOR': {'aluop': 'EOR'},
@@ -336,14 +397,32 @@ def logic(ir, nsteps, op, dst, src):
         'SLR': {'aluop': 'LSR'},
         'RLL': {'aluop': 'ROL', 'cis': 'PSW_CY'},
         'RLR': {'aluop': 'ROR', 'cis': 'PSW_CY'},
+        'BIT': {'aluop': 'AND'},
+        'CMP': {'aluop': 'SUB', 'bin': 1, 'cis': 0},
+        'CMPB': {'aluop': 'SUB', 'bin': 1, 'cis': 1},
     }[op]
-    if op in ['AND', 'OR', 'XOR']:
+    ncsk = {                                      # Update PSW.SK
+        '': {},
+        'NC': {'pswsk': 'NC'},  # !CCO -> PSW.SK
+        'NB': {'pswsk': 'NC'},  # !CCO -> PSW.SK
+        'B': {'pswsk': 'C'},    # CCO -> PSW.SK
+        'Z': {'pswsk': 'Z'},    # !CO -> PSW.SK
+        'NZ': {'pswsk': 'NZ'},  # CO -> PSW.SK
+    }[skip]
+    test = op in ['BIT', 'CMP', 'CMPB']
+    if op in ['ADD', 'ADC', 'SUB', 'SBB', 'CMP', 'CMPB']:
+        ncpsw = {
+            'pswz': 1,                            # Update PSW.Z
+            'pswcy': 1,                           # Update PSW.CY
+            'pswhc': 1,                           # Update PSW.HC
+        }
+    elif op in ['AND', 'OR', 'XOR', 'BIT']:
         ncpsw = {'pswz': 1}                       # Update PSW.Z
     elif op in ['SLR', 'SLL', 'RLL', 'RLR']:
         ncpsw = {'pswcy': 1}                      # Update PSW.CY
     else:
         raise RuntimeError('unknown op')
-    nc_write_dst_to_ai = idb_rd(dst) | {'lts': 'AI'}
+    nc_write_dst_to_ai = idb_rd(dst) | idb_wr('AI')
     nc_write_src_to_bi = idb_rd(src) | idb_wr('BI') if src else {}
 
     ucs = ucode_seq(ucname)
@@ -362,6 +441,9 @@ def logic(ir, nsteps, op, dst, src):
     elif imm:
         ucs.step(nc_pc_out_inc | nc_write_dst_to_ai)
         ucs.step(nc_load)
+    elif ind:
+        ucs.step(aor_wr_rp())
+        ucs.step(nc_load | nc_write_dst_to_ai)
     elif swa:
         ucs.step(nc_pc_out_inc)
         ucs.step(nc_load)
@@ -372,150 +454,56 @@ def logic(ir, nsteps, op, dst, src):
     else:
         ucs.step(nc_write_dst_to_ai)
     ucs.step(nc_write_src_to_bi | ncop)
-    if dwa:
-        ucs.step(nc_store_co_to_vw)
-        ucs.step(nc_store)
-        ucs.step(ncpsw)
+    if test:
+        ucs.step(ncpsw | ncsk)
     else:
-        ucs.step({'idbs': 'CO'} | idb_wr(dst) | ncpsw)
+        if dwa:
+            ucs.step(nc_store_co_to_vw)
+            ucs.step(nc_store)
+            ucs.step(ncpsw | ncsk)
+        else:
+            ucs.step({'idbs': 'CO'} | idb_wr(dst) | ncpsw | ncsk)
     ird_row(ir, nsteps, noper, ucs)
 
-def logic_imm(ir, nsteps, op, reg):
-    logic(ir, nsteps, op, reg, 'IMM')
+math = math_logic_test
+logic = math_logic_test
 
 def test(ir, nsteps, op, dst, src):
-    imm = src == 'IMM'
-    wa = dst == 'WA'
-    onoff = op in ['ON', 'OFF']
-    noper = 1 if imm else 0
-
-    if onoff:
-        # DB -> idb -> BI, AI & BI -> CO
-        ncop = {'aluop': 'AND'}
-    else:
-        # DB -> idb -> BI, AI - BI (- 1) -> CO
-        ncop = {'aluop': 'SUM', 'bin': 1, 'cis': int(op != 'GTI')}
-    ncsk = {'pswsk': {
-        'EQ': 'Z',
-        'NEQ': 'NZ',
-        'GT': 'C',
-        'LT': 'NC',
-        'ON': 'NZ',
-        'OFF': 'Z',
-    }[op]}
-    nc_write_dst_to_ai = idb_rd('DB' if wa else dst) | {'lts': 'AI'}
-    nc_write_src_to_bi = idb_rd('DB' if imm else src) | {'lts': 'BI'}
-
-    ucs = ucode_seq(f'{op}_{dst}_{src}')
-    if wa:
-        ucs.step(nc_pc_out_inc)
-        ucs.step(nc_load)
-        ucs.step(nc_write_db_to_w)
-        # VW -> ab -> aor
-        ucs.step(aor_wr('VW'))
-        ucs.step(nc_load)
-        ucs.step(nc_write_dst_to_ai)
-    if imm:
-        ucs.step(nc_pc_out_inc)
-        if wa:
-            ucs.step(nc_load)
-        else:
-            ucs.step(nc_write_dst_to_ai | nc_load)
-    else:
-        ucs.step(nc_write_dst_to_ai)
-    ucs.step(nc_write_src_to_bi | ncop)
-    ncsk |= {'pswz': 1}                           # Update PSW.Z
-    if not onoff:
-        ncsk |= {'pswcy': 1,                      # Update PSW.CY
-                 'pswhc': 1}                      # Update PSW.HC
-    ucs.step(ncsk)
-
-    ird_row(ir, nsteps, noper, ucs)
-
-def test_imm(ir, nsteps, op, reg):
-    test(ir, nsteps, op, reg, 'IMM')
-
-def math(ir, nsteps, op, dst, src, skip=''):
-    imm = src == 'IMM'
-    wa = src == 'WA'
-    noper = 1 if (imm or wa) else 0
-    ncop = {
-        'ADD': {'aluop': 'SUM'},
-        'ADC': {'aluop': 'SUM', 'cis': 'PSW_CY'},
-        'SUB': {'aluop': 'SUM', 'bin': 1, 'cis': 1},
-        'SBB': {'aluop': 'SUM', 'bin': 1, 'cis': 'PSW_CY'},
+    mtl_op, skip = {
+        'EQ':  ('CMP', 'Z'),
+        'NEQ': ('CMP', 'NZ'),
+        'GT':  ('CMPB','NB'),
+        'LT':  ('CMP', 'B'),
+        'ON':  ('BIT', 'NZ'),
+        'OFF': ('BIT', 'Z'),
     }[op]
-    ncsk = {
-        '': {},
-        'NC': {'pswsk': 'NC'},  # !CCO -> PSW.SK
-        'NB': {'pswsk': 'C'},   # CCO -> PSW.SK
-    }[skip]
-    nc_write_dst_to_ai = idb_rd(dst) | idb_wr('AI')
-    nc_write_src_to_bi = idb_rd('DB' if (imm or wa) else src) | idb_wr('BI')
-
-    ucs = ucode_seq(f'{op}{skip}_{dst}_{src}')
-    if imm:
-        ucs.step(nc_pc_out_inc | nc_write_dst_to_ai)
-        ucs.step(nc_load)
-    elif wa:
-        ucs.step(nc_pc_out_inc)
-        ucs.step(nc_load)
-        ucs.step(nc_write_db_to_w)
-        # VW -> ab -> aor
-        ucs.step(aor_wr('VW') | nc_write_dst_to_ai)
-        ucs.step(nc_load)
-    else:
-        ucs.step(nc_write_dst_to_ai)
-    ucs.step(nc_write_src_to_bi | ncop)
-    ucs.step({'idbs': 'CO'} | idb_wr(dst) | {
-        'pswz': 1,              # Update PSW.Z
-        'pswcy': 1,             # Update PSW.CY
-        'pswhc': 1,             # Update PSW.HC
-    } | ncsk)
-
-    ird_row(ir, nsteps, noper, ucs)
+    math_logic_test(ir, nsteps, mtl_op, dst, src, skip)
 
 def math_imm(ir, nsteps, op, reg, skip=''):
     math(ir, nsteps, op, reg, 'IMM', skip)
 
 def mathx(ir, nsteps, op, skip=''):
-    ncop = {
-        'ADD': {'aluop': 'SUM'},
-        'ADC': {'aluop': 'SUM', 'cis': 'PSW_CY'},
-        'SUB': {'aluop': 'SUM', 'bin': 1, 'cis': 1},
-        'SBB': {'aluop': 'SUM', 'bin': 1, 'cis': 'PSW_CY'},
-    }[op]
-    ncsk = {
-        '': {},
-        'NC': {'pswsk': 'NC'},  # !CCO -> PSW.SK
-        'NB': {'pswsk': 'C'},   # CCO -> PSW.SK
-    }[skip]
-    nc_write_dst_to_ai = idb_rd('A') | idb_wr('AI')
-    nc_write_src_to_bi = idb_rd('DB') | idb_wr('BI')
+    math(ir, nsteps, op, 'A', 'IND', skip)
 
-    ucs = ucode_seq(f'{op}{skip}')
-    ucs.step(aor_wr_rp())
-    ucs.step(nc_load | nc_write_dst_to_ai)
-    ucs.step(nc_write_src_to_bi | ncop)
-    ucs.step({'idbs': 'CO'} | idb_wr('A') | {
-        'pswz': 1,              # Update PSW.Z
-        'pswcy': 1,             # Update PSW.CY
-        'pswhc': 1,             # Update PSW.HC
-    } | ncsk)
+def logic_imm(ir, nsteps, op, reg):
+    logic(ir, nsteps, op, reg, 'IMM')
 
-    ird_row(ir, nsteps, 0, ucs)
+def logicx(ir, nsteps, op):
+    logic(ir, nsteps, op, 'A', 'IND')
+
+def test_imm(ir, nsteps, op, reg):
+    test(ir, nsteps, op, reg, 'IMM')
+
+def testx(ir, nsteps, op):
+    test(ir, nsteps, op, 'A', 'IND')
 
 def incdec(ir, nsteps, op, reg):
     wa = reg == 'WA'
-    ncsk = {
-        'INC': {'pswsk': 'C'},   # CCO -> PSW.SK
-        'DEC': {'pswsk': 'NC'},  # !CCO -> PSW.SK
-    }[op]
     ncpsw = {
+        'pswsk': 'C',           # Update PSW.SK
         'pswz': 1,              # Update PSW.Z
-        'pswcy': 1,             # Update PSW.CY
         'pswhc': 1,             # Update PSW.HC
-    } | ncsk                    # Update PSW.SK
+    }
 
     ucs = ucode_seq(f'{op}R_{reg}')
 
@@ -553,6 +541,36 @@ def daa(ir, nsteps):
     ucs = ucode_seq('DAA')
     ucs.step(idb_rd('A') | idb_wr('AI') | {'daa': 1, 'aluop': 'SUM'})
     ucs.step(idb_rd('CO') | idb_wr('A') | {'pswz': 1, 'pswhc': 1, 'pswcy': 1})
+    ird_row(ir, nsteps, 0, ucs)
+
+# RLD: A[3:0] <- (HL)[7:4] <- (HL)[3:0] <- A[3:0]
+def rld(ir, nsteps, ucname):
+    ucs = ucode_seq(ucname)
+    ucs.step(aor_wr('HL'))
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_w)
+    ucs.step(idb_rd('W') | idb_wr('AI') | {'aluop': 'DIS'})
+    ucs.step(idb_rd('CO') | idb_wr('W'))
+    ucs.step(idb_rd('A') | idb_wr('AI') | {'aluop': 'DIL'})
+    ucs.step(aor_wr('HL') | idb_rd('W') | idb_rd('CO') | idb_wr('DOR'))
+    ucs.step(nc_store | idb_rd('W') | idb_wr('AI') | {'aluop': 'DIL'})
+    ucs.step(idb_rd('A') | idb_wr('AI') | {'aluop': 'DIH'})
+    ucs.step(idb_rd('CO') | idb_wr('A'))
+    ird_row(ir, nsteps, 0, ucs)
+
+# RRD: A[3:0] -> (HL)[7:4] -> (HL)[3:0] -> A[3:0]
+def rrd(ir, nsteps, ucname):
+    ucs = ucode_seq(ucname)
+    ucs.step(aor_wr('HL'))
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_w)
+    ucs.step(idb_rd('W') | idb_wr('AI') | {'aluop': 'DIH'})
+    ucs.step(idb_rd('A') | idb_wr('AI') | {'aluop': 'DIL'})
+    ucs.step(idb_rd('CO') | idb_wr('AI') | {'aluop': 'DIS'})
+    ucs.step(aor_wr('HL') | idb_rd('W') | idb_rd('CO') | idb_wr('DOR'))
+    ucs.step(nc_store | idb_rd('W') | idb_wr('AI') | {'aluop': 'DIL'})
+    ucs.step(idb_rd('A') | idb_wr('AI') | {'aluop': 'DIH'})
+    ucs.step(idb_rd('CO') | idb_wr('A'))
     ird_row(ir, nsteps, 0, ucs)
 
 ######################################################################
@@ -615,6 +633,42 @@ def jb(ir, nsteps):
     ucs.step(aor_wr('BC') | {'abits': 'PC', 'ab_inc': 1, 'ab_dec': 1})
     #ucs.step(idb_rd('B') | idb_wr('PCH'))
     #ucs.step(idb_rd('C') | idb_wr('PCL'))
+    ird_row(ir, nsteps, 0, ucs)
+
+def call(ir, nsteps):
+    ucs = ucode_seq('CALL')
+    # Fetch new PCL to W, PC <- PC+1
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_w)
+    # Fetch new PCH to CO, SP <- SP-1, PC <- PC+1
+    ucs.step(nc_pc_out_inc)
+    ucs.step(nc_load)
+    ucs.step(nc_write_db_to_co | nc_dec_sp)
+    # (SP) <- PCH, SP <- SP-1
+    ucs.step(idb_rd('RF_PCH') | idb_wr('DOR') | aor_wr('SP'))
+    ucs.step(nc_store)
+    ucs.step(nc_dec_sp)
+    # (SP) <- PCL, W -> abl -> PCL, CO -> idb -> abh -> PCH
+    ucs.step(idb_rd('RF_PCL') | idb_wr('DOR') | aor_wr('SP'))
+    ucs.step(nc_store | idb_rd('W') | idb_wr('RF_PCL'))
+    ucs.step(idb_rd('CO') | idb_wr('RF_PCH'))
+    ird_row(ir, nsteps, 2, ucs)
+
+def calb(ir, nsteps):
+    ucs = ucode_seq('CALB')
+    # SP <- SP-1
+    ucs.step(nc_idle)
+    ucs.step(nc_idle)
+    ucs.step(nc_dec_sp)
+    # (SP) <- PCH, SP <- SP-1, PCH <- B
+    ucs.step(idb_rd('RF_PCH') | idb_wr('DOR') | aor_wr('SP'))
+    ucs.step(nc_store | idb_rd('B') | idb_wr('PCH'))
+    ucs.step(nc_dec_sp)
+    # (SP) <- PCL, PCL <- C
+    ucs.step(idb_rd('RF_PCL') | idb_wr('DOR') | aor_wr('SP'))
+    ucs.step(nc_store | idb_rd('C') | idb_wr('PCL'))
+    ucs.step(nc_idle)
     ird_row(ir, nsteps, 0, ucs)
 
 def calf(ir, nsteps):
@@ -697,6 +751,7 @@ def softi(ir, nsteps):
 
 # RET / RETI (Return from Subroutine / Interrupt)
 def ret(ir, nsteps, ucname):
+    ncsk = {'pswsk': 1} if ucname == 'RETS' else {}
     ucs = ucode_seq(ucname)
     # PCL <- (SP), SP <- SP+1
     ucs.step(aor_wr('SP'))
@@ -705,7 +760,7 @@ def ret(ir, nsteps, ucname):
     # PCH <- (SP), SP <- SP+1
     ucs.step(aor_wr('SP'))
     ucs.step(nc_load | nc_inc_sp)
-    ucs.step(idb_rd('DB') | idb_wr('PCH'))
+    ucs.step(idb_rd('DB') | idb_wr('PCH') | ncsk)
     if ucname == 'RETI':
         # PSW <- (SP), SP <- SP+1
         ucs.step(aor_wr('SP'))
@@ -798,8 +853,8 @@ load_imm16(0x34, 10, 'HL')                        # LXI HL, bbaa
 
 loadx([0x29, 0x2f], 7)                            # LDAX rpa
 
-storex([0x3a, 0x3d], 7, 'A')                      # STAX D/H/L
-storex([0x48, 0x4b], 10, 'IMM')                   # MVIX rpa1, byte
+storex([0x39, 0x3f], 7, 'A')                      # STAX rpa
+storex([0x49, 0x4b], 10, 'IMM')                   # MVIX rpa1, byte
 
 storew(0x38, 10, 'A')                             # STAW wa
 storew(0x71, 13, 'IMM')                           # MVIW wa, byte
@@ -814,8 +869,12 @@ logic_imm(0x07, 7, 'AND', 'A')                    # ANI A, byte
 logic_imm(0x16, 7, 'XOR', 'A')                    # XRI A, byte
 logic_imm(0x17, 7, 'OR', 'A')                     # ORI A, byte
 
+test_imm(0x25, 13, 'GT', 'WA')                    # GTIW wa, byte
+test_imm(0x35, 13, 'LT', 'WA')                    # LTIW wa, byte
 test_imm(0x45, 13, 'ON', 'WA')                    # ONIW wa, byte
+test_imm(0x55, 13, 'OFF', 'WA')                   # OFFIW wa, byte
 test_imm(0x65, 13, 'NEQ', 'WA')                   # NEIW wa, byte
+test_imm(0x75, 13, 'EQ', 'WA')                    # EQIW wa, byte
 
 test_imm(0x27, 7, 'GT', 'A')                      # GTI A, byte
 test_imm(0x37, 7, 'LT', 'A')                      # LTI A, byte
@@ -853,11 +912,14 @@ jre(0x4e, 13, '+')                                # JRE (+jdisp)
 jre(0x4f, 13, '-')                                # JRE (-jdisp)
 jmp(0x54, 10)                                     # JMP word
 jb(0x73, 4)                                       # JB
+call(0x44, 16)                                    # CALL word
+calb(0x63, 13)                                    # CALB
 calf([0x78, 0x7f], 16)                            # CALF word
 calt([0x80, 0xbf], 19)                            # CALT
 softi(0x72, 22)                                   # SOFTI / INT
 # Note: Data sheet says 15 cycles, but I think that's a typo.
 ret(0x08, 10, 'RET')                              # RET
+ret(0x18, 10, 'RETS')                             # RETS
 ret(0x62, 13, 'RETI')                             # RETI
 
 bit([0x58, 0x5f], 10)                             # BIT (bit), wa
@@ -887,12 +949,19 @@ push16(0x13e, 17, 'HL')                           # PUSH H
 pop16(0x13f, 14, 'HL')                            # POP H
 
 skip([0x100, 0x104], 8, 'I')                      # SKIT irf
-skip(0x10a, 8, 'C')                               # SKCY
+skip(0x10a, 8, 'PSW_C')                           # SKCY
+skip(0x10c, 8, 'PSW_Z')                           # SKZ
 skip([0x110, 0x114], 8, 'NI')                     # SKNIT irf
-skip(0x11a, 8, 'NC')                              # SKNCY
+skip(0x11a, 8, 'PSW_NC')                          # SKNCY
+skip(0x11c, 8, 'PSW_NZ')                          # SKNZ
 
 ins(0x120, 8, 'EI', 0, [{'idx': 1, 'lts': 'IE'}]) # EI
 ins(0x124, 8, 'DI', 0, [{'idx': 0, 'lts': 'IE'}]) # DI
+ins(0x12A, 8, 'CLC', 0, [{'idx': 0, 'lts': 'PSW_CY'}]) # CLC
+ins(0x12B, 8, 'STC', 0, [{'idx': 1, 'lts': 'PSW_CY'}]) # STC
+
+rld(0x138, 17, 'RLD')                             # RLD
+rrd(0x139, 17, 'RRD')                             # RRD
 
 ######################################################################
 # 0x2xx: prefix 0x4C
@@ -913,12 +982,30 @@ math([0x440, 0x447], 8, 'ADD', 'RF_IR210', 'A')
 math([0x450, 0x457], 8, 'ADC', 'RF_IR210', 'A')
 math([0x460, 0x467], 8, 'SUB', 'RF_IR210', 'A')
 math([0x470, 0x477], 8, 'SBB', 'RF_IR210', 'A')
-math([0x4a0, 0x427], 8, 'ADD', 'A', 'RF_IR210', 'NC')
+math([0x4a0, 0x4a7], 8, 'ADD', 'A', 'RF_IR210', 'NC')
 math([0x4b0, 0x4b7], 8, 'SUB', 'A', 'RF_IR210', 'NB')
 math([0x4c0, 0x4c7], 8, 'ADD', 'A', 'RF_IR210')
 math([0x4d0, 0x4d7], 8, 'ADC', 'A', 'RF_IR210')
 math([0x4e0, 0x4e7], 8, 'SUB', 'A', 'RF_IR210')
 math([0x4f0, 0x4f7], 8, 'SBB', 'A', 'RF_IR210')
+
+logic([0x408, 0x40f], 8, 'AND', 'RF_IR210', 'A')  # ANA r, A
+logic([0x410, 0x417], 8, 'XOR', 'RF_IR210', 'A')  # XRA r, A
+logic([0x418, 0x41f], 8, 'OR',  'RF_IR210', 'A')  # ORA r, A
+logic([0x488, 0x48f], 8, 'AND', 'A', 'RF_IR210')  # ANA A, r
+logic([0x490, 0x497], 8, 'XOR', 'A', 'RF_IR210')  # XRA A, r
+logic([0x498, 0x49f], 8, 'OR',  'A', 'RF_IR210')  # ORA A, r
+
+test([0x428, 0x42f], 8, 'GT',  'RF_IR210', 'A')   # GTA r, A
+test([0x438, 0x43f], 8, 'LT',  'RF_IR210', 'A')   # LTA r, A
+test([0x468, 0x46f], 8, 'NEQ', 'RF_IR210', 'A')   # NEA r, A
+test([0x478, 0x47f], 8, 'EQ',  'RF_IR210', 'A')   # EQA r, A
+test([0x4a8, 0x4af], 8, 'GT',  'A', 'RF_IR210')   # GTA A, r
+test([0x4b8, 0x4bf], 8, 'LT',  'A', 'RF_IR210')   # LTA A, r
+test([0x4c8, 0x4cf], 8, 'ON',  'A', 'RF_IR210')   # ONA A, r
+test([0x4d8, 0x4df], 8, 'OFF', 'A', 'RF_IR210')   # OFFA A, r
+test([0x4e8, 0x4ef], 8, 'NEQ', 'A', 'RF_IR210')   # NEA A, r
+test([0x4f8, 0x4ff], 8, 'EQ',  'A', 'RF_IR210')   # EQA A, r
 
 ######################################################################
 # 0x5xx: prefix 0x64
@@ -928,38 +1015,96 @@ math_imm([0x520, 0x527], 11, 'ADD', 'RF_IR210', 'NC')
 math_imm([0x530, 0x537], 11, 'SUB', 'RF_IR210', 'NB')
 math_imm([0x540, 0x547], 11, 'ADD', 'RF_IR210')
 math_imm([0x550, 0x557], 11, 'ADC', 'RF_IR210')
-test_imm([0x558, 0x55f], 11, 'OFF', 'RF_IR210')
 math_imm([0x560, 0x567], 11, 'SUB', 'RF_IR210')
 math_imm([0x570, 0x577], 11, 'SBB', 'RF_IR210')
 
-# TODO: These should be 17 steps
-logic_imm([0x588, 0x58f], 11, 'AND', 'SPR_IR2')   # ANI sr2, byte
-logic_imm([0x590, 0x597], 11, 'XOR', 'SPR_IR2')   # XRI sr2, byte
-logic_imm([0x598, 0x59f], 11, 'OR',  'SPR_IR2')   # ORI sr2, byte
+logic_imm([0x508, 0x50f], 11, 'AND', 'RF_IR210')  # ANI r, byte
+logic_imm([0x510, 0x517], 11, 'XOR', 'RF_IR210')  # XRI r, byte
+logic_imm([0x518, 0x51f], 11, 'OR',  'RF_IR210')  # ORI r, byte
 
+# TODO: These should be 17 steps
+math_imm([0x5a0, 0x5a3], 11, 'ADD', 'SPR_IR2', 'NC') # ADINC sr2, byte
+math_imm([0x5b0, 0x5b3], 11, 'SUB', 'SPR_IR2', 'NB') # SUINB sr2, byte
+math_imm([0x5c0, 0x5c3], 11, 'ADD', 'SPR_IR2')       # ADI sr2, byte
+math_imm([0x5d0, 0x5d3], 11, 'ADC', 'SPR_IR2')       # ACI sr2, byte
+math_imm([0x5e0, 0x5e3], 11, 'SUB', 'SPR_IR2')       # SUI sr2, byte
+math_imm([0x5f0, 0x5f3], 11, 'SBB', 'SPR_IR2')       # SBI sr2, byte
+
+# TODO: These should be 17 steps
+logic_imm([0x588, 0x58b], 11, 'AND', 'SPR_IR2')   # ANI sr2, byte
+logic_imm([0x590, 0x593], 11, 'XOR', 'SPR_IR2')   # XRI sr2, byte
+logic_imm([0x598, 0x59b], 11, 'OR',  'SPR_IR2')   # ORI sr2, byte
+
+test_imm([0x528, 0x52f], 11, 'GT',  'RF_IR210')   # GTI r, byte
+test_imm([0x538, 0x53f], 11, 'LT',  'RF_IR210')   # LTI r, byte
 test_imm([0x548, 0x54f], 11, 'ON',  'RF_IR210')   # ONI r, byte
+test_imm([0x558, 0x55f], 11, 'OFF', 'RF_IR210')   # OFFI r, byte
+test_imm([0x568, 0x56f], 11, 'NEQ', 'RF_IR210')   # NEI r, byte
+test_imm([0x578, 0x57f], 11, 'EQ',  'RF_IR210')   # EQI r, byte
 
 # TODO: These should be 14 steps
-test_imm([0x5c8, 0x5cf], 11, 'ON',  'SPR_IR2')    # ONI sr2, byte
-test_imm([0x5d8, 0x5df], 11, 'OFF', 'SPR_IR2')    # OFFI sr2, byte
+test_imm([0x5a8, 0x5ab], 11, 'GT',  'SPR_IR2')    # GTI sr2, byte
+test_imm([0x5b8, 0x5bb], 11, 'LT',  'SPR_IR2')    # LTI sr2, byte
+test_imm([0x5c8, 0x5cb], 11, 'ON',  'SPR_IR2')    # ONI sr2, byte
+test_imm([0x5d8, 0x5db], 11, 'OFF', 'SPR_IR2')    # OFFI sr2, byte
+test_imm([0x5e8, 0x5eb], 11, 'NEQ', 'SPR_IR2')    # NEI sr2, byte
+test_imm([0x5f8, 0x5fb], 11, 'EQ',  'SPR_IR2')    # EQI sr2, byte
 
 ######################################################################
 # 0x6xx: prefix 0x70
 
 load_abs([0x668, 0x66f], 17)                      # MOV r, word
 
+load_ind(0x60F, 20, 'SP')                         # LSPD word
+load_ind(0x61F, 20, 'BC')                         # LBCD word
+load_ind(0x62F, 20, 'DE')                         # LDED word
+load_ind(0x63F, 20, 'HL')                         # LHLD word
+
 store_abs([0x678, 0x67f], 17)                     # MOV word, r
 
+store_ind(0x60E, 20, 'SP')                        # SSPD word
+store_ind(0x61E, 20, 'BC')                        # SBCD word
+store_ind(0x62E, 20, 'DE')                        # SDED word
+store_ind(0x63E, 20, 'HL')                        # SHLD word
+
+mathx([0x6a1, 0x6a7], 11, 'ADD', 'NC')            # ADDNCX rpa
+mathx([0x6b1, 0x6b7], 11, 'SUB', 'NB')            # SUBNBX rpa
 mathx([0x6c1, 0x6c7], 11, 'ADD')                  # ADDX rpa
+mathx([0x6d1, 0x6d7], 11, 'ADC')                  # ADCX rpa
 mathx([0x6e1, 0x6e7], 11, 'SUB')                  # SUBX rpa
+mathx([0x6f1, 0x6f7], 11, 'SBB')                  # SBBX rpa
+
+logicx([0x689, 0x68f], 11, 'AND')                 # ANAX rpa
+logicx([0x691, 0x697], 11, 'XOR')                 # XRAX rpa
+logicx([0x699, 0x69f], 11, 'OR')                  # ORAX rpa
+
+testx([0x6a9, 0x6af], 11, 'GT')                   # GTAX rpa
+testx([0x6b9, 0x6bf], 11, 'LT')                   # LTAX rpa
+testx([0x6c9, 0x6cf], 11, 'ON')                   # ONAX rpa
+testx([0x6d9, 0x6df], 11, 'OFF')                  # OFFAX rpa
+testx([0x6e9, 0x6ef], 11, 'NEQ')                  # NEAX rpa
+testx([0x6f9, 0x6ff], 11, 'EQ')                   # EQAX rpa
 
 ######################################################################
 # 0x7xx: prefix 0x74
 
-math(0x7c0, 14, 'ADD', 'A', 'WA')                 # ADDW A, wa
+math(0x7a0, 14, 'ADD', 'A', 'WA', 'NC')           # ADDNCW wa
+math(0x7b0, 14, 'SUB', 'A', 'WA', 'NB')           # SUBNBW wa
+math(0x7c0, 14, 'ADD', 'A', 'WA')                 # ADDW wa
+math(0x7d0, 14, 'ADC', 'A', 'WA')                 # ADCW wa
+math(0x7e0, 14, 'SUB', 'A', 'WA')                 # SUBW wa
+math(0x7f0, 14, 'SBB', 'A', 'WA')                 # SBBW wa
 
-logic(0x788, 14, 'AND', 'A', 'WA')                # ANAW A, wa
-logic(0x798, 16, 'OR', 'A', 'WA')                 # ORAW A, wa
+logic(0x788, 14, 'AND', 'A', 'WA')                # ANAW wa
+logic(0x790, 14, 'XOR', 'A', 'WA')                # XRAW wa
+logic(0x798, 14, 'OR', 'A', 'WA')                 # ORAW wa
+
+test(0x7a8, 14, 'GT', 'A', 'WA')                  # GTAW wa
+test(0x7b8, 14, 'LT', 'A', 'WA')                  # LTAW wa
+test(0x7c8, 14, 'ON', 'A', 'WA')                  # ONAW wa
+test(0x7d8, 14, 'OFF', 'A', 'WA')                 # OFFAW wa
+test(0x7e8, 14, 'NEQ', 'A', 'WA')                 # NEAW wa
+test(0x7f8, 14, 'EQ', 'A', 'WA')                  # EQAW wa
 
 ######################################################################
 
