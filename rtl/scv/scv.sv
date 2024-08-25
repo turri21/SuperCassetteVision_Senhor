@@ -220,7 +220,7 @@ cart cart
    .INIT_DATA(ROMINIT_DATA),
    .INIT_VALID(ROMINIT_SEL_CART & ROMINIT_VALID),
 
-   .CFG_ROM_AW(5'd13),          // TODO: control this somehow
+   .CFG_ROM_AW(5'd15),          // TODO: control this somehow
 
    .A(cpu_a[14:0]),
    .DB(cart_db),
