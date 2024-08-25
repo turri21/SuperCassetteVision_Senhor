@@ -125,7 +125,7 @@ assign ce = (ccnt == 3'd6);
 task load_chr(input string path);
 integer fin, code;
   fin = $fopen(path, "r");
-  assert(fin != 0) else $finish;
+  assert(fin != 0) else $fatal(1, "missing CHR ROM %s", path);
 
   code = $fread(dut.chr, fin, 0, 1024);
 endtask
@@ -134,7 +134,7 @@ task load_rams(input string path);
 reg [7:0] tmp [4];
 integer fin, code, i;
   fin = $fopen(path, "r");
-  assert(fin != 0) else $finish;
+  assert(fin != 0) else $fatal(1, "missing RAM %s", path);
 
   // VRAM: $2000-$3FFF
   for (i = 0; i < 2048; i++) begin

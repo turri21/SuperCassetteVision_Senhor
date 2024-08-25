@@ -78,7 +78,7 @@ wire         pre_render_row;
 wire         render_row, render_col, render_px;
 wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
 wire         cpu_rd, cpu_wr, cpu_rdwr;
-
+wire         sbofp_stall;
 
 //////////////////////////////////////////////////////////////////////
 // MMIO registers ($1400-$1403)
@@ -270,6 +270,7 @@ assign DB_OE = cpu_rd;
 // VRAM address / data bus interface
 
 reg [11:0] va;
+reg [11:0] spr_vram_addr;
 
 assign va = (cpu_sel_vram & cpu_rdwr) ? A[12:1] : spr_vram_addr;
 
@@ -358,7 +359,6 @@ end
 
 wire [15:0] spr_pat;
 s_objattr   spr_oa;
-reg [11:0]  spr_vram_addr;
 reg [8:0]   spr_y0;
 reg [3:0]   spr_y;
 wire        spr_dl, spr_dr;     // sprite left/right side
@@ -486,16 +486,17 @@ end
 //////////////////////////////////////////////////////////////////////
 // Sprite / background OLB fill pipeline
 
-enum reg [3:0]
+typedef enum reg [3:0]
 {
  SST_IDLE,
  SST_BG,
  SST_EVAL,
  SST_DRAW_L,
  SST_DRAW_R
-} sbofp_st;
+} e_sbofp_st;
 
-wire sbofp_stall;
+e_sbofp_st sbofp_st;
+
 reg  sbofp_stall_d;
 
 wire sbofp_wsel;
@@ -519,7 +520,7 @@ always_ff @(posedge CLK) if (CE) begin
   end
   else if (col == 9'd64) begin
     oam_idx <= 0;
-    sbofp_st <= sp_ena ? SST_EVAL : SST_IDLE;
+    sbofp_st <= e_sbofp_st'(sp_ena ? SST_EVAL : SST_IDLE);
   end
   else if (~sbofp_stall) begin
     if (sbofp_st == SST_EVAL) begin
@@ -530,7 +531,7 @@ always_ff @(posedge CLK) if (CE) begin
         sbofp_st <= SST_DRAW_L;
       end
       else begin
-        sbofp_st <= (oam_idx < 7'd127) ? SST_EVAL : SST_IDLE;
+        sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);
         oam_idx <= oam_idx + 1'd1;
       end
     end
@@ -538,7 +539,7 @@ always_ff @(posedge CLK) if (CE) begin
       sbofp_st <= SST_DRAW_R;
     end
     else if (sbofp_st == SST_DRAW_R) begin
-      sbofp_st <= (oam_idx < 7'd127) ? SST_EVAL : SST_IDLE;
+      sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);
       oam_idx <= oam_idx + 1'd1;
     end
   end
