@@ -15,6 +15,7 @@ module rominit
    input [7:0]   IOCTL_DOUT,
    output        IOCTL_WAIT,
 
+   output        ROMINIT_ACTIVE,
    output        ROMINIT_SEL_BOOT, 
    output        ROMINIT_SEL_CHR,
    output        ROMINIT_SEL_CART,
@@ -33,6 +34,7 @@ wire       load_cart = (index_menusub == 1);
 
 assign IOCTL_WAIT = 0;
 
+assign ROMINIT_ACTIVE = IOCTL_DOWNLOAD;
 assign ROMINIT_SEL_BOOT = load_boot & (IOCTL_ADDR < 24'h1000);
 assign ROMINIT_SEL_CHR = load_boot & (IOCTL_ADDR < 24'h1400) & ~ROMINIT_SEL_BOOT;
 assign ROMINIT_SEL_CART = load_cart;

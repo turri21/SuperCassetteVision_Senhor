@@ -35,18 +35,27 @@ Concatenate the files to create boot.rom. Windows example:
 ### Joysticks
 Up to two digital joysticks are mapped to the two controllers. Each controller has two **Trig** buttons.
 
+### Cartridge ROMs
+
+ROM images must:
+- Have a file extension .ROM or .BIN
+- Be strictly the ROM contents (no headers)
+
 
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
 The background is not aligned with the sprites.
 
+Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs can be loaded but won't alias, and so may not work.
+
 ## TODOs
 - CPU (uPD7801G)
-  - LOTS of instructions
+  - Second GP register bank and related instructions (EX, EXX)
   - Set/clear of and skipping on L0/L1 PSW flags
   - Fix timing of special register instructions (e.g., 'ANI sr2, byte' is 11 steps, should be 17)
 - Video (Epoch TV-1)
   - Most sprite features: size, linking, ...
 - Audio (uPD1771C)
 - Cartridges
+  - Recognize ROM image on load and set appropriate ROM size, enable RAM, etc.

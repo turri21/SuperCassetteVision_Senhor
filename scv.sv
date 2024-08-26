@@ -212,7 +212,7 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 localparam CONF_STR = {
 	"SCV;;",
 	"-;",
-    "F1,ROM;",
+    "F1,ROMBIN;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	//"O[2],TV Mode,NTSC,PAL;",
@@ -268,6 +268,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 //////////////////////////////////////////////////////////////////////
 // Download manager
 
+wire         rominit_active;
 wire         rominit_sel_boot, rominit_sel_chr, rominit_sel_cart;
 wire [16:0]  rominit_addr;
 wire [7:0]   rominit_data;
@@ -284,6 +285,7 @@ rominit rominit
    .IOCTL_DOUT(ioctl_dout),
    .IOCTL_WAIT(ioctl_wait),
 
+   .ROMINIT_ACTIVE(rominit_active),
    .ROMINIT_SEL_BOOT(rominit_sel_boot),
    .ROMINIT_SEL_CHR(rominit_sel_chr),
    .ROMINIT_SEL_CART(rominit_sel_cart),
@@ -318,7 +320,7 @@ pll pll
 	.outclk_0(clk_sys)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+wire reset = RESET | status[0] | buttons[1] | rominit_active;
 
 scv scv
   (
