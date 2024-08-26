@@ -98,7 +98,7 @@ reg          rd_ext, wr_ext;
 reg [7:0]    rfo, spro, idb;
 reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
-reg [8:0]    alu_co;
+reg [7:0]    alu_co;
 reg          alu_cho, alu_cco;
 reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 reg [15:0]   uabi, nabi;

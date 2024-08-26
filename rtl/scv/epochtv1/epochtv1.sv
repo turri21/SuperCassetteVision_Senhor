@@ -336,8 +336,10 @@ assign bgr_ch_fgc = ch_clr_fg;
 assign bgr_ch_pat = bgr_ty[0] ? 0 : chr_rbuf;
 
 // Interpret BGM data as bitmap data
-wire [1:0] bgr_bm_hipat = bgm_rbuf[((2'd3-row[3:2])*2)+:2];
-wire [3:0] bgr_bm_lopat = bgm_rbuf[(1'd1-row[3])+:4];
+wire [2:0] bgr_bm_hipat_sel = {~row[3:2], 1'b0};
+wire [2:0] bgr_bm_lopat_sel = {~row[3], 2'b0};
+wire [1:0] bgr_bm_hipat = bgm_rbuf[bgr_bm_hipat_sel+:2];
+wire [3:0] bgr_bm_lopat = bgm_rbuf[bgr_bm_lopat_sel+:4];
 
 always @* begin
   bgr_bm_bgc = bm_clr_bg;
