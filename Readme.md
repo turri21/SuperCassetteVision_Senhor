@@ -32,7 +32,7 @@ The console has a numeric keypad called **SELECT**, and a hard **PAUSE** button.
 * 0-9 - SELECT numbered keys
 * Backspace, numpad ./Del - SELECT **CL** key
 * Enter - SELECT **EN** key
-* F1 - PAUSE button (disabled for now)
+* F1 - PAUSE button
 
 ### Joysticks
 Up to two digital joysticks are mapped to the two controllers. Each controller has two **Trig** buttons.
@@ -60,8 +60,6 @@ Two cartridges had a mix of ROM sizes. No special mappers exist for them (yet). 
 
 
 ## Known issues
-Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
-
 Video: Visual glitches, due to games changing sprite data mid-frame, are especially notable in scrollers like Wheelie Racer. This is an expected (albeit undesired) behavior of the current design of the render engine. Fixing this issue will require better knowledge of the actual render engine in the Epoch TV-1 VDC.
 
 

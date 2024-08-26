@@ -67,6 +67,9 @@ wire        vbl;
 wire        de, hs, vs;
 wire [23:0] rgb;
 
+wire        apu_ncs;
+wire        apu_ack;
+
 wire [7:0]  pao, pbi, pci, pco;
 
 clkgen clkgen
@@ -88,7 +91,7 @@ upd7800 cpu
    .CP2_NEGEDGE(cp2n),
    .RESETB(RESB),
    .INT0(1'b0),
-   .INT1(1'b0),
+   .INT1(apu_ack),
    .INT2(vbl),
    .A(cpu_a),
    .DB_I(cpu_db),
@@ -205,6 +208,18 @@ dpram #(.DWIDTH(8), .AWIDTH(12)) vramb
    .DO2()
    );
 
+upd1771 apu
+  (
+   .CLK(CLK),
+   .RESB(pco[3]),
+
+   .DB_I(cpu_db),
+   .WRB(cpu_wrb),
+   .CSB(apu_ncs),
+
+   .ACK(apu_ack)
+   );
+
 hmi2key hmi2key
   (
    .HMI(HMI),
@@ -235,10 +250,14 @@ cart cart
    .PC(pco[6:5])
    );
 
+// Partial address select for MMIO peripherals
+wire [7:0] psel = {cpu_a[15:9], 1'b0};
+
 assign rom_ncs = |cpu_a[15:12];
 assign wram_ncs = ~&cpu_a[15:7];    // 'hFF80-'hFFFF
-assign vdc_ncs = (cpu_a & ~16'h1fff) != 16'h2000;
-assign cart_ncs = ~cpu_a[15] | ~wram_ncs | ~vdc_ncs;
+assign vdc_ncs = ~((psel >= 8'h20) & (psel <= 8'h35)); // 'h2000-'h35FF
+assign apu_ncs = ~(psel == 8'h36); // 'h3600-'h37FF
+assign cart_ncs = ~(cpu_a[15] & wram_ncs);
 
 assign rom_db_oe = ~(rom_ncs | cpu_rdb);
 assign wram_db_oe = ~(wram_ncs | cpu_rdb);

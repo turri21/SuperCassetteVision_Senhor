@@ -193,5 +193,16 @@ TOP.scv_tb.dut.vdc.RGB[23:0]
 @22
 TOP.scv_tb.dut.HMI[24:0]
 TOP.scv_tb.dut.VID_RGB[23:0]
+@c00200
+-apu
+@28
+TOP.scv_tb.dut.apu.RESB
+TOP.scv_tb.dut.apu.ACK
+TOP.scv_tb.dut.apu.CSB
+@22
+TOP.scv_tb.dut.apu.cmd[7:0]
+TOP.scv_tb.dut.apu.data_cnt[3:0]
+@1000200
+-apu
 [pattern_trace] 1
 [pattern_trace] 0

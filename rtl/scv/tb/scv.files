@@ -11,3 +11,5 @@
 
 ../epochtv1/epochtv1.sv
 ../epochtv1/dpram.sv
+
+../upd1771/upd1771.sv

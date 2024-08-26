@@ -9,6 +9,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/cart_ram.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/upd7800/upd7800.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/epochtv1/epochtv1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/epochtv1/dpram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/scv/upd1771/upd1771.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/rominit.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/joykey.sv
 set_global_assignment -name SDC_FILE scv.sdc
