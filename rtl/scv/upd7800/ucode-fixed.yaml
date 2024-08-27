@@ -87,6 +87,7 @@ types:
       - IE
       - SPR                     # special reg.
       - PSW_CY
+      - SEC                     # secondary set (EX* inst.)
 
   - name: e_abs
     desc: ab select

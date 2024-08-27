@@ -5,7 +5,6 @@
 # This program is GPL licensed. See COPYING for the full license.
 
 # TODO:
-# . EX, EXX -- second GP register bank
 # . SIO, PEN, PEX, PER, IN, OUT (not implemented in MAME)
 
 import yaml
@@ -370,6 +369,18 @@ def block(ir, nsteps):
     ucs.step({'rfts': 'C', 'idbs': 'CO', 'lts': 'RF'})
     # !CCO -> PSW.SK, repeat ins. until skipped
     ucs.step({'pswsk': 'C', 'abs': 'PC', 'ab_dec': 1})
+    ird_row(ir, nsteps, 0, ucs)
+
+# EX: Exchange V, A and V', A'
+def ex(ir, nsteps):
+    ucs = ucode_seq('EX')
+    ucs.step({'lts': 'SEC', 'rfts': 'V'})
+    ird_row(ir, nsteps, 0, ucs)
+
+# EXX: Exchange register sets (B,C,D,E,H,L)
+def exx(ir, nsteps):
+    ucs = ucode_seq('EXX')
+    ucs.step({'lts': 'SEC', 'rfts': 'B'})
     ird_row(ir, nsteps, 0, ucs)
 
 ######################################################################
@@ -861,6 +872,9 @@ storew(0x71, 13, 'IMM')                           # MVIW wa, byte
 
 table(0x21, 19)                                   # TABLE
 block(0x31, 13)                                   # BLOCK
+
+ex(0x10, 4)                                       # EX
+exx(0x11, 4)                                      # EXX
 
 logic_imm(0x05, 16, 'AND', 'WA')                  # ANIW wa, byte
 logic_imm(0x15, 16, 'OR', 'WA')                   # ORIW wa, byte

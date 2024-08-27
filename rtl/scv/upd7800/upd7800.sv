@@ -83,7 +83,9 @@ reg          intg;
 reg [7:0]    intva;
 reg          cp2;
 reg [3:0]    cnt_div12;
-reg [7:0]    v, a, b, c, d, e, h, l, w;
+reg [7:0]    v, a, b, c, d, e, h, l;
+reg [7:0]    v2, a2, b2, c2, d2, e2, h2, l2; // secondary GP reg. set
+reg [7:0]    w;
 reg [7:0]    psw;
 reg [15:0]   sp, pc;
 reg [10:0]   ir;
@@ -354,6 +356,20 @@ always @(posedge CLK) begin
         UABS_HL: {h, l} <= nabi;
         default: ;
       endcase
+    end
+    if (nc.lts == ULTS_SEC) begin
+      if (cl_rfts == URFS_V) begin
+        v2 <= v;  v <= v2;
+        a2 <= a;  a <= a2;
+      end
+      else if (cl_rfts == URFS_B) begin
+        b2 <= b;  b <= b2;
+        c2 <= c;  c <= c2;
+        d2 <= d;  d <= d2;
+        e2 <= e;  e <= e2;
+        h2 <= h;  h <= h2;
+        l2 <= l;  l <= l2;
+      end
     end
   end
 end

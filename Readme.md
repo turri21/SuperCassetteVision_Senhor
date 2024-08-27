@@ -51,7 +51,6 @@ Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs ca
 
 ## TODOs
 - CPU (uPD7801G)
-  - Second GP register bank and related instructions (EX, EXX)
   - Set/clear of and skipping on L0/L1 PSW flags
   - Fix timing of special register instructions (e.g., 'ANI sr2, byte' is 11 steps, should be 17)
 - Video (Epoch TV-1)

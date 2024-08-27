@@ -44,6 +44,8 @@
     ird_lut['h071] = {UA_STW_IMM, 1'd0, 2'd2};
     ird_lut['h021] = {UA_TABLE, 1'd0, 2'd0};
     ird_lut['h031] = {UA_BLOCK, 1'd0, 2'd0};
+    ird_lut['h010] = {UA_EX, 1'd1, 2'd0};
+    ird_lut['h011] = {UA_EXX, 1'd1, 2'd0};
     ird_lut['h005] = {UA_AND_WA_IMM, 1'd0, 2'd2};
     ird_lut['h015] = {UA_OR_WA_IMM, 1'd0, 2'd2};
     ird_lut['h007] = {UA_AND_A_IMM, 1'd0, 2'd1};
