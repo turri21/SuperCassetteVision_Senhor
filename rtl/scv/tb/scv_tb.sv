@@ -158,6 +158,20 @@ initial #0 begin
   $finish;
 end
 
+`ifdef TEST_PAUSE
+initial begin
+  #(500e3) ;
+  $display("Pausing...");
+  hmi.pause = '1;
+  #(30e3) hmi.pause = 0;
+
+  #(800e3) ;
+  $display("Resuming...");
+  hmi.pause = '1;
+  #(30e3) hmi.pause = 0;
+end
+`endif
+
 endmodule
 
 
