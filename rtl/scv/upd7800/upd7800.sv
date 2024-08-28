@@ -10,6 +10,7 @@
 // . https://github.com/mamedev/mame/blob/master/src/devices/cpu/upd7810/upd7810.cpp - MAME's emulation
 // . http://www.bitsavers.org/components/nec/_dataBooks/1981_NEC_Microcomputer_Catalog.pdf - includes uDP7801 data sheet, many other chips
 // . http://takeda-toshiya.my.coocan.jp/scv/index.html - EPOCH Super Cassette Vision emulator for Win32 / uPD7801 tiny disassembler
+// . http://takeda-toshiya.my.coocan.jp/common/index.html - Common Source Code Project - eSCV emulator
 
 // TODO:
 // . Unimplemented instructions -- see gen-ucode.py
