@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Aug 25 02:15:41 2024
+[*] Wed Aug 28 03:44:32 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/cputest_tb.vcd"
-[dumpfile_mtime] "Sun Aug 25 02:14:49 2024"
-[dumpfile_size] 206942797
+[dumpfile_mtime] "Wed Aug 28 03:43:54 2024"
+[dumpfile_size] 3893065
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/cputest_tb.gtkw"
-[timestart] 229576940000
+[timestart] 1562340000
 [size] 1288 687
 [pos] -1 -1
-*-22.375952 514750000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-22.975546 1580125000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -151,14 +151,12 @@ cputest_tb.dut.m1
 @c00200
 -uc
 @22
-cputest_tb.dut.uptr[9:0]
-cputest_tb.dut.uptr_next[9:0]
 cputest_tb.dut.nptr[7:0]
 @1401200
 -uc
-@c00201
+@800200
 -cl
-@29
+@28
 cputest_tb.dut.cl_ab_aor
 cputest_tb.dut.cl_abh_aor
 cputest_tb.dut.cl_abi_dec
@@ -198,17 +196,23 @@ cputest_tb.dut.cl_one_c
 cputest_tb.dut.cl_ors
 cputest_tb.dut.cl_pc_dec
 cputest_tb.dut.cl_pc_inc
-@23
+@22
 cputest_tb.dut.cl_pswsk[3:0]
 cputest_tb.dut.cl_rfos[3:0]
 cputest_tb.dut.cl_rfts[3:0]
-@29
+@28
 cputest_tb.dut.cl_rols
 cputest_tb.dut.cl_rors
-cputest_tb.dut.cl_sks_sk
-@23
-cputest_tb.dut.cl_spr[3:0]
+cputest_tb.dut.cl_rpir_dec
+cputest_tb.dut.cl_rpir_inc
 @29
+cputest_tb.dut.cl_sefm[1:0]
+@28
+cputest_tb.dut.cl_sefs_psw
+cputest_tb.dut.cl_sks_sk
+@22
+cputest_tb.dut.cl_spr[3:0]
+@28
 cputest_tb.dut.cl_stm
 cputest_tb.dut.cl_store_dor
 cputest_tb.dut.cl_subs
@@ -217,7 +221,7 @@ cputest_tb.dut.cl_ui_ie
 cputest_tb.dut.cl_zero_bi
 cputest_tb.dut.cl_zero_c
 cputest_tb.dut.cl_zero_irf
-@1401201
+@1000200
 -cl
 @800200
 -timer

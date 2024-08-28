@@ -28,27 +28,35 @@ def nc_row(nc):
 
 
 class ucode_seq():
-    def __init__(self, name):
+    def __init__(self, name, str_effect=''):
         name = name.translate(str.maketrans('+-', 'PN'))
         self.name = name
+        self.str_effect = 'NONE'
+        if str_effect:
+            self.str_effect = str_effect
+            self.name += '_' + str_effect
         self.steps = []
 
     def step(self, nc):
-        naddr = nc_row(nc)
-        self.steps.append(naddr)
+        self.steps.append(nc)
 
     def commit(self, nsteps):
         steps_len = len(self.steps)
         for i in range(steps_len):
             ucrow = {}
+            nc = self.steps[i]
             if i == 0:
                 ucrow['uaddr'] = self.name
-            ucrow['naddr'] = self.steps[i]
             nsteps = nsteps - 1
             if nsteps == 0:
                 ucrow['m1'] = 1
             if i == steps_len - 1:
                 ucrow['bm'] = 'END'
+                nc = dict(nc) | {'pswsef': 1}
+
+            naddr = nc_row(nc)
+            ucrow['naddr'] = naddr
+
             uc_row(ucrow)
 
 
@@ -62,17 +70,15 @@ def ird_row(ir, nsteps, noper, ucs):
 
     nsteps -= 8 if ir0 >= 0x100 else 4
 
-    if isinstance(ucs, ucode_seq):
-        ucname = ucs.name
-        ucs.commit(nsteps)
-    else:
-        ucname = ucs
+    ucname = ucs.name
+    ucs.commit(nsteps)
 
     irdrow = {'_at': ats, 'at': ir, 'uaddr': ucname}
     if nsteps == 0:
         irdrow['m1_overlap'] = 1
     if noper:
         irdrow['skipn'] = noper
+    irdrow['sefm'] = ucs.str_effect
 
     ird_rows.append(irdrow)
 
@@ -142,11 +148,11 @@ nc_row(nc_store)
 ######################################################################
 # Move / load / store data
 
-def move(ir, nsteps, dst, src):
+def move(ir, nsteps, dst, src, str_effect=''):
     imm = src == 'IMM'
     noper = 1 if imm else 0
 
-    ucs = ucode_seq(f'MOV_{dst}_{src}')
+    ucs = ucode_seq(f'MOV_{dst}_{src}', str_effect)
 
     if imm:
         ucs.step(nc_pc_out_inc)
@@ -178,10 +184,10 @@ def rpa_to_reglh(rpa):
     }[rpa]
     return regl, regh
 
-def load_imm16(ir, nsteps, reg):
+def load_imm16(ir, nsteps, reg, str_effect=''):
     regl, regh = rpa_to_reglh(reg)
 
-    ucs = ucode_seq(f'LDX_{reg}_IMM')
+    ucs = ucode_seq(f'LDX_{reg}_IMM', str_effect)
     ucs.step(nc_pc_out_inc)
     ucs.step(nc_load)
     ucs.step({'idbs': 'DB', 'rfts': regl, 'lts': 'RF'})
@@ -853,14 +859,16 @@ uc_row({'naddr': nc_row(nc_idle), 'm1': 1, 'bm': 'END'})
 
 move([0x0a, 0x0f], 4, 'A', 'RF_IR210')            # MOV A, r1
 move([0x1a, 0x1f], 4, 'RF_IR210', 'A')            # MOV r1, A
-move([0x68, 0x6f], 7, 'RF_IR210', 'IMM')          # MVI r, byte
+move([0x68, 0x6e], 7, 'RF_IR210', 'IMM')          # MVI r, byte
+move(0x69, 7, 'RF_IR210', 'IMM', str_effect='L1') # MVI A, byte
+move(0x6f, 7, 'RF_IR210', 'IMM', str_effect='L0') # MVI L, byte
 
 load_wa(0x28, 10, 'A')                            # LDAW wa
 
 load_imm16(0x04, 10, 'SP')                        # LXI SP, bbaa
 load_imm16(0x14, 10, 'BC')                        # LXI BC, bbaa
 load_imm16(0x24, 10, 'DE')                        # LXI DE, bbaa
-load_imm16(0x34, 10, 'HL')                        # LXI HL, bbaa
+load_imm16(0x34, 10, 'HL', str_effect='L0')       # LXI HL, bbaa
 
 loadx([0x29, 0x2f], 7)                            # LDAX rpa
 
@@ -938,7 +946,7 @@ ret(0x62, 13, 'RETI')                             # RETI
 
 bit([0x58, 0x5f], 10)                             # BIT (bit), wa
 
-ird_row(0x00, 4, 0, 'IDLE')                       # NOP
+ins(0x00, 4, 'NOP', 0, [{}])                      # NOP
 ins(0x19, 4, 'STM', 0, [{}])                      # STM
 
 ######################################################################

@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 10
+    width: 11
     prefix: UA_
     # values will come from the ucode.rows list
 
@@ -20,12 +20,11 @@ types:
   - name: e_ubm
     desc: branch mode
     type: enum
-    width: 2
+    width: 1
     prefix: UBM_
     values:
       - ADV                     # advance (default)
       - END                     # return to IDLE
-      - DA                      # direct address
 
   - name: e_mcy
     desc: machine cycle
@@ -198,6 +197,16 @@ types:
       - PSW_Z
       - PSW_NZ
 
+  - name: e_sefm
+    desc: String effect flag (L0/L1) mode
+    type: enum
+    width: 2
+    prefix: ISEFM_
+    values:
+      - NONE                    # (default) clears flags
+      - L0                      # skipped if L0, sets L0
+      - L1                      # skipped if L1, sets L1
+
 
 ######################################################################
 # Instruction decode LUT (ird_lut)
@@ -212,6 +221,9 @@ ird:
     - name: skipn
       width: 2
       desc: Number of operands to skip when ins. is skipped
+    - name: sefm
+      type: e_sefm
+      desc: String effect flag (L0/L1) mode
 
 
 ######################################################################
@@ -309,3 +321,6 @@ nrom:
     - name: rpir
       width: 1
       desc: IR[2:0] selects reg. pair and inc/dec
+    - name: pswsef
+      width: 1
+      desc: Update PSW.L0/L1

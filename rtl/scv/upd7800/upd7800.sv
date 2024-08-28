@@ -13,7 +13,6 @@
 
 // TODO:
 // . Unimplemented instructions -- see gen-ucode.py
-// . Set/clear of and skipping on L0/L1 PSW flags
 
 
 `timescale 1us / 1ns
@@ -106,6 +105,7 @@ reg          addc, notbi, pdah, pdal, pdac, cco, cho;
 reg [15:0]   uabi, nabi;
 reg          skso;
 reg [7:0]    sdg;
+reg [1:0]    sefso;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
@@ -124,8 +124,11 @@ t_naddr      nptr;
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_sks        cl_pswsk;
+reg          cl_sefs_psw;
+e_sefm       cl_sefm;
 reg          cl_zero_irf;
 reg [2:0]    cl_irf;
+e_lts        cl_lts;
 e_abs        cl_abs, cl_abits;
 reg          cl_idb_pcl, cl_idb_pch, cl_pc_inc, cl_pc_dec;
 reg          cl_abi_sp, cl_abi_pc;
@@ -336,7 +339,7 @@ end
 // General-purpose registers
 always @(posedge CLK) begin
   if (cp2n) begin
-    if (nc.lts == ULTS_RF) begin
+    if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_V: v <= idb;
         URFS_A: a <= idb;
@@ -357,7 +360,7 @@ always @(posedge CLK) begin
         default: ;
       endcase
     end
-    if (nc.lts == ULTS_SEC) begin
+    if (cl_lts == ULTS_SEC) begin
       if (cl_rfts == URFS_V) begin
         v2 <= v;  v <= v2;
         a2 <= a;  a <= a2;
@@ -377,7 +380,7 @@ end
 // Working register
 always @(posedge CLK) begin
   if (cp2n) begin
-    if ((nc.lts == ULTS_RF) & (nc.rfts == URFS_W)) begin
+    if ((cl_lts == ULTS_RF) & (nc.rfts == URFS_W)) begin
       w <= idb;
     end
   end
@@ -407,6 +410,8 @@ always @(posedge CLK) begin
 
     if (cl_sks_sk)
       `psw_sk <= skso;
+    if (cl_sefs_psw)
+      {`psw_l1, `psw_l0} <= sefso;
   end
 end
 
@@ -416,7 +421,7 @@ always @(posedge CLK) begin
     sp <= 0;
   end
   else if (cp2p) begin
-    if (nc.lts == ULTS_RF) begin
+    if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_SPL: sp[7:0] <= idb;
         URFS_SPH: sp[15:8] <= idb;
@@ -484,7 +489,7 @@ always @(posedge CLK) begin
     mk <= 8'hff;
   end
   else if (cp2n) begin
-    if ((nc.lts == ULTS_SPR) & (cl_spr == USPR_MK)) begin
+    if ((cl_lts == ULTS_SPR) & (cl_spr == USPR_MK)) begin
       mk <= idb;
     end
   end
@@ -588,10 +593,10 @@ end
 
 // Inputs
 always @(posedge CLK) begin
-  if (nc.lts == ULTS_AI) begin
+  if (cl_lts == ULTS_AI) begin
     ai <= idb;
   end
-  if (nc.lts == ULTS_BI) begin
+  if (cl_lts == ULTS_BI) begin
     bi <= idb;
   end
   if (cl_zero_bi) begin
@@ -708,6 +713,16 @@ always @* begin
   endcase
 end
 
+// String effect flag (L0/L1) flag source
+always @* begin
+  case (cl_sefm)
+    ISEFM_NONE: sefso = 0;
+    ISEFM_L0: sefso = 2'b01;
+    ISEFM_L1: sefso = 2'b10;
+    default: sefso = 'X;
+  endcase
+end
+
 // Special data generator
 always @* begin
   case (nc.sdgs)
@@ -782,7 +797,6 @@ assign of_pc_inc = oft[3] & ~intg;
 //////////////////////////////////////////////////////////////////////
 // Instruction decode
 
-// Ugly hack to get the ball rolling...
 s_ird ird_lut [2048];
 
 initial begin
@@ -790,7 +804,7 @@ int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++) begin
     // default for illegal opcodes
-    ird_lut[i] = { UA_IDLE, 1'd1, 2'd0 };
+    ird_lut[i] = { UA_IDLE, 1'd1, 2'd0, ISEFM_NONE };
   end
 
 `include "uc-ird.svh"
@@ -870,6 +884,24 @@ end
 //////////////////////////////////////////////////////////////////////
 // Control logic
 
+function e_lts resolve_lts(e_lts in);
+e_lts out;
+reg sefa;
+  begin
+    out = in;
+    // String effect instruction, and corresponding flag is set?
+    sefa = ((cl_sefm == ISEFM_L0) & `psw_l0) |
+           ((cl_sefm == ISEFM_L1) & `psw_l1);
+    if (sefa) begin
+      // Disable register writeback 
+      if (in == ULTS_RF) begin
+        out = ULTS_NONE;
+      end
+    end
+    resolve_lts = out;
+  end
+endfunction
+
 function e_urfs resolve_rfs_ir(e_urfs in);
   e_urfs out;
   begin
@@ -921,8 +953,11 @@ always @* cl_one_c = (nc.lts == ULTS_PSW_CY) & (nc.idx[0] == 1'b1);
 always @* cl_cho_hc = nc.pswhc;
 always @* cl_sks_sk = (of_done & ~intg) | (nc.pswsk != USKS_PSW_SK);
 always @* cl_pswsk = e_sks'((of_done & ~intg) ? USKS_0 : nc.pswsk);
+always @* cl_sefs_psw = nc.pswsef;
+always @* cl_sefm = ird.sefm;
 always @* cl_zero_irf = (nc.pswsk == USKS_I) | (nc.pswsk == USKS_NI);
 always @* cl_irf = ir[2:0];
+always @* cl_lts = resolve_lts(nc.lts);
 initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | nc.aout;
@@ -994,7 +1029,7 @@ always @(posedge CLK) begin
     mc <= 8'hff;
   end
   else if (cp2n) begin
-    if (nc.lts == ULTS_SPR) begin
+    if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_PA: pao <= idb;
         USPR_PB: pbo <= idb;
@@ -1040,7 +1075,7 @@ always_ff @(posedge CLK) begin
   if (resg) begin
   end
   else if (cp2n) begin
-    if (nc.lts == ULTS_SPR) begin
+    if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_TM0: tm[7:0] <= idb;
         USPR_TM1: tm[11:8] <= idb[3:0];
