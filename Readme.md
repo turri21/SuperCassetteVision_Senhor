@@ -45,7 +45,9 @@ ROM images must:
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
-The background is not aligned with the sprites.
+Video:
+- The background is not aligned with the sprites.
+- The background glitches excessively due to VDC reads/writes.
 
 Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs can be loaded but won't alias, and so may not work.
 
@@ -53,7 +55,8 @@ Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs ca
 - CPU (uPD7801G)
   - Fix timing of special register instructions (e.g., 'ANI sr2, byte' is 11 steps, should be 17)
 - Video (Epoch TV-1)
-  - Most sprite features: size, linking, ...
+  - 2-color sprites
+  - Sprite start line
 - Audio (uPD1771C)
 - Cartridges
   - Recognize ROM image on load and set appropriate ROM size, enable RAM, etc.

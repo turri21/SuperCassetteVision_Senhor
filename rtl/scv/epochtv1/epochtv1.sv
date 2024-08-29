@@ -212,18 +212,6 @@ assign bgm_wbuf = DB_I;
 //////////////////////////////////////////////////////////////////////
 // Sprite attribute memory (OAM)
 
-typedef struct packed
-{
-    reg         split;
-    reg [6:0]   pat;
-    reg [6:0]   x;
-    reg         link_x;
-    reg [3:0]   start_line;
-    reg [3:0]   color;
-    reg [6:0]   y;
-    reg         link_y;
-} s_objattr;
-
 reg [31:0] oam [128];
 
 reg [6:0]  oam_a;
@@ -371,11 +359,32 @@ end
 //////////////////////////////////////////////////////////////////////
 // Sprite pipeline
 
+typedef struct packed
+{
+    reg         split;
+    reg [6:0]   tile;
+    reg [6:0]   x;
+    reg         link_x;
+    reg [3:0]   start_line;
+    reg [3:0]   color;
+    reg [6:0]   y;
+    reg         link_y;
+} s_objattr;
+
+wire [6:0]  spr_tile;
 wire [15:0] spr_pat;
 s_objattr   spr_oa;
 reg [8:0]   spr_y0;
-reg [3:0]   spr_y;
-wire        spr_dl, spr_dr;     // sprite left/right side
+wire        spr_half_w, spr_half_h;
+wire        spr_dbl_w, spr_dbl_h;
+reg [4:0]   spr_y, spr_w, spr_h;
+wire        spr_y_in_range;
+wire        spr_d0;             // drawing start
+wire        spr_dw2;            // drawing second half of double-wide
+wire        spr_dh2;            // drawing bottom half of double-high
+wire        spr_skip_dl, spr_skip_dr; // skip drawing left/right half
+wire        spr_skip_dt, spr_skip_db; // skip drawing top/bottom half
+wire        spr_dl, spr_dr;     // drawing left/right half (of 16-px pat.)
 reg [7:0]   spr_olb_we;
 
 reg         spr_dact;
@@ -388,9 +397,29 @@ reg [3:0]   spr_dclr;           // current sprite color
 assign spr_pat = {VBD_I, VAD_I};
 assign spr_oa = oam_rbuf;
 
-assign spr_vram_addr = {1'b0, spr_oa.pat, spr_y[3:1], spr_dr};
+assign spr_half_w = spr_oa.split;
+assign spr_half_h = spr_oa.split & spr_oa.tile[6];
+assign spr_dbl_w = ~spr_half_w & spr_oa.link_x;
+assign spr_dbl_h = ~spr_half_h & spr_oa.link_y;
+assign spr_w = spr_half_w ? 5'd7 : spr_dbl_w ? 5'd31 : 5'd15;
+assign spr_h = spr_half_h ? 5'd7 : spr_dbl_h ? 5'd31 : 5'd15;
+
+assign spr_tile = spr_oa.tile | {3'b0, spr_dw2, 2'b0, spr_dh2};
+assign spr_vram_addr = {1'b0, spr_tile, spr_y[3:1], spr_dr};
 assign spr_y0 = spr_oa.y*2 - 1'd1;
-assign spr_y = 4'(row - spr_y0);
+assign spr_y_in_range = row >= spr_y0 && row <= spr_y0 + 9'(spr_h);
+
+assign spr_skip_dl = spr_half_w & spr_oa.link_x;
+assign spr_skip_dr = spr_half_w & ~spr_oa.link_x;
+assign spr_skip_dt = spr_half_h & spr_oa.link_y;
+assign spr_skip_db = spr_half_h & ~spr_oa.link_y;
+
+always @* begin
+  spr_y = 5'(row - spr_y0);
+  if (spr_skip_dt)
+    spr_y -= 5'd8;
+end
+assign spr_dh2 = spr_y_in_range & spr_dbl_h & spr_y[4];
 
 always @* begin
   spr_dpat = 0;
@@ -408,7 +437,7 @@ always_ff @(posedge CLK) if (CE) begin
     spr_dsr <= {spr_dpat, spr_dsr[15:8]};
 
     spr_dact_d <= spr_dact;
-    if (spr_dl) begin
+    if (spr_d0) begin
       spr_dsx <= spr_oa.x*2;
       spr_dclr <= spr_oa.color;
     end
@@ -420,19 +449,19 @@ always_ff @(posedge CLK) if (CE) begin
   end
 end
 
-function is_spr_dsr_set(int off);
+function is_dsr_set(reg [15:0] dsr, int off, reg [2:0] x0);
 reg [4:0] p;
   begin
-    p = 5'd8 + off[4:0] - 5'(spr_dsx[2:0]);
-    is_spr_dsr_set = spr_dsr[4'(p)];
+    p = 5'd8 + off[4:0] - 5'(x0);
+    is_dsr_set = dsr[4'(p)];
   end
-endfunction  
+endfunction
 
 always @* begin
   spr_olb_we = 0;
   if (spr_dact_d | spr_dact_d2) begin
     for (int i = 0; i < 8; i++) begin
-      spr_olb_we[i[2:0]] = is_spr_dsr_set(i);
+      spr_olb_we[i[2:0]] = is_dsr_set(spr_dsr, i, spr_dsx[2:0]);
     end
   end
 end
@@ -500,13 +529,15 @@ end
 //////////////////////////////////////////////////////////////////////
 // Sprite / background OLB fill pipeline
 
-typedef enum reg [3:0]
+typedef enum reg [2:0]
 {
  SST_IDLE,
  SST_BG,
  SST_EVAL,
  SST_DRAW_L,
- SST_DRAW_R
+ SST_DRAW_R,
+ SST_DRAW_L2,
+ SST_DRAW_R2
 } e_sbofp_st;
 
 e_sbofp_st sbofp_st;
@@ -538,29 +569,34 @@ always_ff @(posedge CLK) if (CE) begin
   end
   else if (~sbofp_stall) begin
     if (sbofp_st == SST_EVAL) begin
-      sbofp_st <= SST_EVAL;
-    end
-    if (sbofp_st == SST_EVAL) begin
-      if (row >= spr_y0 && row <= spr_y0 + 15) begin
-        sbofp_st <= SST_DRAW_L;
+      if (spr_y_in_range) begin
+        sbofp_st <= spr_skip_dl ? SST_DRAW_R : SST_DRAW_L;
       end
       else begin
         sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);
         oam_idx <= oam_idx + 1'd1;
       end
     end
-    else if (sbofp_st == SST_DRAW_L) begin
+    else if ((sbofp_st == SST_DRAW_L) & ~spr_skip_dr) begin
       sbofp_st <= SST_DRAW_R;
     end
-    else if (sbofp_st == SST_DRAW_R) begin
+    else if ((sbofp_st == SST_DRAW_R) & spr_dbl_w) begin
+      sbofp_st <= SST_DRAW_L2;
+    end
+    else if (sbofp_st == SST_DRAW_L2) begin
+      sbofp_st <= SST_DRAW_R2;
+    end
+    else if ((spr_dl & spr_skip_dr) | spr_dr) begin
       sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);
       oam_idx <= oam_idx + 1'd1;
     end
   end
 end
 
-assign spr_dl = sbofp_st == SST_DRAW_L;
-assign spr_dr = sbofp_st == SST_DRAW_R;
+assign spr_d0 = ~spr_dw2 & (spr_dl | (spr_dr & spr_skip_dl));
+assign spr_dw2 = (sbofp_st == SST_DRAW_L2) | (sbofp_st == SST_DRAW_R2);
+assign spr_dl = (sbofp_st == SST_DRAW_L) | (sbofp_st == SST_DRAW_L2);
+assign spr_dr = (sbofp_st == SST_DRAW_R) | (sbofp_st == SST_DRAW_R2);
 
 assign sbofp_wsel = ~row[0];
 

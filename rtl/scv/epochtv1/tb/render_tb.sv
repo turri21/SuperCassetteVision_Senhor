@@ -4,6 +4,8 @@
 //
 // This program is GPL licensed. See COPYING for the full license.
 
+// From MAME debugger: save vram.bin,2000,1404
+
 `timescale 1us / 1ps
 
 module render_tb();
@@ -213,7 +215,7 @@ end
 
 initial #0 begin
   load_chr("epochtv.chr");
-  load_rams("text-vram.bin");
+  load_rams("astro-splash-vram.bin");
 
   -> init_regs;
 
