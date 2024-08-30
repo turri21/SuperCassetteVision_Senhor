@@ -379,6 +379,7 @@ wire        spr_half_w, spr_half_h;
 wire        spr_dbl_w, spr_dbl_h;
 reg [4:0]   spr_y, spr_w, spr_h;
 wire        spr_y_in_range;
+wire        spr_visible;
 wire        spr_d0;             // drawing start
 wire        spr_dw2;            // drawing second half of double-wide
 wire        spr_dh2;            // drawing bottom half of double-high
@@ -408,6 +409,7 @@ assign spr_tile = spr_oa.tile | {3'b0, spr_dw2, 2'b0, spr_dh2};
 assign spr_vram_addr = {1'b0, spr_tile, spr_y[3:1], spr_dr};
 assign spr_y0 = spr_oa.y*2 - 1'd1;
 assign spr_y_in_range = row >= spr_y0 && row <= spr_y0 + 9'(spr_h);
+assign spr_visible = |spr_oa.color & |spr_oa.y & spr_y_in_range;
 
 assign spr_skip_dl = spr_half_w & spr_oa.link_x;
 assign spr_skip_dr = spr_half_w & ~spr_oa.link_x;
@@ -569,7 +571,7 @@ always_ff @(posedge CLK) if (CE) begin
   end
   else if (~sbofp_stall) begin
     if (sbofp_st == SST_EVAL) begin
-      if (spr_y_in_range) begin
+      if (spr_visible) begin
         sbofp_st <= spr_skip_dl ? SST_DRAW_R : SST_DRAW_L;
       end
       else begin
