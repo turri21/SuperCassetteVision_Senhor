@@ -215,7 +215,7 @@ end
 
 initial #0 begin
   load_chr("epochtv.chr");
-  load_rams("astro-splash-vram.bin");
+  load_rams("elevfght-open-vram.bin");
 
   -> init_regs;
 
