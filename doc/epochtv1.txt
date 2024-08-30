@@ -1,0 +1,121 @@
+EPOCH TV-1
+==========
+
+References
+----------
+https://forums.atariage.com/topic/130365-atari-7800-vs-epoch-super-cassette-vision/ - [takeda.txt]
+http://takeda-toshiya.my.coocan.jp/scv/index.html
+https://github.com/mamedev/mame - src/mame/epoch/scv.cpp
+
+
+Overview
+--------
+. 64-pin DIP. Guessing at the pinout:
+  . (24) CPU bus: A[12:0], D[7:0], nCS, nRD, nWR
+  . (32) VRAM bus: A[11:0], D[15:0], nOE*2, nWE*2
+  .  (1) CPU INT2 = VBL
+. Clock: 14.318181 MHz XTAL (NTSC)
+
+
+External VRAM
+-------------
+. Directly addressable from CPU ($2000-$2FFF)
+. uPD4016C-2 -- 200ns transaction time
+. 2 chips x 128 row x 128 col = 2 x 2048 x 8 bits
+  . I think RAMs are in parallel: data bus is 16 bits wide
+. contents: sprite patterns
+. 5 MT/s x 16 bits
+  . given max. 30 sprite per row, 120 bytes are fetched per row
+
+
+Internal RAM
+------------
+. Directly addressable from CPU ($3000-$33FF)
+. Address map:
+  000-1FF (512B) background (Character / graphics bitmap)
+  200-3FF (512B) sprite attributes
+
+
+Internal ROM
+------------
+. 000-3FF (1KB) Character patterns
+. Not accessible from CPU -- CPU ROM has its own copy
+
+
+Registers
+---------
+
+R0 ($3400)
+. bit 0: enable bitmap
+. bit 1: bitmap res.: 0=hi-res, 1=lo-res
+. bit 4: enable sprites
+. bit 5: 2-color sprite mode
+. bit 6: invert XMAX effect: 1=render char. after XMAX
+. bit 7: invert YMAX effect: 1=render char. after YMAX
+
+R1 ($3401)
+. bits 7-4: hi-res bitmap FG color
+. bits 3-0: hi-res bitmap BG color
+
+R2 ($3402) - Character / graphics window split
+. bits 3-0: XMAX: pos = (XMAX * 16) - 24
+. bits 7-4: YMAX: pos = (YMAX * 16) - 23
+
+R3 ($3403)
+. bits 7-4: char. FG color
+. bits 3-0: char. BG color
+
+
+Background 
+----------
+
+Screen is divided into character and graphics areas.
+
+  Character
+  ---------
+
+  32x16 tilemap, 8x16 tiles
+  Character pattern is 8x8, drawn in top half of tile
+  Tile @ (tx, ty) draws at visible coord. (tx*8 - 24, ty*16 - 23)
+
+
+  Bitmapped graphics
+  ------------------
+
+  Two resolutions:
+  - lo-res: 32x32 bitmap, 4bpp color
+  - hi-res: 64x64 bitmap, 1bpp color
+
+
+Sprite pattern
+--------------
+
+. 16x16 1-color
+
+00[7,6,5,4] => byte address 0x00, bits 7-4
+
+    F  E  D  C  B  A  9  8  7  6  5  4  3  2  1  0  Col
+0   00[7,6,5,4] 01[7,6,5,4] 02[7,6,5,4] 03[7,6,5,4]
+1   00[3,2,1,0] 01[3,2,1,0] 02[3,2,1,0] 03[3,2,1,0]
+2   04[7,6,5,4] 05[7,6,5,4] 06[7,6,5,4] 07[7,6,5,4]
+3   04[3,2,1,0] 05[3,2,1,0] 06[3,2,1,0] 07[3,2,1,0]
+4-D      :           :           :           :
+E   1C[7,6,5,4] 1D[7,6,5,4] 1E[7,6,5,4] 1F[7,6,5,4]
+F   1C[3,2,1,0] 1D[3,2,1,0] 1E[3,2,1,0] 1F[3,2,1,0]
+Row
+
+
+
+Character patterns
+------------------
+   0123 4567 89AB CDEF
+0x  αβɣ πΣΩ♠︎ ♥︎♦︎♣︎© ↳↵÷\
+1x ○●◉◻︎ ▦︎⎡⎤⎣ ⎦⫧♪♪ →←↑↓
+2x  !"# $%&' ()*+ ,-./
+3x 0123 4567 89:; <=>?
+4x @ABC DEFG HIJK LMNO
+5x PQRS TUVW XYZ[ ¥]^_
+6x  abc defg hijk lmno
+7x pqrs tuvw xyz{ |}~■
+
+8x-Fx repeat 0x-7x

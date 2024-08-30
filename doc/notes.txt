@@ -1,0 +1,41 @@
+References
+==========
+
+https://forums.atariage.com/topic/130365-atari-7800-vs-epoch-super-cassette-vision/ - [takeda.txt]
+http://takeda-toshiya.my.coocan.jp/scv/index.html
+
+
+Memory maps
+===========
+
+CPU memory
+----------
+0000-0FFF   uPD7801G ROM
+1000-1FFF   (unused)
+2000-2FFF   External VRAM (2*2KB SRAM) - sprite patterns
+3000-31FF   EPOCH TV-1 internal VRAM - screen data (char. index / bitmap)
+3200-33FF   EPOCH TV-1 internal VRAM - sprite attributes
+3400-3403   EPOCH TV-1 registers
+3404-35FF   (unused)
+3600-3600   uPD1771C register
+3601-7FFF   (unused)
+8000-FF7F   Cartridge memory (ROM, RAM)
+FF80-FFFF   uPD7801G internal RAM (128B) - WRAM
+
+Character memory
+----------------
+000-3FF     Character ROM (1KB ROM) - text patterns
+
+
+Ports
+=====
+PC[0]: pause button - 0=pressed
+PC[3]: uPD1771C \RESET
+PC[6:5]: Cartridge (32K) bank select / A[16:15]
+
+
+Interrupts
+==========
+
+INT1: uPD1771C ACK (PB0)
+INT2: Vblank - asserted (rising) on start, de-asserted (falling) on end
