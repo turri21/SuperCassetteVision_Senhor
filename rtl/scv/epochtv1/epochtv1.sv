@@ -378,6 +378,7 @@ reg [8:0]   spr_y0;
 wire        spr_half_w, spr_half_h;
 wire        spr_dbl_w, spr_dbl_h;
 reg [4:0]   spr_y, spr_w, spr_h;
+wire [4:0]  spr_vs;             // top clip bounds
 wire        spr_2clr;           // 2-color sprite (if link_x/y)
 wire        spr_2halves;        // double-wide or 2-color (actual)
 reg [3:0]   spr_color;
@@ -403,6 +404,7 @@ reg [3:0]   spr_dclr;           // current sprite color
 assign spr_pat = {VBD_I, VAD_I};
 assign spr_oa = oam_rbuf;
 
+assign spr_vs = spr_oa.start_line*2;
 assign spr_half_w = spr_oa.split;
 assign spr_half_h = spr_oa.split & spr_oa.tile[6];
 assign spr_dbl_w = ~(spr_half_w | spr_2clr) & spr_oa.link_x;
@@ -415,7 +417,8 @@ assign spr_vram_addr = {1'b0, spr_tile, spr_y[3:1], spr_dr};
 assign spr_w = spr_half_w ? 5'd7 : spr_dbl_w ? 5'd31 : 5'd15;
 assign spr_h = spr_half_h ? 5'd7 : spr_dbl_h ? 5'd31 : 5'd15;
 assign spr_y0 = spr_oa.y*2 - 1'd1;
-assign spr_y_in_range = row >= spr_y0 && row <= spr_y0 + 9'(spr_h);
+assign spr_y_in_range = row >= spr_y0 + 9'(spr_vs) &&
+                        row <= spr_y0 + 9'(spr_h);
 assign spr_visible = |spr_oa.color & |spr_oa.y & spr_y_in_range;
 
 assign spr_skip_dl = spr_half_w & spr_oa.link_x;
