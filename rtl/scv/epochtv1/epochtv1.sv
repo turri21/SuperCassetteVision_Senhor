@@ -60,15 +60,15 @@ module epochtv1
 localparam [8:0] NUM_ROWS = 9'd262;
 localparam [8:0] NUM_COLS = 9'd260;
 
-localparam [8:0] FIRST_ROW_RENDER = 9'd21;
-localparam [8:0] LAST_ROW_RENDER = 9'd21 + 9'd222 - 1'd1;
-localparam [8:0] FIRST_ROW_VSYNC = 9'd253;
-localparam [8:0] LAST_ROW_VSYNC = 9'd261;
+localparam [8:0] FIRST_ROW_RENDER = 9'd24;
+localparam [8:0] LAST_ROW_RENDER = 9'd24 + 9'd222 - 1'd1;
+localparam [8:0] FIRST_ROW_VSYNC = 9'd256;
+localparam [8:0] LAST_ROW_VSYNC = 9'd2;
 
-localparam [8:0] FIRST_COL_RENDER = 9'd28;
-localparam [8:0] LAST_COL_RENDER = 9'd28 + 9'd192 - 1'd1;
-localparam [8:0] FIRST_COL_HSYNC = 9'd0;
-localparam [8:0] LAST_COL_HSYNC = 9'd19;
+localparam [8:0] FIRST_COL_RENDER = 9'd24;
+localparam [8:0] LAST_COL_RENDER = 9'd24 + 9'd192 - 1'd1;
+localparam [8:0] FIRST_COL_HSYNC = 9'd256;
+localparam [8:0] LAST_COL_HSYNC = 9'd15;
 
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
 // left/right borders
@@ -416,7 +416,7 @@ assign spr_vram_addr = {1'b0, spr_tile, spr_y[3:1], spr_dr};
 
 assign spr_w = spr_half_w ? 5'd7 : spr_dbl_w ? 5'd31 : 5'd15;
 assign spr_h = spr_half_h ? 5'd7 : spr_dbl_h ? 5'd31 : 5'd15;
-assign spr_y0 = spr_oa.y*2 - 1'd1;
+assign spr_y0 = spr_oa.y*2 + 2; // +2 aligns sprites w/ background
 assign spr_y_in_range = row >= spr_y0 + 9'(spr_vs) &&
                         row <= spr_y0 + 9'(spr_h);
 assign spr_visible = |spr_oa.color & |spr_oa.y & spr_y_in_range;
@@ -486,7 +486,7 @@ always_ff @(posedge CLK) if (CE) begin
 
     spr_dact_d <= spr_dact;
     if (spr_d0) begin
-      spr_dsx <= spr_oa.x*2;
+      spr_dsx <= spr_oa.x*2 - 4; // -4 aligns sprites w/ background
       spr_dclr <= spr_color;
     end
     else if (spr_dact_d) begin
@@ -720,9 +720,9 @@ end
 always_ff @(posedge CLK) if (CE) begin
   de <= visible;
 /* verilator lint_off UNSIGNED */
-  hsync <= (col >= FIRST_COL_HSYNC) & (col <= LAST_COL_HSYNC);
+  hsync <= (col >= FIRST_COL_HSYNC) | (col <= LAST_COL_HSYNC);
 /* verilator lint_on UNSIGNED */
-  vsync <= (row >= FIRST_ROW_VSYNC) & (row <= LAST_ROW_VSYNC);
+  vsync <= (row >= FIRST_ROW_VSYNC) | (row <= LAST_ROW_VSYNC);
   vbl <= ~render_row;
 end
 
