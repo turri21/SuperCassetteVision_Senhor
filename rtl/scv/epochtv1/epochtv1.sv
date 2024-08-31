@@ -88,6 +88,7 @@ wire         render_row, render_col, render_px;
 wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
 wire         cpu_rd, cpu_wr, cpu_rdwr;
 wire         sbofp_stall;
+reg [5:0]    sbofp_bgr_idx;
 
 //////////////////////////////////////////////////////////////////////
 // MMIO registers ($1400-$1403)
@@ -293,6 +294,7 @@ assign nVBWR = ~(cpu_sel_vram & cpu_wr & A[0]);
 
 wire [4:0] bgr_tx;
 wire [4:0] bgr_ty;
+wire       bgr_tx_valid;
 wire       bgr_xwin, bgr_ywin;
 wire       bgr_bm;
 wire       bgr_ch;
@@ -308,8 +310,9 @@ reg [7:0]  bgr_pxp, bgr_px;
 reg [4:0]  bgr_wa;
 reg [7:0]  bgr_we;
 
-assign bgr_tx = col[4:0];
+assign bgr_tx = sbofp_bgr_idx[4:0];
 assign bgr_ty = row[7:3];
+assign bgr_tx_valid = ~sbofp_bgr_idx[5];
 
 assign bgr_xwin = (bgr_tx[4:1] < bm_xmax) ^ bm_invx;
 assign bgr_ywin = (bgr_ty[4:1] < bm_ymax) ^ bm_invy;
@@ -355,7 +358,7 @@ always @(posedge CLK) if (CE) begin
   bgr_fgc <= bgr_ch ? bgr_ch_fgc : bgr_bm_fgc;
   bgr_px <= bgr_pxp;
   bgr_wa <= bgr_tx;
-  bgr_we <= ~0;
+  bgr_we <= {8{bgr_tx_valid}};
 end
 
 
@@ -608,19 +611,29 @@ always_ff @(posedge CLK) if (CE) begin
 end
 assign sbofp_stall = cpu_rdwr | sbofp_stall_d;
 
+initial begin
+  sbofp_st = SST_IDLE;
+  sbofp_bgr_idx = 6'd32;
+  oam_idx = 0;
+end
+
 always_ff @(posedge CLK) if (CE) begin
   if (~(pre_render_row | render_row)) begin
     sbofp_st <= SST_IDLE;
   end
   else if (col == 0) begin
     sbofp_st <= SST_BG;
-  end
-  else if (col == 9'd64) begin
-    oam_idx <= 0;
-    sbofp_st <= e_sbofp_st'(sp_ena ? SST_EVAL : SST_IDLE);
+    sbofp_bgr_idx <= 0;
   end
   else if (~sbofp_stall) begin
-    if (sbofp_st == SST_EVAL) begin
+    if (sbofp_st == SST_BG) begin
+      if (sbofp_bgr_idx == 6'd32) begin // +1 for pipeline delay
+        oam_idx <= 0;
+        sbofp_st <= e_sbofp_st'(sp_ena ? SST_EVAL : SST_IDLE);
+      end
+      sbofp_bgr_idx <= sbofp_bgr_idx + 1'd1;
+    end
+    else if (sbofp_st == SST_EVAL) begin
       if (spr_visible) begin
         sbofp_st <= spr_skip_dl ? SST_DRAW_R : SST_DRAW_L;
       end

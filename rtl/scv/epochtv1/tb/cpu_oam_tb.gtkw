@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Mon Aug 12 04:57:16 2024
+[*] Sat Aug 31 01:37:10 2024
 [*]
-[dumpfile] "/Users/dhunter/src/scv/epochtv1/tb/cpu_oam_tb.vcd"
-[dumpfile_mtime] "Mon Aug 12 04:57:15 2024"
-[dumpfile_size] 34825681
-[savefile] "/Users/dhunter/src/scv/epochtv1/tb/cpu_oam_tb.gtkw"
-[timestart] 1214600000
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/cpu_oam_tb.vcd"
+[dumpfile_mtime] "Sat Aug 31 01:35:31 2024"
+[dumpfile_size] 60272283
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/cpu_oam_tb.gtkw"
+[timestart] 1397250000
 [size] 1288 600
 [pos] -1 -1
-*-26.265533 1371797280 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-19.265533 1398441240 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -69,9 +69,11 @@ cpu_oam_tb.ctl.vdc.spr_dsr[15:0]
 cpu_oam_tb.ctl.vdc.olb_wa[5:0]
 cpu_oam_tb.ctl.vdc.olb_wd[31:0]
 cpu_oam_tb.ctl.vdc.olb_we[7:0]
+@24
+cpu_oam_tb.ctl.vdc.sbofp_st[2:0]
 @200
 -
-@29
+@28
 cpu_oam_tb.dut.vdc.sbofp_stall
 @22
 cpu_oam_tb.dut_rgb[23:0]
@@ -84,5 +86,9 @@ cpu_oam_tb.dut.vdc.spr_dsr[15:0]
 cpu_oam_tb.dut.vdc.olb_wa[5:0]
 cpu_oam_tb.dut.vdc.olb_wd[31:0]
 cpu_oam_tb.dut.vdc.olb_we[7:0]
+@24
+cpu_oam_tb.dut.vdc.sbofp_st[2:0]
+@28
+cpu_oam_tb.dut.vdc.sbofp_stall
 [pattern_trace] 1
 [pattern_trace] 0

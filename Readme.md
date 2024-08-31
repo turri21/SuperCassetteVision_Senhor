@@ -45,9 +45,6 @@ ROM images must:
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
-Video:
-- The background glitches excessively due to VDC reads/writes.
-
 Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs can be loaded but won't alias, and so may not work.
 
 ## TODOs
