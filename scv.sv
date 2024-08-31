@@ -219,11 +219,9 @@ localparam CONF_STR = {
 	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
-	"J,Trig 1,Trig 2;",
-	"jn,A|Y|L,B|X|R;",
-	"v,0;", // [optional] config version 0-99. 
-	        // If CONF_STR options are changed in incompatible way, then change version number too,
-			  // so all options will get default values on first start.
+	"J,Trig 1,Trig 2,SELECT 1,SELECT 2,SELECT 3,SELECT 4,SELECT EN;",
+	"jn,A,B,X,Y,L,R,Start;",
+	"v,1;",
 	"V,v",`BUILD_DATE 
 };
 
