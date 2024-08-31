@@ -71,11 +71,14 @@ localparam [8:0] FIRST_COL_HSYNC = 9'd256;
 localparam [8:0] LAST_COL_HSYNC = 9'd15;
 
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
+
+`ifdef EPOCHTV1_BORDERS
 // left/right borders
-localparam [8:0] FIRST_COL_LEFT = 9'd20;
-localparam [8:0] LAST_COL_LEFT = 9'd27;
-localparam [8:0] FIRST_COL_RIGHT = 9'd220;
-localparam [8:0] LAST_COL_RIGHT = 9'd227;
+localparam [8:0] FIRST_COL_LEFT = FIRST_COL_RENDER - 1'd8;
+localparam [8:0] LAST_COL_LEFT = FIRST_COL_RENDER - 1'd1;
+localparam [8:0] FIRST_COL_RIGHT = LAST_COL_RENDER + 1'd1;
+localparam [8:0] LAST_COL_RIGHT = LAST_COL_RENDER + 1'd8;
+`endif
 
 
 reg [8:0]    row, col;
