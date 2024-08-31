@@ -27,13 +27,19 @@ Concatenate the files to create boot.rom. Windows example:
 ## Usage
 
 ### Keyboard
+The console has a numeric keypad called **SELECT**, and a hard **PAUSE** button.
+
 * 0-9 - SELECT numbered keys
-* Backspace, numpad ./Del - SELECT CL key
-* Enter - SELECT EN key
+* Backspace, numpad ./Del - SELECT **CL** key
+* Enter - SELECT **EN** key
 * F1 - PAUSE button (disabled for now)
 
 ### Joysticks
 Up to two digital joysticks are mapped to the two controllers. Each controller has two **Trig** buttons.
+
+The most common **SELECT** buttons -- 1 to 4 and **EN** -- can also be configured as joystick buttons.
+
+Most games refer to a **START** button. There is no such button: Use a **Trig** button instead.
 
 ### Cartridge ROMs
 
