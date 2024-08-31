@@ -221,10 +221,12 @@ ird:
   - _at: '0x20'
     at: 32
     uaddr: INCR_WA
+    skipn: 1
     sefm: NONE
   - _at: '0x30'
     at: 48
     uaddr: DECR_WA
+    skipn: 1
     sefm: NONE
   - _at: '[0x41, 0x43]'
     at:

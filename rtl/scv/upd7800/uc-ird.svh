@@ -70,8 +70,8 @@
     ird_lut['h056] = {UA_ADC_A_IMM, 1'd0, 2'd1, ISEFM_NONE};
     ird_lut['h066] = {UA_SUB_A_IMM, 1'd0, 2'd1, ISEFM_NONE};
     ird_lut['h076] = {UA_SBB_A_IMM, 1'd0, 2'd1, ISEFM_NONE};
-    ird_lut['h020] = {UA_INCR_WA, 1'd0, 2'd0, ISEFM_NONE};
-    ird_lut['h030] = {UA_DECR_WA, 1'd0, 2'd0, ISEFM_NONE};
+    ird_lut['h020] = {UA_INCR_WA, 1'd0, 2'd1, ISEFM_NONE};
+    ird_lut['h030] = {UA_DECR_WA, 1'd0, 2'd1, ISEFM_NONE};
     ird_lut['h041] = {UA_INCR_RF_IR210, 1'd1, 2'd0, ISEFM_NONE};
     ird_lut['h042] = {UA_INCR_RF_IR210, 1'd1, 2'd0, ISEFM_NONE};
     ird_lut['h043] = {UA_INCR_RF_IR210, 1'd1, 2'd0, ISEFM_NONE};

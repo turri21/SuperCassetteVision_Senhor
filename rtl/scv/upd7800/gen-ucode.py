@@ -516,6 +516,7 @@ def testx(ir, nsteps, op):
 
 def incdec(ir, nsteps, op, reg):
     wa = reg == 'WA'
+    noper = 0 + wa
     ncpsw = {
         'pswsk': 'C',           # Update PSW.SK
         'pswz': 1,              # Update PSW.Z
@@ -542,7 +543,7 @@ def incdec(ir, nsteps, op, reg):
         # CO -> idb -> r2
         ucs.step(idb_rd('CO') | idb_wr(reg) | ncpsw)
 
-    ird_row(ir, nsteps, 0, ucs)
+    ird_row(ir, nsteps, noper, ucs)
 
 def incdecx(ir, nsteps, op, rp):
     abid = 'ab_inc' if op == 'INC' else 'ab_dec'

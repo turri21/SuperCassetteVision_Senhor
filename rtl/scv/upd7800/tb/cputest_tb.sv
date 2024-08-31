@@ -218,7 +218,8 @@ always @(posedge clk) begin
     end
   end
 
-  if (cp1p && dut.ir == 'hFF) begin // JR $
+  // JR $, PSW.SK=0
+  if (cp1p && dut.ir == 'hFF && dut.of_done & ~dut.psw[5]) begin
     if (dut.pc == 'h812A) begin     // end of success
       $display("Success!");
       $finish;
