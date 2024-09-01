@@ -1,4 +1,4 @@
-// Super Cassette Vision testbench: boot with (no) cart
+// Super Cassette Vision testbench: boot with cart, print frames
 //
 // Copyright (c) 2024 David Hunter
 //
@@ -16,6 +16,8 @@ module scv_tb();
 import scv_pkg::*;
 
 reg         clk, res;
+wire        pce, de, vs;
+wire [23:0] rgb;
 
 reg         rominit_active;
 integer     rominit_fin;
@@ -34,7 +36,6 @@ initial begin
   $dumpvars();
 `else
   $dumpfile("scv_tb.verilator.vcd");
-  $dumpvars();
 `endif
 end
 
@@ -52,11 +53,11 @@ scv dut
 
    .HMI(hmi),
 
-   .VID_PCE(),
-   .VID_DE(),
+   .VID_PCE(pce),
+   .VID_DE(de),
    .VID_HS(),
-   .VID_VS(),
-   .VID_RGB()
+   .VID_VS(vs),
+   .VID_RGB(rgb)
    );
 
 initial begin
@@ -125,6 +126,48 @@ task rominit_cart;
   rominit_sel_cart = '0;
 endtask
 
+//////////////////////////////////////////////////////////////////////
+
+integer frame = 0;
+integer fpic;
+logic   pice;
+string  fname;
+
+initial fpic = -1;
+always @(negedge vs) begin
+  if (fpic != -1) begin
+    $fclose(fpic);
+`ifdef VERILATOR
+    $system({"python3 ../epochtv1/tb/render2png.py ", fname, {".hex "}, fname, ".png; rm ", fname, ".hex"});
+`endif
+  end
+  $display("%t: Frame %03d", $time, frame);
+  $sformat(fname, "frames/render-%03d", frame);
+  pice = 0;
+  if (frame >= 476) begin
+    $dumpvars();
+    fpic = $fopen({fname, ".hex"}, "w");
+  end
+  frame = frame + 1;
+end
+final
+  $fclose(fpic);
+
+always @(posedge clk) begin
+  if (fpic != -1 && pce) begin
+    if (de) begin
+      $fwrite(fpic, "%x", rgb);
+      pice = 1;
+    end
+    else if (pice) begin
+      pice = 0;
+      $fwrite(fpic, "\n");
+    end
+  end
+end
+
+//////////////////////////////////////////////////////////////////////
+
 initial #0 begin
   rominit_boot();
   rominit_chr();
@@ -152,25 +195,11 @@ initial #0 begin
 `ifndef VERILATOR
   #(60e3) @(posedge clk) ;
 `else
-  #(500e3) @(posedge clk) ;
+  #(9000e3) @(posedge clk) ;
 `endif
 
   $finish;
 end
-
-`ifdef TEST_PAUSE
-initial begin
-  #(500e3) ;
-  $display("Pausing...");
-  hmi.pause = '1;
-  #(30e3) hmi.pause = 0;
-
-  #(800e3) ;
-  $display("Resuming...");
-  hmi.pause = '1;
-  #(30e3) hmi.pause = 0;
-end
-`endif
 
 endmodule
 

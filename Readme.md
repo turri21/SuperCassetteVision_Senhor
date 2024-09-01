@@ -53,6 +53,8 @@ Pressing the PAUSE button hangs the ROM, because the audio chip is not yet imple
 
 Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs can be loaded but won't alias, and so may not work.
 
+Video: Visual glitches, due to games changing sprite data mid-frame, are especially notable in scrollers like Wheelie Racer. This is an expected (albeit undesired) behavior of the current design of the render engine. Fixing this issue will require better knowledge of the actual render engine in the Epoch TV-1 VDC.
+
 ## TODOs
 - CPU (uPD7801G)
   - Fix timing of special register instructions (e.g., 'ANI sr2, byte' is 11 steps, should be 17)

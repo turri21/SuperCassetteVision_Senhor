@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Aug 11 06:24:24 2024
+[*] Sun Sep  1 01:56:50 2024
 [*]
-[dumpfile] "/Users/dhunter/src/scv/tb/scv_tb.verilator.vcd"
-[dumpfile_mtime] "Sun Aug 11 06:15:21 2024"
-[dumpfile_size] 975200257
-[savefile] "/Users/dhunter/src/scv/tb/scv_tb.verilator.gtkw"
-[timestart] 195651690000
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.vcd"
+[dumpfile_mtime] "Sun Sep  1 01:00:12 2024"
+[dumpfile_size] 2863132698
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.gtkw"
+[timestart] 7926187100760
 [size] 1288 600
 [pos] -1 -1
-*-22.728922 195667515360 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-38.018291 8610223107960 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -40,24 +40,156 @@
 [treeopen] TOP.scv_tb.
 [treeopen] TOP.scv_tb.dut.
 [sst_width] 253
-[signals_width] 137
+[signals_width] 243
 [sst_expanded] 1
 [sst_vpaned_height] 159
 @28
 TOP.scv_tb.dut.CLK
 TOP.scv_tb.dut.RESB
+TOP.scv_tb.dut.cpu.M1
+@22
+TOP.scv_tb.dut.cpu.A[15:0]
+TOP.scv_tb.dut.cpu.DB_I[7:0]
+TOP.scv_tb.dut.cpu.DB_O[7:0]
+@28
+TOP.scv_tb.dut.cpu.RDB
+TOP.scv_tb.dut.cpu.WRB
+@c00200
+-vdc
+@28
+TOP.scv_tb.dut.vdc.CE
+TOP.scv_tb.dut.vdc.field
+@24
+TOP.scv_tb.dut.vdc.row[8:0]
+TOP.scv_tb.dut.vdc.col[8:0]
+@28
+TOP.scv_tb.dut.vdc.VBL
+TOP.scv_tb.dut.vdc.nVAWR
+TOP.scv_tb.dut.vdc.nVBWR
+@c00200
+-cpu bus
 @22
 TOP.scv_tb.dut.vdc.A[12:0]
 TOP.scv_tb.dut.vdc.DB_I[7:0]
-@23
 TOP.scv_tb.dut.vdc.DB_O[7:0]
 @28
-TOP.scv_tb.dut.vdc.CE
 TOP.scv_tb.dut.vdc.RDB
 TOP.scv_tb.dut.vdc.WRB
 TOP.scv_tb.dut.vdc.CSB
+@1401200
+-cpu bus
+@c00200
+-ioreg
+@22
+TOP.scv_tb.dut.vdc.ioreg0[7:0]
+TOP.scv_tb.dut.vdc.ioreg1[7:0]
+TOP.scv_tb.dut.vdc.ioreg2[7:0]
+TOP.scv_tb.dut.vdc.ioreg3[7:0]
+@1401200
+-ioreg
+@c00200
+-bgr
+@22
+TOP.scv_tb.dut.vdc.bgr_tx[4:0]
+TOP.scv_tb.dut.vdc.bgr_ty[4:0]
+@28
+TOP.scv_tb.dut.vdc.bgr_xwin
+TOP.scv_tb.dut.vdc.bgr_ywin
+TOP.scv_tb.dut.vdc.bgr_bm
+@22
+TOP.scv_tb.dut.vdc.bgr_bm_bgc[3:0]
+TOP.scv_tb.dut.vdc.bgr_bm_fgc[3:0]
+@28
+TOP.scv_tb.dut.vdc.bgr_bm_hipat[1:0]
+@22
+TOP.scv_tb.dut.vdc.bgr_bm_lopat[3:0]
+TOP.scv_tb.dut.vdc.bgr_bm_pat[7:0]
+@28
+TOP.scv_tb.dut.vdc.bgr_ch
+@22
+TOP.scv_tb.dut.vdc.bgr_ch_bgc[3:0]
+TOP.scv_tb.dut.vdc.bgr_ch_fgc[3:0]
+TOP.scv_tb.dut.vdc.bgr_ch_pat[7:0]
+TOP.scv_tb.dut.vdc.bgr_bgc[3:0]
+TOP.scv_tb.dut.vdc.bgr_fgc[3:0]
+TOP.scv_tb.dut.vdc.bgr_px[7:0]
+TOP.scv_tb.dut.vdc.bgr_wa[4:0]
+TOP.scv_tb.dut.vdc.bgr_we[7:0]
+@1401200
+-bgr
+@c00200
+-spr
+@22
+TOP.scv_tb.dut.vdc.oam_idx[6:0]
+TOP.scv_tb.dut.vdc.spr_oa[31:0]
+TOP.scv_tb.dut.vdc.spr_tile[6:0]
+TOP.scv_tb.dut.vdc.spr_vram_addr[11:0]
+@28
+TOP.scv_tb.dut.vdc.spr_half_w
+TOP.scv_tb.dut.vdc.spr_half_h
+TOP.scv_tb.dut.vdc.spr_dbl_w
+TOP.scv_tb.dut.vdc.spr_dbl_h
+TOP.scv_tb.dut.vdc.spr_2clr
+TOP.scv_tb.dut.vdc.spr_y_in_range
+TOP.scv_tb.dut.vdc.spr_dl
+TOP.scv_tb.dut.vdc.spr_dr
+TOP.scv_tb.dut.vdc.spr_dw2
+TOP.scv_tb.dut.vdc.spr_dh2
+TOP.scv_tb.dut.vdc.spr_dact
+TOP.scv_tb.dut.vdc.spr_dact_d
+@22
+TOP.scv_tb.dut.vdc.spr_dpat[7:0]
+TOP.scv_tb.dut.vdc.spr_dsr[15:0]
+TOP.scv_tb.dut.vdc.spr_dsx[7:0]
+TOP.scv_tb.dut.vdc.spr_dclr[3:0]
+@28
+TOP.scv_tb.dut.vdc.spr_dact_d2
+@1401200
+-spr
+@c00200
+-olb
+@22
+TOP.scv_tb.dut.vdc.olb_wa[5:0]
+TOP.scv_tb.dut.vdc.olb_wd[31:0]
+TOP.scv_tb.dut.vdc.olb_we[7:0]
+TOP.scv_tb.dut.vdc.olb_ra[5:0]
+TOP.scv_tb.dut.vdc.olb_rd[31:0]
+@28
+TOP.scv_tb.dut.vdc.olb_re
+@1401200
+-olb
+@c00200
+-sbofp
+@24
+TOP.scv_tb.dut.vdc.sbofp_st[2:0]
+@22
+TOP.scv_tb.dut.vdc.sbofp_wdc_bg[3:0]
+TOP.scv_tb.dut.vdc.sbofp_wdc_fg[3:0]
+TOP.scv_tb.dut.vdc.sbofp_wds[7:0]
+TOP.scv_tb.dut.vdc.sbofp_rx[7:0]
+TOP.scv_tb.dut.vdc.sbofp_rrs[2:0]
+TOP.scv_tb.dut.vdc.sbofp_px[3:0]
+@1401200
+-sbofp
+@c00200
+-out
+@28
+TOP.scv_tb.dut.vdc.render_row
+TOP.scv_tb.dut.vdc.render_col
+@22
+TOP.scv_tb.dut.vdc.pd[3:0]
+@28
 TOP.scv_tb.dut.vdc.VBL
-TOP.scv_tb.dut.vdc.cpu_bgm_sel
-TOP.scv_tb.dut.vdc.cpu_rd
+TOP.scv_tb.dut.vdc.DE
+TOP.scv_tb.dut.vdc.HS
+TOP.scv_tb.dut.vdc.VS
+@22
+TOP.scv_tb.dut.vdc.RGB[23:0]
+@1401200
+-out
+-vdc
+@22
+TOP.scv_tb.dut.HMI[24:0]
+TOP.scv_tb.dut.VID_RGB[23:0]
 [pattern_trace] 1
 [pattern_trace] 0
