@@ -1,4 +1,4 @@
-// Cartridge slot and cartridge
+// Cartridge ROM
 //
 // Copyright (c) 2024 David Hunter
 //

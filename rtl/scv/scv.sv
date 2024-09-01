@@ -44,6 +44,7 @@ wire        cpu_db_oe;
 wire        cpu_rdb, cpu_wrb;
 
 wire [7:0]  rom_db;
+wire        rom_db_oe;
 wire        rom_ncs;
 
 wire        wram_ncs;
@@ -52,6 +53,7 @@ wire [7:0]  wram_db;
 
 wire        cart_ncs;
 wire [7:0]  cart_db;
+wire        cart_db_oe;
 
 wire [7:0]  vdc_db_o;
 wire        vdc_db_oe;
@@ -62,8 +64,6 @@ wire        nvard, nvawr, nvbrd, nvbwr;
 wire        vbl;
 wire        de, hs, vs;
 wire [23:0] rgb;
-
-wire        rom_db_oe, cart_db_oe;
 
 wire [7:0]  pao, pbi, pci, pco;
 
@@ -221,10 +221,16 @@ cart cart
    .INIT_VALID(ROMINIT_SEL_CART & ROMINIT_VALID),
 
    .CFG_ROM_AW(5'd15),          // TODO: control this somehow
+   .CFG_RAM_AW(5'd13),          // TODO: control this somehow
 
    .A(cpu_a[14:0]),
-   .DB(cart_db),
-   .nCS(cart_ncs)
+   .DB_I(cpu_db),
+   .DB_O(cart_db),
+   .DB_OE(cart_db_oe),
+   .nCS(cart_ncs),
+   .RDB(cpu_rdb),
+   .WRB(cpu_wrb),
+   .PC(pco[6:5])
    );
 
 assign rom_ncs = |cpu_a[15:12];
@@ -234,7 +240,6 @@ assign cart_ncs = ~cpu_a[15] | ~wram_ncs | ~vdc_ncs;
 
 assign rom_db_oe = ~(rom_ncs | cpu_rdb);
 assign wram_db_oe = ~(wram_ncs | cpu_rdb);
-assign cart_db_oe = ~(cart_ncs | cpu_rdb);
 
 always_comb begin
   cpu_db = 8'hxx;

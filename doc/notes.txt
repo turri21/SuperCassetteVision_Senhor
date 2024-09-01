@@ -31,7 +31,11 @@ Ports
 =====
 PC[0]: pause button - 0=pressed
 PC[3]: uPD1771C \RESET
-PC[6:5]: Cartridge (32K) bank select / A[16:15]
+PC[6:5]: Cartridge-specific function:
+    - 32K ROM + 8K RAM: Overlay RAM enable = PC[5] & &A[14:13]
+    - 64K+ ROM: ROM (32K window) bank select: PC[6:5] => A[16:15]
+    - 128K ROM (+ 4K RAM): ROM (32K window) bank select: PC[6:5] => A[16:15],
+        and Overlay RAM enable = PC[6] & &A[14:12]
 
 
 Interrupts

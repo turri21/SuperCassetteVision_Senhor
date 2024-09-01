@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Sep  1 01:56:50 2024
+[*] Sun Sep  1 05:31:59 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.vcd"
-[dumpfile_mtime] "Sun Sep  1 01:00:12 2024"
-[dumpfile_size] 2863132698
+[dumpfile_mtime] "Sun Sep  1 04:51:30 2024"
+[dumpfile_size] 2244504581
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.gtkw"
-[timestart] 7926187100760
+[timestart] 196952320000
 [size] 1288 600
 [pos] -1 -1
-*-38.018291 8610223107960 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-23.018291 196968809160 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -54,6 +54,8 @@ TOP.scv_tb.dut.cpu.DB_O[7:0]
 @28
 TOP.scv_tb.dut.cpu.RDB
 TOP.scv_tb.dut.cpu.WRB
+@23
+TOP.scv_tb.dut.cpu.PC_O[7:0]
 @c00200
 -vdc
 @28

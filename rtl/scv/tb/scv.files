@@ -3,6 +3,7 @@
 ../hmi2key.sv
 ../cart.sv
 ../cart_rom.sv
+../cart_ram.sv
 
 ../upd7800/upd7800.sv
 

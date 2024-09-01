@@ -144,8 +144,10 @@ always @(negedge vs) begin
   $display("%t: Frame %03d", $time, frame);
   $sformat(fname, "frames/render-%03d", frame);
   pice = 0;
-  if (frame >= 476) begin
+  if (frame >= 0) begin
+`ifdef VERILATOR
     $dumpvars();
+`endif
     fpic = $fopen({fname, ".hex"}, "w");
   end
   frame = frame + 1;
@@ -195,7 +197,7 @@ initial #0 begin
 `ifndef VERILATOR
   #(60e3) @(posedge clk) ;
 `else
-  #(9000e3) @(posedge clk) ;
+  #(1000e3) @(posedge clk) ;
 `endif
 
   $finish;
