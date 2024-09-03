@@ -39,7 +39,7 @@ Up to two digital joysticks are mapped to the two controllers. Each controller h
 
 The most common **SELECT** buttons -- 1 to 4 and **EN** -- can also be configured as joystick buttons.
 
-Most games refer to a **START** button. There is no such button: Use a **Trig** button instead.
+Most games refer to a **START** button. There is no such button: Use a **Trig** button or **EN** instead.
 
 ### Cartridge ROMs
 
@@ -47,13 +47,14 @@ ROM images must:
 - Have a file extension .ROM or .BIN
 - Be strictly the ROM contents (no headers)
 
+Cartridges had 8K - 128K of ROM, and some had RAM. Two heuristics are used to identify the cartridge -- ROM size and checksum -- and map the memories appropriately. The OSD has an option to manually select a mapper.
+
 
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
 
-Cartridge emulation: Currently hard-wired for a 32K ROM, no RAM. Smaller ROMs can be loaded but won't alias, and so may not work.
-
 Video: Visual glitches, due to games changing sprite data mid-frame, are especially notable in scrollers like Wheelie Racer. This is an expected (albeit undesired) behavior of the current design of the render engine. Fixing this issue will require better knowledge of the actual render engine in the Epoch TV-1 VDC.
+
 
 ## TODOs
 - CPU (uPD7801G)
@@ -62,4 +63,4 @@ Video: Visual glitches, due to games changing sprite data mid-frame, are especia
   - (none)
 - Audio (uPD1771C)
 - Cartridges
-  - Recognize ROM image on load and set appropriate ROM size, enable RAM, etc.
+  - Save and restore battery-backed RAM

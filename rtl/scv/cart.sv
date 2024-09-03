@@ -10,6 +10,7 @@ module cart
   (
    input            CLK,
 
+   input            INIT_SEL,
    input [16:0]     INIT_ADDR,
    input [7:0]      INIT_DATA,
    input            INIT_VALID,
@@ -26,6 +27,10 @@ module cart
    input [6:5]      PC
    );
 
+mapper_t id_mapper;
+
+wire [4:0]  rom_size_log2;
+wire [31:0] rom_cksum;
 wire [16:0] rom_a;
 wire [7:0]  rom_db_o;
 wire        rom_db_oe;
@@ -36,11 +41,22 @@ wire [7:0]  ram_db_o;
 wire        ram_db_oe;
 wire        ram_csb, ram_nwe, ram_noe;
 
+cart_id id
+  (
+   .CLK(CLK),
+
+   .ROM_SIZE_LOG2(rom_size_log2),
+   .ROM_CKSUM(rom_cksum),
+
+   .IN_MAPPER(MAPPER),
+   .OUT_MAPPER(id_mapper)
+   );
+
 cart_mapper mapper
   (
    .CLK(CLK),
 
-   .MAPPER(MAPPER),
+   .MAPPER(id_mapper),
 
    .A(A),
    .RDB(RDB),
@@ -61,9 +77,13 @@ cart_rom rom
   (
    .CLK(CLK),
 
+   .INIT_SEL(INIT_SEL),
    .INIT_ADDR(INIT_ADDR),
    .INIT_DATA(INIT_DATA),
    .INIT_VALID(INIT_VALID),
+
+   .SIZE_LOG2(rom_size_log2),
+   .CKSUM(rom_cksum),
 
    .A(rom_a),
    .DB(rom_db_o),

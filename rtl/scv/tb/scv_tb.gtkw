@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Aug 18 07:53:32 2024
+[*] Tue Sep  3 06:28:20 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.vcd"
-[dumpfile_mtime] "Sun Aug 18 07:50:44 2024"
-[dumpfile_size] 5347026
+[dumpfile_mtime] "Tue Sep  3 06:28:06 2024"
+[dumpfile_size] 6045228
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.gtkw"
-[timestart] 1082290000
+[timestart] 746800000
 [size] 1288 600
 [pos] -1 -1
-*-22.036085 1098094320 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-21.036085 751164120 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -41,7 +41,7 @@
 [treeopen] scv_tb.dut.cart.
 [treeopen] scv_tb.dut.cart.rom.
 [sst_width] 253
-[signals_width] 216
+[signals_width] 208
 [sst_expanded] 1
 [sst_vpaned_height] 159
 @28
@@ -87,9 +87,16 @@ scv_tb.dut.vdc.oam_wbuf[31:0]
 @800200
 -cart
 @22
-scv_tb.dut.cart.rom.A[14:0]
+scv_tb.dut.cart.id.IN_MAPPER[3:0]
+scv_tb.dut.cart.id.ROM_CKSUM[31:0]
+@24
+scv_tb.dut.cart.id.ROM_SIZE_LOG2[4:0]
+@22
+scv_tb.dut.cart.id.id_mapper[3:0]
+scv_tb.dut.cart.mapper.MAPPER[3:0]
+scv_tb.dut.cart.mapper.ROM_A[16:0]
 @28
-scv_tb.dut.cart.rom.nCS
+scv_tb.dut.cart.mapper.ram_en
 @1000200
 -cart
 [pattern_trace] 1

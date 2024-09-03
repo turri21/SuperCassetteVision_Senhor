@@ -2,6 +2,7 @@
 ../scv.sv
 ../hmi2key.sv
 ../cart.sv
+../cart_id.sv
 ../cart_mapper.sv
 ../cart_rom.sv
 ../cart_ram.sv

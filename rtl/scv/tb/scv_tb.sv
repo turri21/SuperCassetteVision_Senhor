@@ -76,7 +76,7 @@ initial begin
 
   hmi = 0;
 
-  mapper = MAPPER_ROM8K;
+  mapper = MAPPER_AUTO;
 end
 
 initial forever begin :ckgen
