@@ -31,6 +31,7 @@ module cart_mapper
 //  - 128K ROM (+ 4K RAM): ROM (32K window) bank select: PC[6:5] => A[16:15],
 //      and Overlay RAM enable = PC[6] & &A[14:12]
 
+logic [16:15] rom_a;
 logic [3:0] rom_aw, ram_aw;
 logic       ram_en;
 
@@ -38,7 +39,7 @@ always @* begin
   rom_aw = 4'd15;               // 32K ROM
   ram_aw = 4'd13;               // 8K RAM
   ram_en = '0;                  // RAM disabled
-  ROM_A[16:15] = '0;
+  rom_a[16:15] = '0;
 
   case (MAPPER)
     MAPPER_ROM8K:
@@ -51,11 +52,11 @@ always @* begin
       ram_en = PC[5] & &A[14:13];
     end
     MAPPER_ROM64K:
-      ROM_A[15] = PC[5];
+      rom_a[15] = PC[5];
     MAPPER_ROM128K:
-      ROM_A[16:15] = PC[6:5];
+      rom_a[16:15] = PC[6:5];
     MAPPER_ROM128K_RAM4K: begin
-      ROM_A[16:15] = PC[6:5];
+      rom_a[16:15] = PC[6:5];
       // Overlay RAM @ $F000-$FF7F, enable = PC[6]
       ram_aw = 4'd12;
       ram_en = PC[6] & &A[14:12];
@@ -64,6 +65,7 @@ always @* begin
   endcase
 end
 
+assign ROM_A[16:15] = rom_a[16:15];
 assign ROM_A[14:0] = A & ((15'd1 << rom_aw) - 1'd1);
 assign ROM_CSB = CSB | ram_en;
 
