@@ -22,4 +22,17 @@ typedef struct packed {
   bit pause;
 } hmi_t;
 
+// Cartridge memory mappers
+typedef enum bit [3:0]
+{
+ MAPPER_AUTO = 4'd0,            // reserved for automatic detection
+ MAPPER_ROM8K,
+ MAPPER_ROM16K,
+ MAPPER_ROM32K,
+ MAPPER_ROM32K_RAM8K,
+ MAPPER_ROM64K,
+ MAPPER_ROM128K,
+ MAPPER_ROM128K_RAM4K
+} mapper_t;
+
 endpackage

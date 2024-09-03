@@ -25,6 +25,8 @@ module scv
    input [7:0]   ROMINIT_DATA,
    input         ROMINIT_VALID,
 
+   input         mapper_t MAPPER,
+
    input         hmi_t HMI,
 
    output        VID_PCE,
@@ -220,14 +222,13 @@ cart cart
    .INIT_DATA(ROMINIT_DATA),
    .INIT_VALID(ROMINIT_SEL_CART & ROMINIT_VALID),
 
-   .CFG_ROM_AW(5'd15),          // TODO: control this somehow
-   .CFG_RAM_AW(5'd13),          // TODO: control this somehow
+   .MAPPER(MAPPER),
 
    .A(cpu_a[14:0]),
    .DB_I(cpu_db),
    .DB_O(cart_db),
    .DB_OE(cart_db_oe),
-   .nCS(cart_ncs),
+   .CSB(cart_ncs),
    .RDB(cpu_rdb),
    .WRB(cpu_wrb),
    .PC(pco[6:5])

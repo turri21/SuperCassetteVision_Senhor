@@ -4,6 +4,8 @@
 //
 // This program is GPL licensed. See COPYING for the full license.
 
+import scv_pkg::mapper_t;
+
 module cart
   (
    input            CLK,
@@ -12,8 +14,7 @@ module cart
    input [7:0]      INIT_DATA,
    input            INIT_VALID,
 
-   input [4:0]      CFG_ROM_AW,
-   input [4:0]      CFG_RAM_AW,
+   input            mapper_t MAPPER,
    
    input [14:0]     A,
    input [7:0]      DB_I,
@@ -21,20 +22,40 @@ module cart
    output           DB_OE,
    input            RDB,
    input            WRB,
-   input            nCS,
+   input            CSB,
    input [6:5]      PC
    );
 
-wire [7:0] rom_db_o;
-wire       rom_db_oe;
-wire       rom_ncs;
+wire [16:0] rom_a;
+wire [7:0]  rom_db_o;
+wire        rom_db_oe;
+wire        rom_csb;
 
-wire [7:0] ram_db_o;
-wire       ram_db_oe;
-wire       ram_en, ram_nce, ram_nwe, ram_noe;
+wire [12:0] ram_a;
+wire [7:0]  ram_db_o;
+wire        ram_db_oe;
+wire        ram_csb, ram_nwe, ram_noe;
 
-assign rom_ncs = nCS | ram_en;
-assign rom_db_oe = ~rom_ncs;
+cart_mapper mapper
+  (
+   .CLK(CLK),
+
+   .MAPPER(MAPPER),
+
+   .A(A),
+   .RDB(RDB),
+   .WRB(WRB),
+   .CSB(CSB),
+   .PC(PC),
+
+   .ROM_A(rom_a),
+   .ROM_CSB(rom_csb),
+
+   .RAM_A(ram_a),
+   .RAM_CSB(ram_csb)
+   );
+
+assign rom_db_oe = ~rom_csb;
 
 cart_rom rom
   (
@@ -44,15 +65,11 @@ cart_rom rom
    .INIT_DATA(INIT_DATA),
    .INIT_VALID(INIT_VALID),
 
-   .CFG_AW(CFG_ROM_AW),
-
-   .A(A),
+   .A(rom_a),
    .DB(rom_db_o),
-   .nCS(rom_ncs)
+   .CSB(rom_csb)
    );
 
-assign ram_en = PC[5] & &A[14:13];
-assign ram_nce = nCS | ~ram_en;
 assign ram_nwe = WRB;
 assign ram_noe = RDB;
 
@@ -60,17 +77,15 @@ cart_ram ram
   (
    .CLK(CLK),
 
-   .CFG_AW(CFG_RAM_AW),
-
-   .A(A[12:0]),
+   .A(ram_a),
    .DI(DB_I),
    .DO(ram_db_o),
-   .nCE(ram_nce),
+   .nCE(ram_csb),
    .nWE(ram_nwe),
    .nOE(ram_noe)
    );
 
-assign ram_db_oe = ~(ram_nce | ram_noe);
+assign ram_db_oe = ~(ram_csb | ram_noe);
 
 always_comb begin
   DB_O = 8'hxx;

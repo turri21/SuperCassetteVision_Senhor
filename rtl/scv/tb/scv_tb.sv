@@ -26,6 +26,8 @@ reg [24:0]  rominit_addr;
 reg [7:0]   rominit_data;
 reg         rominit_valid;
 
+mapper_t    mapper;
+
 hmi_t       hmi;
 
 initial begin
@@ -51,6 +53,8 @@ scv dut
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
 
+   .MAPPER(mapper),
+
    .HMI(hmi),
 
    .VID_PCE(pce),
@@ -71,6 +75,8 @@ initial begin
   rominit_valid = 0;
 
   hmi = 0;
+
+  mapper = MAPPER_ROM8K;
 end
 
 initial forever begin :ckgen
@@ -144,9 +150,10 @@ always @(negedge vs) begin
   $display("%t: Frame %03d", $time, frame);
   $sformat(fname, "frames/render-%03d", frame);
   pice = 0;
-  if (frame >= 0) begin
+  if (frame >= 20) begin
 `ifdef VERILATOR
-    $dumpvars();
+    if (frame == 20)
+      $dumpvars();
 `endif
     fpic = $fopen({fname, ".hex"}, "w");
   end

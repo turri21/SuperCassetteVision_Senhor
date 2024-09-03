@@ -635,7 +635,7 @@ always_ff @(posedge CLK) if (CE) begin
     end
     else if (sbofp_st == SST_EVAL) begin
       if (spr_visible) begin
-        sbofp_st <= spr_skip_dl ? SST_DRAW_R : SST_DRAW_L;
+        sbofp_st <= e_sbofp_st'(spr_skip_dl ? SST_DRAW_R : SST_DRAW_L);
       end
       else begin
         sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);

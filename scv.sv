@@ -173,6 +173,7 @@ module emu
 );
 
 import scv_pkg::hmi_t;
+import scv_pkg::mapper_t;
 
 wire        clk_sys;
 
@@ -202,6 +203,13 @@ assign LED_POWER = 0;
 assign BUTTONS = 0;
 
 //////////////////////////////////////////////////////////////////
+// HPS I/O
+
+// Status Bit Map:
+// 0         1         2         3          4         5         6
+// 01234567890123456789012345678901 23456789012345678901234567890123
+// 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
+// X               XXXX
 
 wire [1:0] ar = status[122:121];
 
@@ -216,6 +224,8 @@ localparam CONF_STR = {
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	//"O[2],TV Mode,NTSC,PAL;",
+	"-;",
+    "O[19:16],Cartridge mapper,automatic,rom8k,rom16k,rom32k,rom32k_ram,rom64k,rom128k,rom128_ram;",
 	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
@@ -249,7 +259,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask({status[5]}),
+	.status_menumask(0),
 	
  	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
@@ -318,7 +328,10 @@ pll pll
 	.outclk_0(clk_sys)
 );
 
+mapper_t mapper;
+
 wire reset = RESET | status[0] | buttons[1] | rominit_active;
+assign mapper = mapper_t'(status[19:16]);
 
 scv scv
   (
@@ -331,6 +344,8 @@ scv scv
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
    .ROMINIT_VALID(rominit_valid),
+
+   .MAPPER(mapper),
 
    .HMI(hmi),
 

@@ -35,9 +35,9 @@ wire       load_cart = (index_menusub == 1);
 assign IOCTL_WAIT = 0;
 
 assign ROMINIT_ACTIVE = IOCTL_DOWNLOAD;
-assign ROMINIT_SEL_BOOT = load_boot & (IOCTL_ADDR < 24'h1000);
-assign ROMINIT_SEL_CHR = load_boot & (IOCTL_ADDR < 24'h1400) & ~ROMINIT_SEL_BOOT;
-assign ROMINIT_SEL_CART = load_cart;
+assign ROMINIT_SEL_BOOT = ROMINIT_ACTIVE & load_boot & (IOCTL_ADDR < 24'h1000);
+assign ROMINIT_SEL_CHR = ROMINIT_ACTIVE & load_boot & (IOCTL_ADDR < 24'h1400) & ~ROMINIT_SEL_BOOT;
+assign ROMINIT_SEL_CART = ROMINIT_ACTIVE & load_cart;
 assign ROMINIT_DATA = IOCTL_DOUT;
 assign ROMINIT_VALID = IOCTL_DOWNLOAD & IOCTL_WR & ~IOCTL_WAIT;
 assign ROMINIT_ADDR = addr;
