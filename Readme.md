@@ -49,6 +49,15 @@ ROM images must:
 
 Cartridges had 8K - 128K of ROM, and some had RAM. Two heuristics are used to identify the cartridge -- ROM size and checksum -- and map the memories appropriately. The OSD has an option to manually select a mapper.
 
+#### Special cases
+Two cartridges had a mix of ROM sizes. No special mappers exist for them (yet). Create a 64K .BIN file for them as follows:
+
+##### Kung Fu Road
+32K ROM + (first 24K [24,576 bytes] of 32K ROM) + 8K ROM --> 64K .BIN
+
+##### Star Speeder
+(4 * (8K ROM)) + 32K ROM --> 64K .BIN
+
 
 ## Known issues
 Pressing the PAUSE button hangs the ROM, because the audio chip is not yet implemented. Hence, the button has been disabled for now.
@@ -64,3 +73,4 @@ Video: Visual glitches, due to games changing sprite data mid-frame, are especia
 - Audio (uPD1771C)
 - Cartridges
   - Save and restore battery-backed RAM
+  - Make mappers for special cases
