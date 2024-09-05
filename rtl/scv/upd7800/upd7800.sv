@@ -393,9 +393,6 @@ always @(posedge CLK) begin
     psw <= 0;
   end
   else if (cp2n) begin
-    if (cl_idb_psw)
-      psw <= idb;
-
     if (cl_co_z)
       `psw_z <= ~|co;
 
@@ -413,6 +410,9 @@ always @(posedge CLK) begin
       `psw_sk <= skso;
     if (cl_sefs_psw)
       {`psw_l1, `psw_l0} <= sefso;
+
+    if (cl_idb_psw)
+      psw <= idb;
   end
 end
 
