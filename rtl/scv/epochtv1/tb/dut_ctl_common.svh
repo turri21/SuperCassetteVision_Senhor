@@ -84,7 +84,10 @@ integer fin, code, i;
   end
 
   // BGM: $3000-$31FF
-  code = $fread(dut.vdc.bgm, fin, 0, 512);
+  for (i = 0; i < 128; i++) begin
+    code = $fread(tmp, fin, 0, 4);
+    dut.vdc.bgm[i] = {tmp[3], tmp[2], tmp[1], tmp[0]};
+  end
 
   // OAM: $3200-$33FF
   for (i = 0; i < 128; i++) begin

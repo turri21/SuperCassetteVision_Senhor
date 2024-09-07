@@ -195,22 +195,26 @@ end
 //////////////////////////////////////////////////////////////////////
 // Background memory (BGM)
 
-reg [7:0] bgm [512];
+reg [31:0] bgm [128];
 
-wire [8:0] bgm_a;
-wire [8:0] bgm_ra;
-reg [7:0]  bgm_rbuf, bgm_wbuf;
-wire       bgm_we;
+wire [6:0] bgm_a;
+wire [6:0] bgm_ra;
+reg [31:0] bgm_rbuf;
+wire [3:0] bgm_we;
+wire [31:0] bgm_wbuf;
+
+assign bgm_a = (cpu_sel_bgm & cpu_rdwr) ? A[8:2] : bgm_ra;
+assign bgm_wbuf = {4{DB_I}};
+assign bgm_we = {3'b0, (cpu_sel_bgm & cpu_wr)} << A[1:0];
 
 always_ff @(posedge CLK) begin
   bgm_rbuf <= bgm[bgm_a];
-  if (bgm_we)
-    bgm[bgm_a] <= bgm_wbuf;
+  for (int i = 0; i < 4; i++) begin
+    if (bgm_we[i]) begin
+      bgm[bgm_a][(i*8)+:8] <= bgm_wbuf[(i*8)+:8];
+    end
+  end
 end
-
-assign bgm_a = (cpu_sel_bgm & cpu_rdwr) ? A[8:0] : bgm_ra;
-assign bgm_we = cpu_sel_bgm & cpu_wr;
-assign bgm_wbuf = DB_I;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -258,7 +262,7 @@ always_ff @(posedge CLK) if (CE) begin
     if (cpu_sel_vram)
       cpu_do <= A[0] ? VBD_I : VAD_I;
     else if (cpu_sel_bgm)
-      cpu_do <= bgm_rbuf;
+      cpu_do <= bgm_rbuf[(A[1:0]*8)+:8];
     else if (cpu_sel_oam)
       cpu_do <= oam_rbuf[(A[1:0]*8)+:8];
     else if (cpu_sel_reg)
@@ -298,6 +302,7 @@ wire       bgr_tx_valid;
 wire       bgr_xwin, bgr_ywin;
 wire       bgr_bm;
 wire       bgr_ch;
+wire [7:0] bgr_bgm_rd;
 
 wire [3:0] bgr_ch_bgc, bgr_ch_fgc;
 reg [7:0]  bgr_ch_pat;
@@ -321,10 +326,11 @@ assign bgr_bm = bm_ena & ~bgr_ch;
 assign bgr_ch = bgr_xwin & bgr_ywin;
 
 // Read data from BGM
-assign bgm_ra = {bgr_ty[4:1], bgr_tx};
+assign bgm_ra = {bgr_ty[4:1], bgr_tx[4:2]};
+assign bgr_bgm_rd = bgm_rbuf[(bgr_tx[1:0]*8)+:8];
 
 // Read character pattern from ROM
-assign chr_a = {bgm_rbuf[6:0], row[2:0]};
+assign chr_a = {bgr_bgm_rd[6:0], row[2:0]};
 assign bgr_ch_bgc = ch_clr_bg;
 assign bgr_ch_fgc = ch_clr_fg;
 assign bgr_ch_pat = bgr_ty[0] ? 0 : chr_rbuf;
@@ -332,8 +338,8 @@ assign bgr_ch_pat = bgr_ty[0] ? 0 : chr_rbuf;
 // Interpret BGM data as bitmap data
 wire [2:0] bgr_bm_hipat_sel = {~row[3:2], 1'b0};
 wire [2:0] bgr_bm_lopat_sel = {~row[3], 2'b0};
-wire [1:0] bgr_bm_hipat = bgm_rbuf[bgr_bm_hipat_sel+:2];
-wire [3:0] bgr_bm_lopat = bgm_rbuf[bgr_bm_lopat_sel+:4];
+wire [1:0] bgr_bm_hipat = bgr_bgm_rd[bgr_bm_hipat_sel+:2];
+wire [3:0] bgr_bm_lopat = bgr_bgm_rd[bgr_bm_lopat_sel+:4];
 
 always @* begin
   bgr_bm_bgc = bm_clr_bg;
