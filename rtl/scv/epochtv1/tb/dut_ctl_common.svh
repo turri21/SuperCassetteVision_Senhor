@@ -119,6 +119,9 @@ int i;
   ctl.vdc.ioreg1 = dut.vdc.ioreg1;
   ctl.vdc.ioreg2 = dut.vdc.ioreg2;
   ctl.vdc.ioreg3 = dut.vdc.ioreg3;
+
+  ctl.vdc.row = dut.vdc.row;
+  ctl.vdc.col = dut.vdc.col;
 endtask
 
 
@@ -162,6 +165,7 @@ endtask
 task dut_ctl_init(input string vram_path);
   load_chr("epochtv.chr");
   load_rams(vram_path);
+  ctl.vdc.row = dut.vdc.FIRST_ROW_BOC_START - 1;
   copy_to_ctl();
 endtask
 

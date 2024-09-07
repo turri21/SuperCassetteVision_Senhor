@@ -71,6 +71,7 @@ localparam [8:0] FIRST_COL_HSYNC = 9'd256;
 localparam [8:0] LAST_COL_HSYNC = 9'd15;
 
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
+localparam [8:0] FIRST_ROW_BOC_START = LAST_ROW_RENDER + 'd2;
 
 `ifdef EPOCHTV1_BORDERS
 // left/right borders
@@ -198,12 +199,13 @@ end
 reg [31:0] bgm [128];
 
 wire [6:0] bgm_a;
+wire       bgm_a_sel_cpu;
 wire [6:0] bgm_ra;
 reg [31:0] bgm_rbuf;
 wire [3:0] bgm_we;
 wire [31:0] bgm_wbuf;
 
-assign bgm_a = (cpu_sel_bgm & cpu_rdwr) ? A[8:2] : bgm_ra;
+assign bgm_a = bgm_a_sel_cpu ? A[8:2] : bgm_ra;
 assign bgm_wbuf = {4{DB_I}};
 assign bgm_we = {3'b0, (cpu_sel_bgm & cpu_wr)} << A[1:0];
 
@@ -218,17 +220,37 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
+// Background memory copy (BGM2)
+
+reg [31:0] bgm2 [128];
+
+wire [6:0] bgm2_ra;
+reg [31:0] bgm2_rbuf;
+wire [6:0] bgm2_wa;
+wire       bgm2_we;
+wire [31:0] bgm2_wbuf;
+
+always_ff @(posedge CLK) begin
+  bgm2_rbuf <= bgm2[bgm2_ra];
+  if (bgm2_we) begin
+    bgm2[bgm2_wa] <= bgm2_wbuf;
+  end
+end
+
+
+//////////////////////////////////////////////////////////////////////
 // Sprite attribute memory (OAM)
 
 reg [31:0] oam [128];
 
-reg [6:0]  oam_a;
+wire [6:0] oam_a;
+wire       oam_a_sel_cpu;
+wire [6:0] oam_ra;
 reg [31:0] oam_rbuf;
 wire [3:0] oam_we;
 wire [31:0] oam_wbuf;
-reg [6:0]   oam_idx;
 
-assign oam_a = (cpu_sel_oam & cpu_rdwr) ? A[8:2] : oam_idx;
+assign oam_a = oam_a_sel_cpu ? A[8:2] : oam_ra;
 assign oam_wbuf = {4{DB_I}};
 assign oam_we = {3'b0, (cpu_sel_oam & cpu_wr)} << A[1:0];
 
@@ -240,6 +262,79 @@ always_ff @(posedge CLK) begin
     end
   end
 end
+
+
+//////////////////////////////////////////////////////////////////////
+// Sprite attribute memory copy (OAM2)
+
+reg [31:0] oam2 [128];
+
+wire [6:0] oam2_ra;
+reg [31:0] oam2_rbuf;
+wire [6:0] oam2_wa;
+wire       oam2_we;
+wire [31:0] oam2_wbuf;
+
+always_ff @(posedge CLK) begin
+  oam2_rbuf <= oam2[oam2_ra];
+  if (oam2_we) begin
+    oam2[oam2_wa] <= oam2_wbuf;
+  end
+end
+
+
+//////////////////////////////////////////////////////////////////////
+// BGM / OAM copier
+//
+// Copies each memory into its respective memory copy. Copy starts in
+// VBL, runs to completion, and stalls on CPU access to memory.
+
+reg [6:0] boc_idx;
+reg       boc_active;
+wire      boc_stall, boc_stall_pre;
+reg       boc_stall_d;
+wire      boc_we;
+
+initial begin
+  boc_active = 0;
+end
+
+// boc_stall deassertion needs to lag cpu_rdwr deassertion by 1x CE,
+// to give memories a chance to recover.
+assign boc_stall_pre = (cpu_sel_bgm | cpu_sel_oam) & cpu_rdwr;
+always_ff @(posedge CLK) if (CE) begin
+  boc_stall_d <= boc_stall_pre;
+end
+assign boc_stall = boc_stall_pre | boc_stall_d;
+
+always_ff @(posedge CLK) if (CE) begin
+  if (~boc_active) begin
+    if ((row == FIRST_ROW_BOC_START) & (col == 0)) begin
+      boc_active <= '1;
+      boc_idx <= 0;
+    end
+  end
+  else if (~boc_stall) begin
+    if (boc_idx == '1) begin
+      boc_active <= 0;
+    end
+    else begin
+      boc_idx <= boc_idx + 1'd1;
+    end
+  end
+end
+
+assign boc_we = CE & boc_active & ~boc_stall;
+
+assign bgm_ra = boc_idx;
+assign bgm2_wbuf = bgm_rbuf;
+assign bgm2_wa = boc_idx;
+assign bgm2_we = boc_we;
+
+assign oam_ra = boc_idx;
+assign oam2_wbuf = oam_rbuf;
+assign oam2_wa = boc_idx;
+assign oam2_we = boc_we;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -272,6 +367,9 @@ end
 
 assign DB_O = DB_OE ? cpu_do : 8'hzz;
 assign DB_OE = cpu_rd;
+
+assign bgm_a_sel_cpu = cpu_sel_bgm & cpu_rdwr;
+assign oam_a_sel_cpu = cpu_sel_oam & cpu_rdwr;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -326,8 +424,8 @@ assign bgr_bm = bm_ena & ~bgr_ch;
 assign bgr_ch = bgr_xwin & bgr_ywin;
 
 // Read data from BGM
-assign bgm_ra = {bgr_ty[4:1], bgr_tx[4:2]};
-assign bgr_bgm_rd = bgm_rbuf[(bgr_tx[1:0]*8)+:8];
+assign bgm2_ra = {bgr_ty[4:1], bgr_tx[4:2]};
+assign bgr_bgm_rd = bgm2_rbuf[(bgr_tx[1:0]*8)+:8];
 
 // Read character pattern from ROM
 assign chr_a = {bgr_bgm_rd[6:0], row[2:0]};
@@ -385,6 +483,7 @@ typedef struct packed
 
 reg [6:0]   spr_tile;
 wire [15:0] spr_pat;
+reg [6:0]   oam_idx;
 s_objattr   spr_oa;
 reg [8:0]   spr_y0;
 wire        spr_half_w, spr_half_h;
@@ -414,7 +513,8 @@ reg [7:0]   spr_dsx;            // current drawing column
 reg [3:0]   spr_dclr;           // current sprite color
 
 assign spr_pat = {VBD_I, VAD_I};
-assign spr_oa = oam_rbuf;
+assign oam2_ra = oam_idx;
+assign spr_oa = oam2_rbuf;
 
 assign spr_vs = spr_oa.start_line*2;
 assign spr_half_w = spr_oa.split;
@@ -603,6 +703,7 @@ typedef enum reg [2:0]
 
 e_sbofp_st sbofp_st;
 
+wire sbofp_stall_pre;
 reg  sbofp_stall_d;
 
 wire sbofp_wsel;
@@ -612,10 +713,11 @@ reg [7:0]  sbofp_wds;
 
 // sbofp_stall deassertion needs to lag cpu_rdwr deassertion by 1x CE,
 // to give memories a chance to recover.
+assign sbofp_stall_pre = cpu_sel_vram & cpu_rdwr;
 always_ff @(posedge CLK) if (CE) begin
-  sbofp_stall_d <= cpu_rdwr;
+  sbofp_stall_d <= sbofp_stall_pre;
 end
-assign sbofp_stall = cpu_rdwr | sbofp_stall_d;
+assign sbofp_stall = sbofp_stall_pre | sbofp_stall_d;
 
 initial begin
   sbofp_st = SST_IDLE;
