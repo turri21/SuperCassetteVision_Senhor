@@ -130,6 +130,7 @@ end
 
 wire         bm_ena = ioreg0[0];   // enable bitmap
 wire         bm_lores = ioreg0[1]; // bitmap res: 0=lo, 1=hi
+wire         sp_hide7 = ioreg0[2]; // hide sprites 64-127
 wire         sp_ena = ioreg0[4];   // enable sprites
 wire         sp_2clrm = ioreg0[5]; // 2-color sprite mode
 wire         bm_invx = ioreg0[6];  // invert XMAX effect
@@ -706,6 +707,8 @@ e_sbofp_st sbofp_st;
 wire sbofp_stall_pre;
 reg  sbofp_stall_d;
 
+wire [7:0] sbofp_oam_idx_max;
+
 wire sbofp_wsel;
 
 reg [3:0]  sbofp_wdc_bg, sbofp_wdc_fg;
@@ -718,6 +721,8 @@ always_ff @(posedge CLK) if (CE) begin
   sbofp_stall_d <= sbofp_stall_pre;
 end
 assign sbofp_stall = sbofp_stall_pre | sbofp_stall_d;
+
+assign sbofp_oam_idx_max = sp_hide7 ? 8'd63 : 8'd127;
 
 initial begin
   sbofp_st = SST_IDLE;
@@ -746,7 +751,7 @@ always_ff @(posedge CLK) if (CE) begin
         sbofp_st <= e_sbofp_st'(spr_skip_dl ? SST_DRAW_R : SST_DRAW_L);
       end
       else begin
-        sbofp_st <= e_sbofp_st'((oam_idx < 7'd127) ? SST_EVAL : SST_IDLE);
+        sbofp_st <= e_sbofp_st'((oam_idx < sbofp_oam_idx_max) ? SST_EVAL : SST_IDLE);
         oam_idx <= oam_idx + 1'd1;
       end
     end

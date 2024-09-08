@@ -48,6 +48,7 @@ Registers
 R0 ($3400)
 . bit 0: enable bitmap
 . bit 1: bitmap res.: 0=hi-res, 1=lo-res
+. bit 2: hide sprites 64-127
 . bit 4: enable sprites
 . bit 5: 2-color sprite mode
 . bit 6: invert XMAX effect: 1=render char. after XMAX
