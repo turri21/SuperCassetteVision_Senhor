@@ -136,7 +136,7 @@ wire         sp_2clrm = ioreg0[5]; // 2-color sprite mode
 wire         bm_invx = ioreg0[6];  // invert XMAX effect
 wire         bm_invy = ioreg0[7];  // invert YMAX effect
 
-// Hi-res bitmap FG/BG colors
+// Bitmap FG/BG colors
 wire [3:0]   bm_clr_bg = ioreg1[3:0];
 wire [3:0]   bm_clr_fg = ioreg1[7:4]; // high-resolution mode only
 
@@ -445,8 +445,12 @@ always @* begin
   bgr_bm_fgc = bm_clr_fg;
   bgr_bm_pat = 0;
   if (bgr_bm) begin
-    if (bm_lores)
-      bgr_bm_bgc = bgr_bm_lopat;
+    if (bm_lores) begin
+      if (bgr_bm_lopat != 4'd0) begin // 0 is transparent
+        bgr_bm_pat = '1;
+        bgr_bm_fgc = bgr_bm_lopat;
+      end
+    end
     else
       bgr_bm_pat = {{4{bgr_bm_hipat[1]}}, {4{bgr_bm_hipat[0]}}};
   end
