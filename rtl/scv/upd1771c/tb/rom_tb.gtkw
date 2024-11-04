@@ -1,0 +1,121 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Mon Nov  4 06:18:03 2024
+[*]
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/rom_tb.vcd"
+[dumpfile_mtime] "Mon Nov  4 06:16:51 2024"
+[dumpfile_size] 4364555
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/rom_tb.gtkw"
+[timestart] 0
+[size] 1288 600
+[pos] -1 -1
+*-23.034250 12333284 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] rom_tb.
+[sst_width] 253
+[signals_width] 287
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+rom_tb.dut.CLK
+rom_tb.dut.RESB
+@800200
+-io
+@22
+rom_tb.dut.PA_I[7:0]
+rom_tb.dut.PA_O[7:0]
+rom_tb.dut.PA_OE[7:0]
+rom_tb.dut.PB_I[7:0]
+rom_tb.dut.PB_OE[7:0]
+rom_tb.dut.PB_O[7:0]
+@28
+rom_tb.dut.io_pabx_out_reg_pad_en
+rom_tb.dut.io_pabx_pad_pdb_pax_db_out_en
+rom_tb.dut.io_pax_noe
+rom_tb.dut.io_pax_pdb_out_en
+@1000200
+-io
+@800200
+-bus
+@22
+rom_tb.dut.db[7:0]
+rom_tb.dut.pdb[15:0]
+@1000200
+-bus
+@800200
+-res
+@28
+rom_tb.dut.resp
+rom_tb.dut.testmode
+@1000200
+-res
+@800200
+-clkgen
+@28
+rom_tb.dut.cp1p
+rom_tb.dut.cp1n
+rom_tb.dut.cp2p
+rom_tb.dut.cp2n
+rom_tb.dut.clk1
+rom_tb.dut.clk2
+rom_tb.dut.clk3
+rom_tb.dut.clk4
+rom_tb.dut.clk5
+@1000200
+-clkgen
+@800200
+-pc
+@22
+rom_tb.dut.pc[11:0]
+rom_tb.dut.ab[11:0]
+rom_tb.dut.pcn[11:0]
+rom_tb.dut.abn[11:0]
+rom_tb.dut.pcin[11:0]
+rom_tb.dut.abadd[11:0]
+@28
+rom_tb.dut.pc_load_sdb3_0_db7_0
+rom_tb.dut.pc_load_sdb4_0_db7_1
+rom_tb.dut.pc_abadd_cin
+rom_tb.dut.pc_load_int_vec
+rom_tb.dut.pc_pcin_to_abn
+rom_tb.dut.pc_ctrl1
+rom_tb.dut.pc_ctrl3
+rom_tb.dut.pc_ctrl4
+@1000200
+-pc
+@800200
+-rom
+@28
+rom_tb.dut.rom_oe
+rom_tb.dut.rom_zero
+@22
+rom_tb.dut.rom_do[15:0]
+@1000200
+-rom
+[pattern_trace] 1
+[pattern_trace] 0
