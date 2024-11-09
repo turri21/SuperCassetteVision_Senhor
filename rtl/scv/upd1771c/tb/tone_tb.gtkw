@@ -1,0 +1,209 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sat Nov  9 06:18:12 2024
+[*]
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
+[dumpfile_mtime] "Sat Nov  9 06:16:43 2024"
+[dumpfile_size] 944454
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
+[timestart] 4610000
+[size] 1416 600
+[pos] -1 -1
+*-22.034250 11999952 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] tone_tb.
+[sst_width] 253
+[signals_width] 287
+[sst_expanded] 1
+[sst_vpaned_height] 159
+@28
+tone_tb.dut.CLK
+tone_tb.dut.RESB
+@800200
+-common
+@22
+tone_tb.dut.ab[11:0]
+tone_tb.dut.pdb[15:0]
+tone_tb.dut.db[7:0]
+tone_tb.dut.pc[11:0]
+tone_tb.dut.a[7:0]
+@1000200
+-common
+@800200
+-io
+@22
+tone_tb.dut.PA_I[7:0]
+tone_tb.dut.PA_O[7:0]
+tone_tb.dut.PA_OE[7:0]
+tone_tb.dut.PB_I[7:0]
+tone_tb.dut.PB_OE[7:0]
+tone_tb.dut.PB_O[7:0]
+@28
+tone_tb.dut.io_pabx_out_reg_pad_en
+tone_tb.dut.io_pabx_pad_pdb_pax_db_out_en
+tone_tb.dut.io_pax_noe
+tone_tb.dut.io_pax_pad_db_en
+tone_tb.dut.io_pax_pdb_out_en
+tone_tb.dut.io_pax_pdb_out_en
+tone_tb.dut.io_pbx2_0_noe
+tone_tb.dut.io_pbx7_3_noe
+tone_tb.dut.io_pbx_out_reg_ce
+@22
+tone_tb.dut.pao_reg[7:0]
+tone_tb.dut.pbi_reg[7:0]
+tone_tb.dut.pbo_reg_p[7:0]
+tone_tb.dut.pbo_reg[7:0]
+@1000200
+-io
+@c00201
+-bus
+@22
+tone_tb.dut.db[7:0]
+tone_tb.dut.pdb[15:0]
+@1401201
+-bus
+@800200
+-res
+@28
+tone_tb.dut.resp
+tone_tb.dut.testmode
+tone_tb.dut.ch2d
+@1000200
+-res
+@c00200
+-clkgen
+@28
+tone_tb.dut.cp1p
+tone_tb.dut.cp1n
+tone_tb.dut.cp1
+tone_tb.dut.cp2p
+tone_tb.dut.cp2n
+tone_tb.dut.cp2
+tone_tb.dut.clk1
+tone_tb.dut.clk2
+tone_tb.dut.clk3
+tone_tb.dut.clk4
+tone_tb.dut.clk5
+@1401200
+-clkgen
+@800200
+-id
+@22
+tone_tb.dut.id[15:0]
+@28
+tone_tb.dut.id_op_adi_andi_sbi_ori
+tone_tb.dut.id_op_adi_sbi_adi5_Rr_n
+tone_tb.dut.id_op_aluop_1x0
+tone_tb.dut.id_op_aluop_10x
+tone_tb.dut.id_op_aluop_10x_1x0
+tone_tb.dut.id_op_aluop_10x_1x0_txnx
+tone_tb.dut.id_op_aluop_A_Rr
+tone_tb.dut.id_op_aluop_A_n
+tone_tb.dut.id_op_aluop_txnx_Rr_n
+tone_tb.dut.id_op_calln
+tone_tb.dut.id_op_in_pa
+tone_tb.dut.id_op_in_pb
+tone_tb.dut.id_op_mov_xchg_a_dst
+tone_tb.dut.id_op_mvi_md0_n
+tone_tb.dut.id_op_mvi_md1_n
+tone_tb.dut.id_op_not_aluop_or_rets
+tone_tb.dut.id_op_notest_aluop_md1_n
+tone_tb.dut.id_op_out_pa
+tone_tb.dut.id_op_out_pb
+tone_tb.dut.id_op_reti
+tone_tb.dut.id_op_rets
+tone_tb.dut.id_op_tbln_a_Rr
+tone_tb.dut.id_op_tbln_calln_2
+tone_tb.dut.id_op_xori
+tone_tb.dut.id_set_a
+@1000200
+-id
+@800200
+-cl
+@28
+tone_tb.dut.cl_a_reg_en
+tone_tb.dut.cl_id_op_calln_d
+tone_tb.dut.cl_id_op_calln_dd
+tone_tb.dut.cl_id_op_out_pa_d
+tone_tb.dut.cl_id_op_tbln_a_Rr_d
+tone_tb.dut.cl_id_op_tbln_a_Rr_dd
+tone_tb.dut.cl_inv_skip_test
+tone_tb.dut.cl_md0_reg_en
+tone_tb.dut.cl_md1_reg_en
+tone_tb.dut.cl_op_clear_skip
+tone_tb.dut.cl_pdb7_0_to_db7_0
+tone_tb.dut.cl_pdb7_4_to_sdb7_4
+tone_tb.dut.cl_pdb11_8_to_sdb3_0
+tone_tb.dut.cl_pdb15_8_to_db7_0
+tone_tb.dut.cl_skip
+tone_tb.dut.cl_skip_a
+tone_tb.dut.cl_skip_d
+tone_tb.dut.cl_skip_dd
+tone_tb.dut.cl_skip_test_failed
+tone_tb.dut.cl_skip_test_out
+tone_tb.dut.cl_t1
+@1000200
+-cl
+@c00200
+-pc
+@22
+tone_tb.dut.pc[11:0]
+tone_tb.dut.ab[11:0]
+tone_tb.dut.pcn[11:0]
+tone_tb.dut.abn[11:0]
+tone_tb.dut.pcin[11:0]
+tone_tb.dut.abadd[11:0]
+@28
+tone_tb.dut.pc_load_sdb3_0_db7_0
+tone_tb.dut.pc_load_sdb4_0_db7_1
+tone_tb.dut.pc_abadd_cin
+tone_tb.dut.pc_load_int_vec
+tone_tb.dut.pc_pcin_to_abn
+tone_tb.dut.pc_ctrl1
+tone_tb.dut.pc_ctrl3
+tone_tb.dut.pc_ctrl4
+@1401200
+-pc
+@800200
+-rom
+@28
+tone_tb.dut.rom_oe
+tone_tb.dut.rom_zero
+@22
+tone_tb.dut.rom_do[15:0]
+@1000200
+-rom
+@800200
+-reg
+@22
+tone_tb.dut.a[7:0]
+tone_tb.dut.md[9:0]
+@1000200
+-reg
+[pattern_trace] 1
+[pattern_trace] 0
