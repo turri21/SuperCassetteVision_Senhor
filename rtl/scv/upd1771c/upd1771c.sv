@@ -43,21 +43,12 @@ wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
 wire n156 = '0; // TODO: T2 of TBLn?
 wire n570 = '1; // TODO
 wire n103 = ~(testmode | n570);
-wire n594 = (resp /* | n585 | n775 | n2612*/ | (id_op_call & ~testmode) | cl_id_op_calln_dd | n723);
+wire n594 = (resp /* | n585 | n775 | n2612*/ | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | n723);
 wire n723 = '0; // TODO
 wire n678 = (pc_ctrl3 | cl_id_op_calln_dd) | ~n156;
-wire n2694 = ~(id_op_tbln_calln_2 & ~testmode | n103 | n594);
 wire n3304 = ~(clk4 & (id_op_tbln_calln_2 & ~testmode | id_op_retx));
-wire n3321 = ~(clk4 & (id_op_aluop_Hp_n | id_op_aluop_11x));
+wire n3321 = ~(clk4 & (id_aluop_Hp_n | id_aluop_11x));
 wire n895 = '1; // TODO: ~(TS ^ NS)?
-
-always @(posedge CLK) begin
-  if (cp1p) begin
-    ;
-  end
-  if (cp2p) begin
-  end
-end
 
 
 //////////////////////////////////////////////////////////////////////
@@ -155,58 +146,62 @@ wire id_op_in_pa = ~|id[15:11] & id[10] & ~id[8] & id[0]; // 0000_01x0__xxx1
 wire id_op_calln = ~|id[15:13] & &id[12:11] & id[3]; // 0001_1xxx__1000
 wire id_op_tbln_calln_2 = ~|id[15:13] & &id[12:11]; // 0001_1xxx__xxxx
 wire id_op_mvi_md1_n = ~|id[15:14] & &id[13:12] & id[8]; // 0011_xxx1__xxxx
-wire id_op_notest_aluop_md1_n = id[15] & ~|id[14:12] & id[8]; // 1000_xxx1__xxxx
+wire id_aluop_notest_md1_n = id[15] & ~|id[14:12] & id[8]; // 1000_xxx1__xxxx
 wire id_op_mvi_md0_n = ~|id[15:14] & id[13] & ~id[12] & id[8]; // 0010_xxx1__xxxx
 wire id_op_mov_xchg_a_dst = ~|id[15:13] & id[12] & ~id[11] & id[2]; // 0001_0xxx__x1xx
-wire id_op_aluop_A_n = id[15] & ~|id[14:12] & ~id[8]; // 1000_xxx0__xxxx
-wire id_op_aluop_A_Rr = &id[15:14] & ~|id[13:12] & ~id[3]; // 1100_xxxx__0xxx
+wire id_aluop_A_n = id[15] & ~|id[14:12] & ~id[8]; // 1000_xxx0__xxxx
+wire id_aluop_A_Rr = &id[15:14] & ~|id[13:12] & ~id[3]; // 1100_xxxx__0xxx
 wire id_op_reti = ~|id[15:12] & id[11] & id[8]; // 0000_1xx1__xxxx
 wire id_op_tbln_a_Rr = ~|id[15:13] & &id[12:11] & id[0]; // 0001_1xxx__xxx1
-wire id_op_aluop_1x1 = id[15] & id[13]; // 1x1x_xxxx__xxxx
-wire id_op_aluop_100 = id[15] & ~|id[14:13]; // 100x_xxxx__xxxx
+wire id_aluop_1x1 = id[15] & id[13]; // 1x1x_xxxx__xxxx
+wire id_aluop_100 = id[15] & ~|id[14:13]; // 100x_xxxx__xxxx
 wire id_op_adi_sbi_adi5_Rr_n = &id[15:13] & ~id[11] & ~id[9]; // 111x_0x0x__xxxx
-wire id_op_xori = id_op_aluop_10x_1x0 & ~id[12] & &id[11:9]; // xxx0_111x__xxxx
-wire id_op_adi_andi_sbi_ori = id_op_aluop_10x_1x0 & ~|id[12:11] ; // xxx0_0xxx__xxxx
+wire id_op_xori = id_aluop_10x_1x0 & ~id[12] & &id[11:9]; // xxx0_111x__xxxx
+wire id_op_adi_andi_sbi_ori = id_aluop_10x_1x0 & ~|id[12:11] ; // xxx0_0xxx__xxxx
 wire id_op_not_aluop_or_rets = ~id_op_rets & ~id[15]; // 0xxx_xxxx__xxxx
 wire id_op_rets = ~|id[15:12] & id[11] & ~id[8] & id[0]; // 0000_1xx0__xxx1
-wire id_op_aluop_10x_1x0 = ~(id_op_aluop_10x | id_op_aluop_1x0);
-wire id_op_aluop_10x = id[15] & ~id[14]; // 10xx_xxxx__xxxx
-wire id_op_aluop_1x0 = id[15] & ~id[13]; // 1x0x_xxxx__xxxx
-wire id_op_aluop_10x_1x0_txnx = id_op_aluop_10x_1x0 & ~id[11]; // xxxx_0xxx__xxxx
-wire id_op_aluop_txnx_Rr_n = &id[15:13] & ~id[12] & ~id[9]; // 1110_xx0x__xxxx
+wire id_aluop_10x_1x0 = id_aluop_10x | id_aluop_1x0;
+wire id_aluop_10x = id[15] & ~id[14]; // 10xx_xxxx__xxxx
+wire id_aluop_1x0 = id[15] & ~id[13]; // 1x0x_xxxx__xxxx
+wire id_aluop_10x_1x0_txnx = id_aluop_10x_1x0 & ~id[11]; // xxxx_0xxx__xxxx
+wire id_aluop_txnx_Rr_n = &id[15:13] & ~id[12] & ~id[9]; // 1110_xx0x__xxxx
 wire id_op_out_pb = ~|id[15:10] & id[2] & ~id[0]; // 0000_00xx__x1x0
 wire id_op_out_pa = ~|id[15:10] & id[1]; // 0000_00xx__xx1x
+wire id_op_jmp_call = ~id[15] & &id[14:13]; // 011x_xxxx__xxxx
 wire id_op_call = ~id[15] & &id[14:12]; // 0111_xxxx__xxxx
 wire id_op_retx = ~|id[15:12] & id[11]; // 0000_1xxx__xxxx
-wire id_op_aluop_Hp_n = id[15] & ~id[14] & id[13] & ~id[8]; // 101x_xxx0__xxxx
-wire id_op_aluop_11x = &id[15:14]; // 11xx_xxxx__xxxx
-wire id_op_aluop_Rr_A_Hp_A = &id[15:14] & ~|id[13:12] & id[3]; // 1100_xxxx__1xxx
-wire id_op_aluop_notest_Hp_n = id[15] & ~id[14] & id[13] & ~id[12] & ~id[8]; // 1010_xxx0__xxxx
-wire id_op_aluop_notest_Rr_n = &id[15:13] & ~id[11]; // 111x_0xxx__xxxx
+wire id_aluop_Hp_n = id[15] & ~id[14] & id[13] & ~id[8]; // 101x_xxx0__xxxx
+wire id_aluop_11x = &id[15:14]; // 11xx_xxxx__xxxx
+wire id_aluop_Rr_A_Hp_A = &id[15:14] & ~|id[13:12] & id[3]; // 1100_xxxx__1xxx
+wire id_aluop_notest_Hp_n = id[15] & ~id[14] & id[13] & ~id[12] & ~id[8]; // 1010_xxx0__xxxx
+wire id_aluop_notest_Rr_n = &id[15:13] & ~id[11]; // 111x_0xxx__xxxx
 wire id_op_mvi_Rr_n = ~id[15] & id[14] & ~id[13]; // 010x_xxxx__xxxx
 wire id_op_mov_xchg_Hp_Rr_x = ~|id[15:14] & id[12] & id[9]; // 00x1_xx1x__xxxx
-wire id_op_aluop_Rr_n = &id[15:13]; // 111x_xxxx__xxxx
+wire id_aluop_Rr_n = &id[15:13]; // 111x_xxxx__xxxx
 wire id_op_Rr_pdb8_4 = ~|id[15:13] & id[12] & ~(id[10] & ~id[3]); // 0001_xxxx__xxxx & ~xxxx_x1xx__0xxx
 wire id_op_src_n_a = ~id[15] & id[13]; // 0x1x_xxxx__xxxx
 wire id_op_src_n_b = ~id[15] & id[14]; // 01xx_xxxx__xxxx
 wire id_op_set_H = ~|id[15:13] & id[12] & ~|id[11:10] & id[3]; // 0001_00xx__1xxx
-wire id_op_notest_aluop_H_n = id[15] & ~id[14] & id[13] & ~id[12] & id[8]; // 1010_xxx1__xxxx
+wire id_aluop_notest_H_n = id[15] & ~id[14] & id[13] & ~id[12] & id[8]; // 1010_xxx1__xxxx
 wire id_op_mvi_H_n = ~|id[15:14] & &id[13:11]; // 0011_1xxx__xxxx
-wire id_op_aluop_sb = id[15] & id[10] & ~id[9]; // 1xxx_x10x__xxxx
+wire id_aluop_sb = id[15] & id[10] & ~id[9]; // 1xxx_x10x__xxxx
 wire id_op_mul2_3 = ~|id[15:11] & id[10] & id[8] & id[3]; // 0000_01x1__1xxx
 wire id_op_not_aluop = ~id[15] & ~(id_op_mul2_3 | id_op_mix | id_op_mov_xchg_Hp_Rr_dst);
 wire id_op_mix = ~|id[15:13] & id[12] & ~id[11] & id[10] & id[3];
 wire id_op_mov_xchg_Hp_Rr_dst = ~|id[15:13] & id[12] & ~id[11] & id[9]; // 0001_0x1x__xxxx
 wire id_op_000x_x0 = ~|id[15:13] & ~id[11]; // 000x_x0xx__xxxx
 wire id_op_000 = ~|id[15:13]; // 000x_xxxx__xxxx
-wire id_op_aluop_A_Rr_Hp = &id[15:14] & ~id[13] & ~id[3]; // 110x_xxxx__0xxx
+wire id_aluop_A_Rr_Hp = &id[15:14] & ~id[13] & ~id[3]; // 110x_xxxx__0xxx
 wire id_get_a_clk4 = ~|id[15:11] & ~(~|id[10:9] & id[3]) & ~resp; // 0000_0xxx__xxxx & ~xxxx_x00x__1xxx & ~resp
 wire id_get_a_clk3_a = ~|id[15:13] & id[12] & ~id[11] & id[0]; // 0001_0xxx__xxx1
 wire id_get_a_clk3_b = &id[15:14] & ~id[13]; // 110x_xxxx__xxxx
 wire id_get_a_clk3_c = id[15] & ~|id[14:13] & ~id[8]; // 100x_xxx0__xxxx
-wire id_op_aluop_H_n = id[15] & ~id[14] & id[13] & id[8]; // 101x_xxx1__xxxx
+wire id_aluop_H_n = id[15] & ~id[14] & id[13] & id[8]; // 101x_xxx1__xxxx
 wire id_get_h_clk3 = ~|id[15:13] & id[12] & ~id[11] & id[1]; // 0001_0xxx__xx1x
 wire id_op_jmp_call_n_t2 = ~id[15] & &id[14:13] & ~cl_t1; // 011x_xxxx__xxxx & ~cl_t1
+wire id_aluop_Rr_n_not_c5 = &id[15:13] & ~id[12]; // 1110_xxxx__xxxx
+wire id_aluop_10x_1x0_sk_cb = id_aluop_10x_1x0 & ~id[9]; // xxxx_xx0x__xxxx & aluop_10x_1x0
+wire id_aluop_10x_1x0_sk_z = id_aluop_10x_1x0 & id[9]; // xxxx_xx1x__xxxx & aluop_10x_1x0
 
 
 //////////////////////////////////////////////////////////////////////
@@ -219,30 +214,26 @@ logic cl_id_op_out_pa_d;
 
 wire cl_t1 = '0;
 wire cl_pdb7_4_to_sdb7_4 = clk4 & n723;
-wire cl_pdb11_8_to_sdb3_0 = clk4 & (resp | cl_t1 | (id_op_call & ~testmode));
+wire cl_pdb11_8_to_sdb3_0 = clk4 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
 wire cl_pdb15_8_to_db7_0 = clk4 & ~n678;
-wire cl_pdb7_0_to_db7_0 = n678 & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_op_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_op_aluop_100)));
-wire cl_a_reg_en = ((cl_id_op_tbln_a_Rr_dd | id_op_aluop_A_Rr | id_op_reti | id_op_aluop_A_n | id_set_a) & cp2) | (id_op_mov_xchg_a_dst & clk4);
-wire cl_skip = cl_skip_a; // TODO: add id_op_reti
-wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
-wire cl_skip_test_out = '0;
-wire cl_skip_test_failed = ~cl_skip_test_out ^ cl_inv_skip_test;
+wire cl_pdb7_0_to_db7_0 = n678 & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
+wire cl_a_reg_en = ((cl_id_op_tbln_a_Rr_dd | id_aluop_A_Rr | id_op_reti | id_aluop_A_n | id_set_a) & cp2) | (id_op_mov_xchg_a_dst & clk4);
 wire cl_op_clear_skip = id_op_adi_sbi_adi5_Rr_n | id_op_xori | id_op_adi_andi_sbi_ori | id_op_not_aluop_or_rets;
-wire cl_inv_skip_test = ~(id_op_rets | id_op_aluop_10x_1x0_txnx | id_op_aluop_txnx_Rr_n);
+wire cl_skip_test_if_set = ~(id_op_rets | id_aluop_10x_1x0_txnx | id_aluop_txnx_Rr_n);
 wire cl_md0_reg_en = resp | cl_md1_reg_en | id_op_mvi_md0_n; // Yes, cl_md1_reg_en is actually in here.
-wire cl_md1_reg_en = resp | id_op_mvi_md1_n | id_op_notest_aluop_md1_n;
+wire cl_md1_reg_en = resp | id_op_mvi_md1_n | id_aluop_notest_md1_n;
 wire cl_sp_to_ram_a = id_op_call;
 wire cl_spm1_to_ram_a = id_op_retx;
 wire cl_pdb12_8_to_ram_a = id_op_mvi_Rr_n;
-wire cl_pdb8_4_to_ram_a = id_op_aluop_Rr_n | id_op_Rr_pdb8_4;
-wire cl_id_op_Hp_Rr_dst = id_op_aluop_Rr_A_Hp_A | id_op_aluop_Hp_n | id_op_aluop_notest_Rr_n | id_op_mvi_Rr_n | id_op_mov_xchg_Hp_Rr_x;
-wire cl_h_reg_en = clk1 & ((cp2 & id_op_notest_aluop_H_n) | (clk4 & (id_op_mvi_H_n | id_op_set_H)));
+wire cl_pdb8_4_to_ram_a = id_aluop_Rr_n | id_op_Rr_pdb8_4;
+wire cl_id_op_Hp_Rr_dst = id_aluop_Rr_A_Hp_A | id_aluop_Hp_n | id_aluop_notest_Rr_n | id_op_mvi_Rr_n | id_op_mov_xchg_Hp_Rr_x;
+wire cl_h_reg_en = clk1 & ((cp2 & id_aluop_notest_H_n) | (clk4 & (id_op_mvi_H_n | id_op_set_H)));
 wire cl_a_to_db = (clk3 & (id_get_a_clk3_a | id_get_a_clk3_b | id_get_a_clk3_c)) | (clk4 & id_get_a_clk4);
-wire cl_h_to_db = (clk3 & id_get_h_clk3) | (clk4 & id_op_aluop_H_n);
-wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | n103 | cl_id_op_calln_dd | (id_op_call & ~testmode));
+wire cl_h_to_db = (clk3 & id_get_h_clk3) | (clk4 & id_aluop_H_n);
+wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | n103 | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
 
 always @(posedge CLK) begin
-  if (cp2p) begin
+  if (cp2n) begin
     cl_id_op_calln_d <= id_op_calln & ~testmode;
     cl_id_op_tbln_a_Rr_d <= id_op_tbln_a_Rr;
     cl_skip_d <= cl_skip;
@@ -255,6 +246,16 @@ always @(posedge CLK) begin
   end
 end
 
+// Instruction skip logic
+wire cl_skip = cl_skip_a; // TODO: add id_op_reti
+wire cl_skip_test_out =
+     ((id_aluop_Rr_n_not_c5 | id_aluop_10x_1x0_sk_cb) & alu_co) |
+     (id_aluop_10x_1x0_sk_z & alu_c_zero)/* |
+     (n906 & n910) |
+     (n2986 & n911)*/;
+wire cl_skip_test_failed = cl_skip_test_out ^ cl_skip_test_if_set;
+wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
+
 
 //////////////////////////////////////////////////////////////////////
 // Arithmetic/Logic Unit
@@ -263,12 +264,13 @@ logic [7:0] alu_a;              // input A (from TEMP1)
 logic [7:0] alu_b;              // input B (from TEMP2)
 logic [7:0] alu_c;              // output (S)
 logic       alu_co;
+wire        alu_c_zero;
 
 wire alu_op_zero_a_lo = id_op_not_aluop;
 wire alu_op_zero_a_hi = alu_op_zero_a_lo | id_op_000;
-wire alu_op_sub = id_op_mix ? ~n895 : (id_op_aluop_sb | id_op_000x_x0);
+wire alu_op_sub = id_op_mix ? ~n895 : (id_aluop_sb | id_op_000x_x0);
 
-wire alu_temp1_first = ~(id_op_aluop_A_Rr_Hp | id_op_aluop_100);
+wire alu_temp1_first = ~(id_aluop_A_Rr_Hp | id_aluop_100);
 wire alu_db_to_temp1 = (clk3 & alu_temp1_first) | (clk4 & ~alu_temp1_first);
 
 always @(posedge CLK) begin
@@ -293,6 +295,8 @@ always @* begin
     {alu_co, alu_c} = alu_a + alu_b;
 end
 
+assign alu_c_zero = alu_c == '0;
+
 
 //////////////////////////////////////////////////////////////////////
 // pc: Program counter
@@ -300,7 +304,7 @@ end
 logic [11:0] pc, pcin, pcn;
 logic [11:0] abn, abadd;
 
-wire pc_ctrl1 = clk4 & n2694;
+wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln_2 & ~testmode | n103 | n594);
 wire pc_ctrl3 = '1; // TODO
 wire pc_ctrl4 = '1; // TODO
 wire pc_load_int_vec = '0; // TODO
@@ -355,10 +359,10 @@ always @(posedge CLK) begin
 end
 
 always @(posedge CLK) if (cp1p) begin
-  rom_do <= (rom_zero | |ab[11:9]) ? '0 : rom_rbuf;
+  rom_do <= (|ab[11:9]) ? '0 : rom_rbuf;
 end
 
-assign pdb = rom_oe ? rom_do : '0;
+assign pdb = (rom_oe & ~rom_zero) ? rom_do : '0;
 
 
 //////////////////////////////////////////////////////////////////////

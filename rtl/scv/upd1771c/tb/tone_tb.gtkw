@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Nov 10 20:04:45 2024
+[*] Sun Nov 10 23:37:12 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Sun Nov 10 19:46:09 2024"
-[dumpfile_size] 817811
+[dumpfile_mtime] "Sun Nov 10 23:26:09 2024"
+[dumpfile_size] 1302421
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 26310000
+[timestart] 154480000
 [size] 1416 600
-[pos] -1 -1
-*-20.434250 30499878 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[pos] -34 -1
+*-21.434250 160666024 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -52,6 +52,7 @@ tone_tb.dut.pdb[15:0]
 tone_tb.dut.db[7:0]
 tone_tb.dut.pc[11:0]
 tone_tb.dut.a[7:0]
+tone_tb.dut.h[5:0]
 @1000200
 -common
 @c00200
@@ -99,7 +100,7 @@ tone_tb.dut.follower
 tone_tb.dut.testmode
 @1000200
 -res
-@c00200
+@800200
 -clkgen
 @28
 tone_tb.dut.cp1p
@@ -113,7 +114,7 @@ tone_tb.dut.clk2
 tone_tb.dut.clk3
 tone_tb.dut.clk4
 tone_tb.dut.clk5
-@1401200
+@1000200
 -clkgen
 @800200
 -id
@@ -123,19 +124,6 @@ tone_tb.dut.id[15:0]
 tone_tb.dut.id_op_Rr_pdb8_4
 tone_tb.dut.id_op_adi_andi_sbi_ori
 tone_tb.dut.id_op_adi_sbi_adi5_Rr_n
-tone_tb.dut.id_op_aluop_1x0
-tone_tb.dut.id_op_aluop_10x
-tone_tb.dut.id_op_aluop_10x_1x0
-tone_tb.dut.id_op_aluop_10x_1x0_txnx
-tone_tb.dut.id_op_aluop_11x
-tone_tb.dut.id_op_aluop_A_Rr
-tone_tb.dut.id_op_aluop_A_n
-tone_tb.dut.id_op_aluop_Hp_n
-tone_tb.dut.id_op_aluop_Rr_A_Hp_A
-tone_tb.dut.id_op_aluop_Rr_n
-tone_tb.dut.id_op_aluop_notest_Hp_n
-tone_tb.dut.id_op_aluop_notest_Rr_n
-tone_tb.dut.id_op_aluop_txnx_Rr_n
 tone_tb.dut.id_op_call
 tone_tb.dut.id_op_calln
 tone_tb.dut.id_op_in_pa
@@ -146,7 +134,6 @@ tone_tb.dut.id_op_mvi_Rr_n
 tone_tb.dut.id_op_mvi_md0_n
 tone_tb.dut.id_op_mvi_md1_n
 tone_tb.dut.id_op_not_aluop_or_rets
-tone_tb.dut.id_op_notest_aluop_md1_n
 tone_tb.dut.id_op_out_pa
 tone_tb.dut.id_op_out_pb
 tone_tb.dut.id_op_reti
@@ -168,7 +155,6 @@ tone_tb.dut.cl_id_op_calln_dd
 tone_tb.dut.cl_id_op_out_pa_d
 tone_tb.dut.cl_id_op_tbln_a_Rr_d
 tone_tb.dut.cl_id_op_tbln_a_Rr_dd
-tone_tb.dut.cl_inv_skip_test
 tone_tb.dut.cl_md0_reg_en
 tone_tb.dut.cl_md1_reg_en
 tone_tb.dut.cl_op_clear_skip
@@ -183,6 +169,7 @@ tone_tb.dut.cl_skip_a
 tone_tb.dut.cl_skip_d
 tone_tb.dut.cl_skip_dd
 tone_tb.dut.cl_skip_test_failed
+tone_tb.dut.cl_skip_test_if_set
 tone_tb.dut.cl_skip_test_out
 tone_tb.dut.cl_sp_to_ram_a
 tone_tb.dut.cl_spm1_to_ram_a
@@ -197,9 +184,8 @@ tone_tb.dut.clk1
 tone_tb.dut.alu_a[7:0]
 tone_tb.dut.alu_b[7:0]
 tone_tb.dut.alu_c[7:0]
-@29
-tone_tb.dut.alu_co
 @28
+tone_tb.dut.alu_co
 tone_tb.dut.alu_db_to_temp1
 tone_tb.dut.alu_op_sub
 tone_tb.dut.alu_op_zero_a_hi
@@ -246,9 +232,9 @@ tone_tb.dut.h[5:0]
 tone_tb.dut.sp[2:0]
 @1000200
 -reg
-@c00200
+@800200
 -ram
-@22
+@23
 tone_tb.dut.ram_row[3:0]
 @28
 tone_tb.dut.ram_col[1:0]
@@ -270,7 +256,7 @@ tone_tb.dut.ram_right_sdb_oe
 tone_tb.dut.ram_right_wbuf[7:0]
 @28
 tone_tb.dut.ram_right_write_en
-@1401200
+@1000200
 -ram
 [pattern_trace] 1
 [pattern_trace] 0
