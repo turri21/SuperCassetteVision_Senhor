@@ -46,6 +46,8 @@ wire n20 = ~(n1697 | io_pax_out_pbx_pdb_pad_en);
 wire n1689 = ~(rom_oe & md_if);
 wire n1697 = ~(~md_out | io_pabx_pad_pdb_pax_db_out_en);
 
+wire n150 = ~(~md_if | pbi[7] | n145 | io_pabx_pad_pdb_pax_db_out_en);
+wire n145 = io_pbx7_3_noe ? pbi[6] : pbo_reg[5];
 wire n156 = '0;
 wire n570 = '1;
 wire n103 = ~(testmode | n570);
@@ -55,6 +57,8 @@ wire n690 = ~(resp /* | n585 | n775 | n2612*/ | (id_op_call & ~testmode)/* | cl_
 wire n689 = ~(pc_ctrl3 | cl_id_op_calln_dd);
 wire n678 = ~(n689 & n156);
 wire n2694 = ~(id_op_tbln_calln_2 | n103 | n594);
+wire n3304 = ~(clk4 & (id_op_tbln_calln_2 | id_op_retx));
+wire n3321 = ~(clk4 & (id_op_aluop_Hp_n | id_op_aluop_11x));
 
 always @(posedge CLK) begin
   if (cp1p) begin
@@ -154,8 +158,8 @@ end
 wire id_set_a = ~|id[15:14] & id[10] & ~id[9]; // 00xx_x10x__xxxx
 wire id_op_in_pb = ~|id[15:11] & id[10] & ~id[8] & id[1]; // 0000_01x0__xx1x
 wire id_op_in_pa = ~|id[15:11] & id[10] & ~id[8] & id[0]; // 0000_01x0__xxx1
-wire id_op_calln = '0;
-wire id_op_tbln_calln_2 = '0;
+wire id_op_calln = ~|id[15:13] & &id[12:11] & id[3]; // 0001_1xxx__1000
+wire id_op_tbln_calln_2 = ~|id[15:13] & &id[12:11]; // 0001_1xxx__xxxx
 wire id_op_mvi_md1_n = ~|id[15:14] & &id[13:12] & id[8]; // 0011_xxx1__xxxx
 wire id_op_notest_aluop_md1_n = id[15] & ~|id[14:12] & id[8]; // 1000_xxx1__xxxx
 wire id_op_mvi_md0_n = ~|id[15:14] & id[13] & ~id[12] & id[8]; // 0010_xxx1__xxxx
@@ -181,6 +185,16 @@ wire id_op_aluop_txnx_Rr_n = &id[15:13] & ~id[12] & ~id[9]; // 1110_xx0x__xxxx
 wire id_op_out_pb = ~|id[15:10] & id[2] & ~id[0]; // 0000_00xx__x1x0
 wire id_op_out_pa = ~|id[15:10] & id[1]; // 0000_00xx__xx1x
 wire id_op_call = ~id[15] & &id[14:12]; // 0111_xxxx__xxxx
+wire id_op_retx = ~|id[15:12] & id[11]; // 0000_1xxx__xxxx
+wire id_op_aluop_Hp_n = id[15] & ~id[14] & id[13] & ~id[8]; // 101x_xxx0__xxxx
+wire id_op_aluop_11x = &id[15:14]; // 11xx_xxxx__xxxx
+wire id_op_aluop_Rr_A_Hp_A = &id[15:14] & ~|id[13:12] & id[3]; // 1100_xxxx__1xxx
+wire id_op_aluop_notest_Hp_n = id[15] & ~id[14] & id[13] & ~id[12] & ~id[8]; // 1010_xxx0__xxxx
+wire id_op_aluop_notest_Rr_n = &id[15:13] & ~id[11]; // 111x_0xxx__xxxx
+wire id_op_mvi_Rr_n = ~id[15] & id[14] & ~id[13]; // 010x_xxxx__xxxx
+wire id_op_mov_xchg_Hp_Rr_x = ~|id[15:14] & id[12] & id[9]; // 00x1_xx1x__xxxx
+wire id_op_aluop_Rr_n = &id[15:13]; // 111x_xxxx__xxxx
+wire id_op_Rr_pdb8_4 = ~|id[15:13] & id[12] & ~(id[10] & ~id[3]); // 0001_xxxx__xxxx & ~xxxx_x1xx__0xxx
 
 
 //////////////////////////////////////////////////////////////////////
@@ -205,6 +219,11 @@ wire cl_op_clear_skip = id_op_adi_sbi_adi5_Rr_n | id_op_xori | id_op_adi_andi_sb
 wire cl_inv_skip_test = ~(id_op_rets | id_op_aluop_10x_1x0_txnx | id_op_aluop_txnx_Rr_n);
 wire cl_md0_reg_en = resp | cl_md1_reg_en | id_op_mvi_md0_n; // Yes, cl_md1_reg_en is actually in here.
 wire cl_md1_reg_en = resp | id_op_mvi_md1_n | id_op_notest_aluop_md1_n;
+wire cl_sp_to_ram_a = id_op_call;
+wire cl_spm1_to_ram_a = id_op_retx;
+wire cl_pdb12_8_to_ram_a = id_op_mvi_Rr_n;
+wire cl_pdb8_4_to_ram_a = id_op_aluop_Rr_n | id_op_Rr_pdb8_4;
+wire cl_id_op_Hp_Rr_dst = id_op_aluop_Rr_A_Hp_A | id_op_aluop_Hp_n | id_op_aluop_notest_Rr_n | id_op_mvi_Rr_n | id_op_mov_xchg_Hp_Rr_x;
 
 always @(posedge CLK) begin
   if (cp2p) begin
@@ -305,10 +324,11 @@ assign pdb = rom_oe ? rom_do : '0;
 
 logic [9:0] md;
 logic [7:0] a;
+logic [5:0] h;
+logic [2:0] sp;
 
-always @(posedge CLK) begin
-  if (cl_a_reg_en)
-    a <= db;
+initial begin
+  h = '0; // else ram_col[1] is X
 end
 
 always @(posedge CLK) begin
@@ -328,6 +348,95 @@ assign md_out = md[6];
 assign md_if = md[7];
 
 //assign db[7:0] = n699 ? md : '0;
+
+always @(posedge CLK) begin
+  if (cl_a_reg_en)
+    a <= db;
+end
+
+//always @(posedge CLK) begin
+//  if (cl_h_reg_en)
+//    h <= db;
+//end
+
+always @(posedge CLK) if (cp1p) begin
+  if (resp)
+    sp <= 0;
+  else if (cl_sp_to_ram_a)
+    sp <= sp + 1'd1;
+  else if (cl_spm1_to_ram_a)
+    sp <= sp - 1'd1;
+end
+
+
+//////////////////////////////////////////////////////////////////////
+// 64 byte SRAM: 32 columns x 16 rows
+
+// Address select
+logic [3:0] ram_row;            // Row address select
+logic [1:0] ram_col;            // Column address select
+
+always @* begin
+  ram_row = 'X;
+  ram_col = 'X;
+  if (cl_spm1_to_ram_a | cl_sp_to_ram_a) begin
+    ram_row[3] = 1'b1;
+    ram_col = 1'b0;
+    ram_row[2:0] = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
+  end
+  else if (cl_pdb12_8_to_ram_a | cl_pdb8_4_to_ram_a) begin
+    ram_row[3] = 1'b0;
+    {ram_col[0], ram_row[2:0], ram_col[1]} = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
+  end
+  else /*if (cl_h_to_ram_a)*/
+    {ram_row[3], ram_col[0], ram_row[2:0], ram_col[1]} = h;
+end
+
+wire ram_lr_col_sel = ram_col[0];  // left/right col. pair select: 0=left
+wire ram_left_sel = ~ram_col[1];   // left array select
+wire ram_right_sel = ram_col[1];   // right array select
+
+// Left half of array (cols 0-15): R/W port == db
+logic [7:0] ram_left_mem [2][16];
+logic [7:0] ram_left_rbuf;
+logic [7:0] ram_left_wbuf;
+wire        ram_left_write_en;
+wire        ram_left_db_oe;
+
+always @(posedge CLK) begin
+  if (ram_left_write_en)
+    ram_left_mem[ram_lr_col_sel][ram_row] <= ram_left_wbuf;
+  ram_left_rbuf <= ram_left_mem[ram_lr_col_sel][ram_row];
+end
+
+assign ram_left_write_en = cp2 & ~(ram_right_db_ie & (~cl_id_op_Hp_Rr_dst | ram_left_sel));
+assign ram_left_db_oe = ~(n3304 & (ram_left_sel | n3321));
+
+assign ram_left_wbuf = db;
+assign db = ram_left_db_oe ? ram_left_rbuf : '0;
+
+// Right half of array (cols 16-31): R/W port == db or sdb
+logic [7:0] ram_right_mem [2][16];
+logic [7:0] ram_right_rbuf;
+logic [7:0] ram_right_wbuf;
+wire        ram_right_write_en;
+wire        ram_right_db_ie;
+wire        ram_right_db_oe;
+wire        ram_right_sdb_oe = 0;; // TODO
+
+always @(posedge CLK) begin
+  if (ram_right_write_en)
+    ram_right_mem[ram_lr_col_sel][ram_row] <= ram_right_wbuf;
+  ram_right_rbuf <= ram_right_mem[ram_lr_col_sel][ram_row];
+end
+
+assign ram_right_write_en = cp2 & ~(ram_right_db_ie & (~cl_id_op_Hp_Rr_dst | ram_right_sel));
+assign ram_right_db_ie = ~cl_sp_to_ram_a;
+assign ram_right_db_oe = ~(ram_right_sel | n3321);
+
+assign ram_right_wbuf = ram_right_db_ie ? db : sdb;
+assign db = ram_right_db_oe ? ram_right_rbuf : '0;
+assign sdb = ram_right_sdb_oe ? ram_right_rbuf : '0;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -353,8 +462,6 @@ assign io_pbx_pad_db_en = id_op_in_pb & clk5;
 
 assign io_pbx_out_reg_ce = id_op_out_pb;
 assign io_pax_out_reg_latch_en = cl_id_op_out_pa_d | n150;
-wire n150 = ~(~md_if | pbi[7] | n145 | io_pabx_pad_pdb_pax_db_out_en);
-wire n145 = io_pbx7_3_noe ? pbi[6] : pbo_reg[5];
 
 always @(posedge CLK) begin
   if (cp2n)
