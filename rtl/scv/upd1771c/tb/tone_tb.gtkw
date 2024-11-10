@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Nov 10 01:19:37 2024
+[*] Sun Nov 10 20:04:45 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Sun Nov 10 00:45:29 2024"
-[dumpfile_size] 783183
+[dumpfile_mtime] "Sun Nov 10 19:46:09 2024"
+[dumpfile_size] 817811
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 4600000
+[timestart] 26310000
 [size] 1416 600
 [pos] -1 -1
-*-22.034250 14666608 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-20.434250 30499878 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -54,7 +54,7 @@ tone_tb.dut.pc[11:0]
 tone_tb.dut.a[7:0]
 @1000200
 -common
-@800200
+@c00200
 -io
 @22
 tone_tb.dut.PA_I[7:0]
@@ -78,12 +78,13 @@ tone_tb.dut.pao_reg[7:0]
 tone_tb.dut.pbi_reg[7:0]
 tone_tb.dut.pbo_reg_p[7:0]
 tone_tb.dut.pbo_reg[7:0]
-@1000200
+@1401200
 -io
 @800200
 -bus
 @22
 tone_tb.dut.db[7:0]
+tone_tb.dut.sdb[7:0]
 tone_tb.dut.pdb[15:0]
 @1000200
 -bus
@@ -91,8 +92,11 @@ tone_tb.dut.pdb[15:0]
 -res
 @28
 tone_tb.dut.resp
-tone_tb.dut.testmode
+tone_tb.dut.ch1d
 tone_tb.dut.ch2d
+tone_tb.dut.leader
+tone_tb.dut.follower
+tone_tb.dut.testmode
 @1000200
 -res
 @c00200
@@ -161,9 +165,7 @@ tone_tb.dut.cl_a_reg_en
 tone_tb.dut.cl_id_op_Hp_Rr_dst
 tone_tb.dut.cl_id_op_calln_d
 tone_tb.dut.cl_id_op_calln_dd
-@29
 tone_tb.dut.cl_id_op_out_pa_d
-@28
 tone_tb.dut.cl_id_op_tbln_a_Rr_d
 tone_tb.dut.cl_id_op_tbln_a_Rr_dd
 tone_tb.dut.cl_inv_skip_test
@@ -187,6 +189,24 @@ tone_tb.dut.cl_spm1_to_ram_a
 tone_tb.dut.cl_t1
 @1000200
 -cl
+@800200
+-alu
+@28
+tone_tb.dut.clk1
+@22
+tone_tb.dut.alu_a[7:0]
+tone_tb.dut.alu_b[7:0]
+tone_tb.dut.alu_c[7:0]
+@29
+tone_tb.dut.alu_co
+@28
+tone_tb.dut.alu_db_to_temp1
+tone_tb.dut.alu_op_sub
+tone_tb.dut.alu_op_zero_a_hi
+tone_tb.dut.alu_op_zero_a_lo
+tone_tb.dut.alu_temp1_first
+@1000200
+-alu
 @c00200
 -pc
 @22
@@ -226,7 +246,7 @@ tone_tb.dut.h[5:0]
 tone_tb.dut.sp[2:0]
 @1000200
 -reg
-@800200
+@c00200
 -ram
 @22
 tone_tb.dut.ram_row[3:0]
@@ -250,7 +270,7 @@ tone_tb.dut.ram_right_sdb_oe
 tone_tb.dut.ram_right_wbuf[7:0]
 @28
 tone_tb.dut.ram_right_write_en
-@1000200
+@1401200
 -ram
 [pattern_trace] 1
 [pattern_trace] 0
