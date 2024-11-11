@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Mon Nov 11 00:07:54 2024
+[*] Mon Nov 11 06:53:53 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Mon Nov 11 00:05:43 2024"
-[dumpfile_size] 1096602
+[dumpfile_mtime] "Mon Nov 11 06:46:35 2024"
+[dumpfile_size] 1396640
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 158255000
+[timestart] 530460000
 [size] 1416 600
 [pos] -1 -1
-*-20.799742 163332680 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-20.799742 538331180 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -42,10 +42,18 @@
 [sst_expanded] 1
 [sst_vpaned_height] 159
 @28
+tone_tb.ncs
+tone_tb.nwr
+tone_tb.dsb
+@22
+tone_tb.din[7:0]
+@28
 tone_tb.dut.CLK
 tone_tb.dut.RESB
 @800200
 -common
+@28
+tone_tb.dut.cp1
 @22
 tone_tb.dut.ab[11:0]
 tone_tb.dut.pdb[15:0]
@@ -58,31 +66,44 @@ tone_tb.dut.a[7:0]
 tone_tb.dut.h[5:0]
 @1000200
 -common
-@c00200
+@800201
 -io
-@22
+@23
 tone_tb.dut.PA_I[7:0]
 tone_tb.dut.PA_O[7:0]
 tone_tb.dut.PA_OE[7:0]
 tone_tb.dut.PB_I[7:0]
 tone_tb.dut.PB_OE[7:0]
 tone_tb.dut.PB_O[7:0]
-@28
-tone_tb.dut.io_pabx_out_reg_pad_en
+tone_tb.dut.pbi_reg[7:0]
+@29
+tone_tb.dut.io_ext_cs
+tone_tb.dut.io_ext_read
+tone_tb.dut.io_ext_read_latch
+tone_tb.dut.io_ext_write
+tone_tb.dut.io_ext_write_latch
 tone_tb.dut.io_pabx_pad_pdb_pax_db_out_en
+tone_tb.dut.io_pax_db_out_reg_en
 tone_tb.dut.io_pax_noe
-tone_tb.dut.io_pax_pad_db_en
-tone_tb.dut.io_pax_pdb_out_en
+tone_tb.dut.io_pax_out_pbx_pdb_pad_en
+tone_tb.dut.io_pax_out_reg_db_en
+tone_tb.dut.io_pax_out_reg_latch_en
 tone_tb.dut.io_pax_pdb_out_en
 tone_tb.dut.io_pbx2_0_noe
 tone_tb.dut.io_pbx7_3_noe
+tone_tb.dut.io_pbx_noe
 tone_tb.dut.io_pbx_out_reg_ce
-@22
+tone_tb.dut.io_pbx_pad_db_en
+@23
+tone_tb.dut.pai[7:0]
+tone_tb.dut.pao[7:0]
 tone_tb.dut.pao_reg[7:0]
+tone_tb.dut.pbi[7:0]
 tone_tb.dut.pbi_reg[7:0]
+tone_tb.dut.pbo[7:0]
 tone_tb.dut.pbo_reg_p[7:0]
 tone_tb.dut.pbo_reg[7:0]
-@1401200
+@1000201
 -io
 @800200
 -bus
@@ -145,15 +166,16 @@ tone_tb.dut.id_aluop_notest_H_n
 tone_tb.dut.id_aluop_notest_Hp_n
 tone_tb.dut.id_aluop_notest_Rr_n
 tone_tb.dut.id_aluop_notest_md1_n
+tone_tb.dut.id_aluop_or
+tone_tb.dut.id_aluop_or_xor_equ
 tone_tb.dut.id_aluop_sb
+tone_tb.dut.id_aluop_test_Rr_n
 tone_tb.dut.id_aluop_txnx_Rr_n
 tone_tb.dut.id_get_a_clk3_a
 tone_tb.dut.id_get_a_clk3_b
 tone_tb.dut.id_get_a_clk3_c
 tone_tb.dut.id_get_a_clk4
 tone_tb.dut.id_get_h_clk3
-tone_tb.dut.id_op_000
-tone_tb.dut.id_op_000x_x0
 tone_tb.dut.id_op_Rr_pdb8_4
 tone_tb.dut.id_op_adi_andi_sbi_ori
 tone_tb.dut.id_op_adi_sbi_adi5_Rr_n
@@ -232,11 +254,17 @@ tone_tb.dut.alu_b[7:0]
 tone_tb.dut.alu_c[7:0]
 @28
 tone_tb.dut.alu_co
+tone_tb.dut.alu_c_zero
 tone_tb.dut.alu_db_to_temp1
+tone_tb.dut.alu_db_to_temp2
+tone_tb.dut.alu_op_no_carry
+tone_tb.dut.alu_op_or
 tone_tb.dut.alu_op_sub
-tone_tb.dut.alu_op_zero_a_hi
-tone_tb.dut.alu_op_zero_a_lo
 tone_tb.dut.alu_temp1_first
+tone_tb.dut.alu_zero_a_hi
+tone_tb.dut.alu_zero_a_lo
+tone_tb.dut.alu_zero_b
+tone_tb.dut.cl_alu_c_to_db
 @1000200
 -alu
 @800200
@@ -287,6 +315,8 @@ tone_tb.dut.sp[2:0]
 tone_tb.dut.ram_row[3:0]
 @28
 tone_tb.dut.ram_col[1:0]
+tone_tb.dut.ram_left_sel
+tone_tb.dut.ram_right_sel
 tone_tb.dut.ram_left_db_oe
 tone_tb.dut.id_op_tbln_a_Rr
 @22

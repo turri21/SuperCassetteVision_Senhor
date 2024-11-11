@@ -82,7 +82,7 @@ initial #0 begin
   #2 @(posedge clk) ;
   res = 0;
 
-  #32 @(posedge clk) ;
+  #320 @(posedge clk) ;
 
   packet_start(8'h02);
   packet_cont(8'h80);
