@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Mon Nov 11 06:53:53 2024
+[*] Mon Nov 11 07:30:18 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Mon Nov 11 06:46:35 2024"
-[dumpfile_size] 1396640
+[dumpfile_mtime] "Mon Nov 11 07:30:09 2024"
+[dumpfile_size] 1856375
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 530460000
+[timestart] 0
 [size] 1416 600
 [pos] -1 -1
-*-20.799742 538331180 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-29.384705 902496390 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -66,9 +66,9 @@ tone_tb.dut.a[7:0]
 tone_tb.dut.h[5:0]
 @1000200
 -common
-@800201
+@800200
 -io
-@23
+@22
 tone_tb.dut.PA_I[7:0]
 tone_tb.dut.PA_O[7:0]
 tone_tb.dut.PA_OE[7:0]
@@ -76,7 +76,7 @@ tone_tb.dut.PB_I[7:0]
 tone_tb.dut.PB_OE[7:0]
 tone_tb.dut.PB_O[7:0]
 tone_tb.dut.pbi_reg[7:0]
-@29
+@28
 tone_tb.dut.io_ext_cs
 tone_tb.dut.io_ext_read
 tone_tb.dut.io_ext_read_latch
@@ -94,7 +94,7 @@ tone_tb.dut.io_pbx7_3_noe
 tone_tb.dut.io_pbx_noe
 tone_tb.dut.io_pbx_out_reg_ce
 tone_tb.dut.io_pbx_pad_db_en
-@23
+@22
 tone_tb.dut.pai[7:0]
 tone_tb.dut.pao[7:0]
 tone_tb.dut.pao_reg[7:0]
@@ -103,7 +103,7 @@ tone_tb.dut.pbi_reg[7:0]
 tone_tb.dut.pbo[7:0]
 tone_tb.dut.pbo_reg_p[7:0]
 tone_tb.dut.pbo_reg[7:0]
-@1000201
+@1000200
 -io
 @800200
 -bus

@@ -89,19 +89,20 @@ initial #0 begin
   packet_cont(8'h35);
   packet_cont(8'h15);
 
-  #1000 @(posedge clk) ;
+  #10000 @(posedge clk) ;
 
   packet_start(8'h02);
   packet_cont(8'h80);
   packet_cont(8'h4f);
   packet_cont(8'h15);
 
-  #1000 @(posedge clk) ;
+  #10000 @(posedge clk) ;
 
   $finish;
 end
 
-initial #2000
+//initial #30000
+initial #3000
   $finish;
 
 endmodule

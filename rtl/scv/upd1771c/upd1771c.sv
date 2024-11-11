@@ -211,6 +211,7 @@ logic cl_id_op_calln_d, cl_id_op_calln_dd;
 logic cl_id_op_tbln_a_Rr_d, cl_id_op_tbln_a_Rr_dd;
 logic cl_skip_d, cl_skip_dd;
 logic [4:0] cl_pdb_ram_a;
+logic [2:0] cl_sp_ram_a;
 
 wire cl_t1 = '0;
 wire cl_pdb7_4_to_sdb7_4 = clk4 & n723;
@@ -236,10 +237,8 @@ wire cl_id_op_out_pa_d = cp2 & id_op_out_pa;
 wire cl_id_op_calln_retx = clk4 & (id_op_tbln_calln & ~testmode | id_op_retx);
 wire cl_id_Rr_Hp_clk4 = clk4 & (id_op_mov_xchg_mix_Rr_Hp | id_aluop_Hp_n | id_aluop_11x);
 
-always @* begin
-  cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
-  cl_pdb_ram_a[0] = ~cl_pdb_ram_a[0];
-end
+assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
+assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
 
 always @(posedge CLK) begin
   if (cp2n) begin
@@ -440,29 +439,30 @@ end
 //////////////////////////////////////////////////////////////////////
 // 64 byte SRAM: 32 columns x 16 rows
 
-// Address select
-logic [3:0] ram_row;            // Row address select
-logic [1:0] ram_col;            // Column address select
+// Address inputs
+logic [5:0] ram_addr;           // Combined row/column select
 
 always @* begin
-  ram_row = 'X;
-  ram_col = 'X;
-  if (cl_spm1_to_ram_a | cl_sp_to_ram_a) begin
-    ram_row[3] = 1'b1;
-    ram_col = 1'b0;
-    ram_row[2:0] = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
-  end
-  else if (cl_pdb12_8_to_ram_a | cl_pdb8_4_to_ram_a) begin
-    ram_row[3] = 1'b0;
-    {ram_col[0], ram_row[2:0], ram_col[1]} = cl_pdb_ram_a;
-  end
+  ram_addr = 'X;
+  if (cl_spm1_to_ram_a | cl_sp_to_ram_a)
+    ram_addr = { 2'b10, cl_sp_ram_a, 1'b0 };
+  else if (cl_pdb12_8_to_ram_a | cl_pdb8_4_to_ram_a)
+    ram_addr = { 1'b0, cl_pdb_ram_a };
   else /*if (cl_h_to_ram_a)*/
-    {ram_row[3], ram_col[0], ram_row[2:0], ram_col[1]} = h;
+    ram_addr = h;
 end
 
-wire ram_lr_col_sel = ram_col[0];  // left/right col. pair select: 0=left
-wire ram_left_sel = ~ram_col[1];   // left array select
-wire ram_right_sel = ram_col[1];   // right array select
+wire [3:0] ram_row;             // Row address select
+wire [1:0] ram_col;             // Column address select
+
+assign ram_row[3] = ram_addr[5];
+assign ram_col[0] = ram_addr[4];
+assign ram_row[2:0] = ram_addr[3:1];
+assign ram_col[1] = ram_addr[0];
+
+wire ram_lr_col_sel = ram_col[0]; // left/right col. pair select: 0=left
+wire ram_left_sel = ram_col[1];   // left array select
+wire ram_right_sel = ~ram_col[1]; // right array select
 
 // Left half of array (cols 0-15): R/W port == db
 logic [7:0] ram_left_mem [2][16];
