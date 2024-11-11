@@ -43,10 +43,9 @@ wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
 wire n156 = '0; // TODO: T2 of TBLn?
 wire n570 = '1; // TODO
 wire n103 = ~(testmode | n570);
-wire n594 = (resp /* | n585 | n775 | n2612*/ | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | n723);
 wire n723 = '0; // TODO
 wire n678 = (pc_ctrl3 | cl_id_op_calln_dd) | ~n156;
-wire n3304 = ~(clk4 & (id_op_tbln_calln_2 & ~testmode | id_op_retx));
+wire n3304 = ~(clk4 & (id_op_tbln_calln & ~testmode | id_op_retx));
 wire n3321 = ~(clk4 & (id_aluop_Hp_n | id_aluop_11x));
 wire n895 = '1; // TODO: ~(TS ^ NS)?
 
@@ -144,7 +143,7 @@ wire id_set_a = ~|id[15:14] & id[10] & ~id[9]; // 00xx_x10x__xxxx
 wire id_op_in_pb = ~|id[15:11] & id[10] & ~id[8] & id[1]; // 0000_01x0__xx1x
 wire id_op_in_pa = ~|id[15:11] & id[10] & ~id[8] & id[0]; // 0000_01x0__xxx1
 wire id_op_calln = ~|id[15:13] & &id[12:11] & id[3]; // 0001_1xxx__1000
-wire id_op_tbln_calln_2 = ~|id[15:13] & &id[12:11]; // 0001_1xxx__xxxx
+wire id_op_tbln_calln = ~|id[15:13] & &id[12:11]; // 0001_1xxx__xxxx
 wire id_op_mvi_md1_n = ~|id[15:14] & &id[13:12] & id[8]; // 0011_xxx1__xxxx
 wire id_aluop_notest_md1_n = id[15] & ~|id[14:12] & id[8]; // 1000_xxx1__xxxx
 wire id_op_mvi_md0_n = ~|id[15:14] & id[13] & ~id[12] & id[8]; // 0010_xxx1__xxxx
@@ -231,6 +230,8 @@ wire cl_h_reg_en = clk1 & ((cp2 & id_aluop_notest_H_n) | (clk4 & (id_op_mvi_H_n 
 wire cl_a_to_db = (clk3 & (id_get_a_clk3_a | id_get_a_clk3_b | id_get_a_clk3_c)) | (clk4 & id_get_a_clk4);
 wire cl_h_to_db = (clk3 & id_get_h_clk3) | (clk4 & id_aluop_H_n);
 wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | n103 | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
+wire cl_pc_load_sdb3_0_db7_0 = (resp | id_op_retx /*| n775 | n2612*/ | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | n723);
+
 
 always @(posedge CLK) begin
   if (cp2n) begin
@@ -304,14 +305,15 @@ assign alu_c_zero = alu_c == '0;
 logic [11:0] pc, pcin, pcn;
 logic [11:0] abn, abadd;
 
-wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln_2 & ~testmode | n103 | n594);
+wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln & ~testmode | n103 | cl_pc_load_sdb3_0_db7_0);
 wire pc_ctrl3 = '1; // TODO
 wire pc_ctrl4 = '1; // TODO
 wire pc_load_int_vec = '0; // TODO
-wire pc_load_sdb3_0_db7_0 = clk4 & n594;
+wire pc_load_sdb3_0_db7_0 = clk4 & cl_pc_load_sdb3_0_db7_0;
 wire pc_load_sdb4_0_db7_1 = '0; // TODO
 wire pc_abadd_cin = ~n103;
 wire pc_pcin_to_abn = 1'b1; // TODO
+wire pc_out_to_db_sdb = clk5 & (n103 | (id_op_call & ~testmode) | cl_id_op_calln_dd);
 
 always @(posedge CLK) if (clk1) begin
   pc <= pcn;
@@ -466,7 +468,7 @@ logic [7:0] ram_right_wbuf;
 wire        ram_right_write_en;
 wire        ram_right_db_ie;
 wire        ram_right_db_oe;
-wire        ram_right_sdb_oe = 0;; // TODO
+wire        ram_right_sdb_oe;
 
 always @(posedge CLK) begin
   if (ram_right_write_en)
@@ -477,7 +479,7 @@ end
 assign ram_right_write_en = cp2 & ~(ram_right_db_ie & (~cl_id_op_Hp_Rr_dst | ram_right_sel));
 assign ram_right_db_ie = ~cl_sp_to_ram_a;
 assign ram_right_db_oe = ~(ram_right_sel | n3321);
-
+assign ram_right_sdb_oe = clk4 & ((id_op_tbln_calln & ~testmode) | id_op_retx);
 assign ram_right_wbuf = ram_right_db_ie ? db : sdb;
 
 
@@ -548,6 +550,7 @@ always @* begin
   db = db_d;
   if (cl_pdb15_8_to_db7_0)  db = pdb[15:8];
   if (cl_pdb7_0_to_db7_0)   db = pdb[7:0];
+  if (pc_out_to_db_sdb)     db = pc[7:0];
   //if (n699)                 db = md[7:0];
   if (cl_a_to_db)           db = a;
   if (cl_h_to_db)           db = h;
@@ -563,6 +566,7 @@ always @* begin
   sdb = sdb_d;
   if (cl_pdb7_4_to_sdb7_4)  sdb[7:4] = pdb[7:4];
   if (cl_pdb11_8_to_sdb3_0) sdb[3:0] = pdb[11:8];
+  if (pc_out_to_db_sdb)     sdb = pc[11:8];
   if (ram_right_sdb_oe)     sdb = ram_right_rbuf;
 end
 

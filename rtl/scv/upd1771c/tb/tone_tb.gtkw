@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Nov 10 23:37:12 2024
+[*] Mon Nov 11 00:07:54 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Sun Nov 10 23:26:09 2024"
-[dumpfile_size] 1302421
+[dumpfile_mtime] "Mon Nov 11 00:05:43 2024"
+[dumpfile_size] 1096602
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 154480000
+[timestart] 158255000
 [size] 1416 600
-[pos] -34 -1
-*-21.434250 160666024 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[pos] -1 -1
+*-20.799742 163332680 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -51,6 +51,9 @@ tone_tb.dut.ab[11:0]
 tone_tb.dut.pdb[15:0]
 tone_tb.dut.db[7:0]
 tone_tb.dut.pc[11:0]
+@28
+tone_tb.dut.sp[2:0]
+@22
 tone_tb.dut.a[7:0]
 tone_tb.dut.h[5:0]
 @1000200
@@ -121,6 +124,36 @@ tone_tb.dut.clk5
 @22
 tone_tb.dut.id[15:0]
 @28
+tone_tb.dut.id_aluop_1x0
+tone_tb.dut.id_aluop_1x1
+tone_tb.dut.id_aluop_10x
+tone_tb.dut.id_aluop_10x_1x0
+tone_tb.dut.id_aluop_10x_1x0_sk_cb
+tone_tb.dut.id_aluop_10x_1x0_sk_z
+tone_tb.dut.id_aluop_10x_1x0_txnx
+tone_tb.dut.id_aluop_11x
+tone_tb.dut.id_aluop_100
+tone_tb.dut.id_aluop_A_Rr
+tone_tb.dut.id_aluop_A_Rr_Hp
+tone_tb.dut.id_aluop_A_n
+tone_tb.dut.id_aluop_H_n
+tone_tb.dut.id_aluop_Hp_n
+tone_tb.dut.id_aluop_Rr_A_Hp_A
+tone_tb.dut.id_aluop_Rr_n
+tone_tb.dut.id_aluop_Rr_n_not_c5
+tone_tb.dut.id_aluop_notest_H_n
+tone_tb.dut.id_aluop_notest_Hp_n
+tone_tb.dut.id_aluop_notest_Rr_n
+tone_tb.dut.id_aluop_notest_md1_n
+tone_tb.dut.id_aluop_sb
+tone_tb.dut.id_aluop_txnx_Rr_n
+tone_tb.dut.id_get_a_clk3_a
+tone_tb.dut.id_get_a_clk3_b
+tone_tb.dut.id_get_a_clk3_c
+tone_tb.dut.id_get_a_clk4
+tone_tb.dut.id_get_h_clk3
+tone_tb.dut.id_op_000
+tone_tb.dut.id_op_000x_x0
 tone_tb.dut.id_op_Rr_pdb8_4
 tone_tb.dut.id_op_adi_andi_sbi_ori
 tone_tb.dut.id_op_adi_sbi_adi5_Rr_n
@@ -128,27 +161,39 @@ tone_tb.dut.id_op_call
 tone_tb.dut.id_op_calln
 tone_tb.dut.id_op_in_pa
 tone_tb.dut.id_op_in_pb
+tone_tb.dut.id_op_jmp_call
+tone_tb.dut.id_op_jmp_call_n_t2
+tone_tb.dut.id_op_mix
+tone_tb.dut.id_op_mov_xchg_Hp_Rr_dst
 tone_tb.dut.id_op_mov_xchg_Hp_Rr_x
 tone_tb.dut.id_op_mov_xchg_a_dst
+tone_tb.dut.id_op_mul2_3
+tone_tb.dut.id_op_mvi_H_n
 tone_tb.dut.id_op_mvi_Rr_n
 tone_tb.dut.id_op_mvi_md0_n
 tone_tb.dut.id_op_mvi_md1_n
+tone_tb.dut.id_op_not_aluop
 tone_tb.dut.id_op_not_aluop_or_rets
 tone_tb.dut.id_op_out_pa
 tone_tb.dut.id_op_out_pb
 tone_tb.dut.id_op_reti
 tone_tb.dut.id_op_rets
 tone_tb.dut.id_op_retx
+tone_tb.dut.id_op_set_H
+tone_tb.dut.id_op_src_n_a
+tone_tb.dut.id_op_src_n_b
 tone_tb.dut.id_op_tbln_a_Rr
-tone_tb.dut.id_op_tbln_calln_2
-tone_tb.dut.id_op_xori
-tone_tb.dut.id_set_a
+tone_tb.dut.id_op_tbln_calln
 @1000200
 -id
 @800200
 -cl
 @28
 tone_tb.dut.cl_a_reg_en
+tone_tb.dut.cl_a_to_db
+tone_tb.dut.cl_alu_c_to_db
+tone_tb.dut.cl_h_reg_en
+tone_tb.dut.cl_h_to_db
 tone_tb.dut.cl_id_op_Hp_Rr_dst
 tone_tb.dut.cl_id_op_calln_d
 tone_tb.dut.cl_id_op_calln_dd
@@ -158,6 +203,7 @@ tone_tb.dut.cl_id_op_tbln_a_Rr_dd
 tone_tb.dut.cl_md0_reg_en
 tone_tb.dut.cl_md1_reg_en
 tone_tb.dut.cl_op_clear_skip
+tone_tb.dut.cl_pc_load_sdb3_0_db7_0
 tone_tb.dut.cl_pdb7_0_to_db7_0
 tone_tb.dut.cl_pdb7_4_to_sdb7_4
 tone_tb.dut.cl_pdb8_4_to_ram_a
@@ -193,7 +239,7 @@ tone_tb.dut.alu_op_zero_a_lo
 tone_tb.dut.alu_temp1_first
 @1000200
 -alu
-@c00200
+@800200
 -pc
 @22
 tone_tb.dut.pc[11:0]
@@ -207,11 +253,14 @@ tone_tb.dut.pc_load_sdb3_0_db7_0
 tone_tb.dut.pc_load_sdb4_0_db7_1
 tone_tb.dut.pc_abadd_cin
 tone_tb.dut.pc_load_int_vec
+tone_tb.dut.pc_load_sdb3_0_db7_0
+tone_tb.dut.pc_load_sdb4_0_db7_1
+tone_tb.dut.pc_out_to_db_sdb
 tone_tb.dut.pc_pcin_to_abn
 tone_tb.dut.pc_ctrl1
 tone_tb.dut.pc_ctrl3
 tone_tb.dut.pc_ctrl4
-@1401200
+@1000200
 -pc
 @800200
 -rom
@@ -234,12 +283,11 @@ tone_tb.dut.sp[2:0]
 -reg
 @800200
 -ram
-@23
+@22
 tone_tb.dut.ram_row[3:0]
 @28
 tone_tb.dut.ram_col[1:0]
 tone_tb.dut.ram_left_db_oe
-tone_tb.dut.id_op_tbln_calln_2
 tone_tb.dut.id_op_tbln_a_Rr
 @22
 tone_tb.dut.ram_left_rbuf[7:0]
