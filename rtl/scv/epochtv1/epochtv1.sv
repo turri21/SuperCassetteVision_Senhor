@@ -711,7 +711,7 @@ e_sbofp_st sbofp_st;
 wire sbofp_stall_pre;
 reg  sbofp_stall_d;
 
-wire [7:0] sbofp_oam_idx_max;
+wire [6:0] sbofp_oam_idx_max;
 
 wire sbofp_wsel;
 
@@ -726,7 +726,7 @@ always_ff @(posedge CLK) if (CE) begin
 end
 assign sbofp_stall = sbofp_stall_pre | sbofp_stall_d;
 
-assign sbofp_oam_idx_max = sp_hide7 ? 8'd63 : 8'd127;
+assign sbofp_oam_idx_max = sp_hide7 ? 7'd63 : 7'd127;
 
 initial begin
   sbofp_st = SST_IDLE;
