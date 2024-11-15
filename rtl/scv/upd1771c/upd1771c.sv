@@ -39,11 +39,12 @@ wor [15:0]      pdb;
 wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
                 md_time_ie, md_ext_ie, md_out, md_if;
 
+logic           fl0;
+logic           cl_t1;
+logic [11:0]    int_vec;
+
 // TODO: Find names and homes for these.
 wire n156 = '0; // TODO: T2 of TBLn?
-wire n570 = '1; // TODO
-wire n103 = ~(testmode | n570);
-wire n723 = '0; // TODO
 wire n678 = (pc_ctrl3 | cl_id_op_calln_dd) | ~n156;
 wire n895 = '1; // TODO: ~(TS ^ NS)?
 
@@ -135,6 +136,8 @@ logic [15:0] id;
 
 always_comb begin
   id = pdb;
+  if (cl_t1)
+    id[15:12] = 4'b0110;
 end
 
 wire id_set_a = ~|id[15:14] & id[10] & ~id[9]; // 00xx_x10x__xxxx
@@ -164,7 +167,7 @@ wire id_aluop_10x_1x0_txnx = id_aluop_10x_1x0 & ~id[11]; // xxxx_0xxx__xxxx
 wire id_aluop_txnx_Rr_n = &id[15:13] & ~id[12] & ~id[9]; // 1110_xx0x__xxxx
 wire id_op_out_pb = ~|id[15:10] & id[2] & ~id[0]; // 0000_00xx__x1x0
 wire id_op_out_pa = ~|id[15:10] & id[1]; // 0000_00xx__xx1x
-wire id_op_jmp_call = ~id[15] & &id[14:13]; // 011x_xxxx__xxxx
+wire id_op_jmp_call = ~id[15] & &id[14:13] & ~cl_t1; // 011x_xxxx__xxxx
 wire id_op_call = ~id[15] & &id[14:12]; // 0111_xxxx__xxxx
 wire id_op_retx = ~|id[15:12] & id[11]; // 0000_1xxx__xxxx
 wire id_aluop_notest_Hp_n = id[15] & ~id[14] & id[13] & ~id[8]; // 1010_xxx0__xxxx
@@ -183,8 +186,10 @@ wire id_op_set_H = ~|id[15:13] & id[12] & ~|id[11:10] & id[3]; // 0001_00xx__1xx
 wire id_aluop_notest_H_n = id[15] & ~id[14] & id[13] & ~id[12] & id[8]; // 1010_xxx1__xxxx
 wire id_op_mvi_H_n = ~|id[15:14] & &id[13:11]; // 0011_1xxx__xxxx
 wire id_aluop_sb = id[15] & id[10] & ~id[9]; // 1xxx_x10x__xxxx
-wire id_op_mul2_3 = ~|id[15:11] & id[10] & id[8] & id[3]; // 0000_01x1__1xxx
-wire id_op_not_aluop = ~id[15] & ~(id_op_mul2_3 | id_op_mix | id_op_mov_xchg_Hp_Rr_dst);
+wire id_op_mul2 = ~|id[15:11] & id[10] & id[8] & id[3]; // 0000_01x1__1xxx
+wire id_op_mul2_b = ~|id[15:11] & id[10] & id[8] & &id[3:2]; // 0000_01x1__11xx
+wire id_op_mul1 = ~|id[15:11] & id[10] & id[8] & ~id[3] & id[2]; // 0000_01x1__01xx
+wire id_op_not_aluop = ~id[15] & ~(id_op_mul2_b | id_op_mix | id_op_mov_xchg_Hp_Rr_dst);
 wire id_op_mix = ~|id[15:13] & id[12] & ~id[11] & id[10] & id[3];
 wire id_op_mov_xchg_Hp_Rr_dst = ~|id[15:13] & id[12] & ~id[11] & id[9]; // 0001_0x1x__xxxx
 wire id_aluop_test_Rr_n = &id[15:13] & id[10]; // 111x_x1xx__xxxx
@@ -202,6 +207,18 @@ wire id_aluop_10x_1x0_sk_z = id_aluop_10x_1x0 & id[9]; // xxxx_xx1x__xxxx & aluo
 wire id_op_mov_xchg_mix_Rr_Hp = ~|id[15:13] & id[12] & ~id[11]; // 0001_0xxx__xxxx
 wire id_aluop_or_xor_equ = id_aluop_10x_1x0 & &id[10:9]; // xxxx_x11x__xxxx & aluop_10x_1x0
 wire id_aluop_or = id_aluop_10x_1x0 & ~|id[12:11] & &id[10:9]; // xxx0_011x__xxxx & aluop_10x_1x0
+wire id_aluop_and = id_aluop_10x_1x0 & ~id[10] & id[9]; // xxxx_x01x__xxxx & aluop_10x_1x0
+wire id_op_mov_N_a = ~|id[15:10] & id[9] & id[0]; // 0000_001x__xxx1
+wire id_op_ral = ~|id[15:11] & id[10] & ~id[8] & id[3]; // 0000_01x0__1xxx
+wire id_op_rar = ~|id[15:11] & id[10] & ~id[8] & id[2]; // 0000_01x0__x1xx
+wire id_op_reti_tone = ~|id[15:12] & id[11] & id[8] & id[0]; // 0000_1xx1__xxx1
+wire id_op_reti_ns = ~|id[15:12] & id[11] & id[8] & id[1]; // 0000_1xx1__xx1x
+wire id_op_reti_time = ~|id[15:12] & id[11] & id[8] & id[2]; // 0000_1xx1__x1xx
+wire id_op_reti_ext = ~|id[15:12] & id[11] & id[8] & id[3]; // 0000_1xx1__1xxx
+wire id_op_jmpfz = ~|id[15:14] & id[13] & ~|id[12] & id[11]; // 0010_1xxx__xxxx
+wire id_op_jmp_n4 = ~|id[15:14] & id[13] & ~|id[12:11] & ~id[8]; // 0010_0xx0__xxxx
+wire id_op_jmpa = ~|id[15:11] & id[10] & id[8] & id[0]; // 0000_01x1__xxx1
+wire id_op_stf = ~|id[15:11] & id[2] & id[0]; // 0000_00xx__x101
 
 
 //////////////////////////////////////////////////////////////////////
@@ -213,8 +230,7 @@ logic cl_skip_d, cl_skip_dd;
 logic [4:0] cl_pdb_ram_a;
 logic [2:0] cl_sp_ram_a;
 
-wire cl_t1 = '0;
-wire cl_pdb7_4_to_sdb7_4 = clk4 & n723;
+wire cl_pdb7_4_to_sdb7_4 = clk4 & (id_op_jmp_n4 & ~testmode);
 wire cl_pdb11_8_to_sdb3_0 = clk4 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
 wire cl_pdb15_8_to_db7_0 = clk4 & ~n678;
 wire cl_pdb7_0_to_db7_0 = n678 & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
@@ -231,11 +247,14 @@ wire cl_id_op_Hp_Rr_dst = id_aluop_Rr_A_Hp_A | id_aluop_notest_Hp_n | id_aluop_n
 wire cl_h_reg_en = clk1 & ((cp2 & id_aluop_notest_H_n) | (clk4 & (id_op_mvi_H_n | id_op_set_H)));
 wire cl_a_to_db = (clk3 & (id_get_a_clk3_a | id_get_a_clk3_b | id_get_a_clk3_c)) | (clk4 & id_get_a_clk4);
 wire cl_h_to_db = (clk3 & id_get_h_clk3) | (clk4 & id_aluop_H_n);
-wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | n103 | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
-wire cl_pc_load_sdb3_0_db7_0 = (resp | id_op_retx /*| n775 | n2612*/ | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | n723);
+wire cl_int_load_pc;
+wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | cl_int_load_pc | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
+wire cl_pc_load_sdb3_0_db7_0 = resp | id_op_retx | (id_op_jmpa & ~testmode) | ((id_op_jmpfz & ~testmode) & ~fl0) | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | (id_op_jmp_n4 & ~testmode);
 wire cl_id_op_out_pa_d = cp2 & id_op_out_pa;
 wire cl_id_op_calln_retx = clk4 & (id_op_tbln_calln & ~testmode | id_op_retx);
 wire cl_id_Rr_Hp_clk4 = clk4 & (id_op_mov_xchg_mix_Rr_Hp | id_aluop_Hp_n | id_aluop_11x);
+wire cl_n_reg_en = clk4 & id_op_mov_N_a;
+wire cl_a_in_ror = id_op_rar | id_op_mul2_b | id_op_mul1;
 
 assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
 assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
@@ -247,6 +266,7 @@ always @(posedge CLK) begin
     cl_skip_d <= cl_skip;
   end
   if (cp1p) begin
+    cl_t1 <= id_op_tbln_calln;
     cl_id_op_calln_dd <= cl_id_op_calln_d;
     cl_id_op_tbln_a_Rr_dd <= cl_id_op_tbln_a_Rr_d;
     cl_skip_dd <= cl_skip_d;
@@ -279,6 +299,7 @@ wire alu_zero_b = id_op_mov_xchg_Hp_Rr_dst;
 wire alu_op_sub = id_op_mix ? ~n895 : (id_aluop_sb | id_aluop_test_Rr_n);
 wire alu_op_no_carry = id_aluop_or_xor_equ;
 wire alu_op_or = id_aluop_or;
+wire alu_op_and = id_aluop_and;
 
 wire alu_temp1_first = ~(id_aluop_A_Rr_Hp | id_aluop_100);
 wire alu_db_to_temp1 = (clk3 & alu_temp1_first) | (clk4 & ~alu_temp1_first);
@@ -311,6 +332,8 @@ always @* begin
   else begin
     if (alu_op_sub)
       {alu_co, alu_c} = alu_b - alu_a;
+    else if (alu_op_and)
+      alu_c = alu_a & alu_b;
     else
       {alu_co, alu_c} = alu_a + alu_b;
   end
@@ -325,15 +348,15 @@ assign alu_c_zero = alu_c == '0;
 logic [11:0] pc, pcin, pcn;
 logic [11:0] abn, abadd;
 
-wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln & ~testmode | n103 | cl_pc_load_sdb3_0_db7_0);
-wire pc_ctrl3 = '1; // TODO
-wire pc_ctrl4 = '1; // TODO
-wire pc_load_int_vec = '0; // TODO
+wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln & ~testmode | cl_int_load_pc | cl_pc_load_sdb3_0_db7_0);
+wire pc_ctrl3 = ~cl_t1;
+wire pc_ctrl4 = ~id_op_jmp_n4;
+wire pc_load_int_vec = clk4 & cl_int_load_pc;
 wire pc_load_sdb3_0_db7_0 = clk4 & cl_pc_load_sdb3_0_db7_0;
-wire pc_load_sdb4_0_db7_1 = '0; // TODO
-wire pc_abadd_cin = ~n103;
-wire pc_pcin_to_abn = 1'b1; // TODO
-wire pc_out_to_db_sdb = clk5 & (n103 | (id_op_call & ~testmode) | cl_id_op_calln_dd);
+wire pc_load_sdb4_0_db7_1 = clk4 & id_op_tbln_calln & ~testmode;
+wire pc_abadd_cin = ~cl_int_load_pc;
+wire pc_pcin_to_abn = clk4 & pc_ctrl4;
+wire pc_out_to_db_sdb = clk5 & (cl_int_load_pc | (id_op_call & ~testmode) | cl_id_op_calln_dd);
 
 always @(posedge CLK) if (clk1) begin
   pc <= pcn;
@@ -351,7 +374,7 @@ always @(posedge CLK) begin
   else if (pc_load_sdb4_0_db7_1)
     pcin <= {sdb[4:0], db[7:1]};
   else if (pc_load_int_vec)
-    pcin <= 0; //TODO
+    pcin <= int_vec;
   else if (pc_ctrl1)
     pcin <= pc;
 end
@@ -372,8 +395,8 @@ initial begin
 end
 
 // Change rom_zero from silicon, to clear PC even in testmode
-//assign rom_zero = ~(testmode | ~(resp | n103 | cl_skip_dd));
-assign rom_zero = resp | (~testmode & (n103 | cl_skip_dd));
+//assign rom_zero = ~(testmode | ~(resp | cl_int_load_pc | cl_skip_dd));
+assign rom_zero = resp | (~testmode & (cl_int_load_pc | cl_skip_dd));
 assign rom_oe = ~leader;
 
 always @(posedge CLK) begin
@@ -391,7 +414,7 @@ assign pdb = (rom_oe & ~rom_zero) ? rom_do : '0;
 // CPU-programmable registers
 
 logic [9:0] md;
-logic [7:0] a;
+logic [7:0] a, ap;
 logic [5:0] h;
 logic [2:0] sp;
 
@@ -415,10 +438,17 @@ assign md_ext_ie = md[5];
 assign md_out = md[6];
 assign md_if = md[7];
 
+always @* begin
+  ap = db;
+  if (cl_a_in_ror)
+    ap = {ap[0], ap[7:1]};
+  else if (id_op_ral)
+    ap = {ap[6:0], ap[7]};
+end
 
 always @(posedge CLK) begin
   if (cl_a_reg_en)
-    a <= db;
+    a <= ap;
 end
 
 always @(posedge CLK) begin
@@ -433,6 +463,14 @@ always @(posedge CLK) if (cp1p) begin
     sp <= sp + 1'd1;
   else if (cl_spm1_to_ram_a)
     sp <= sp - 1'd1;
+end
+
+logic fl0_p;
+always @(posedge CLK) begin
+  if (cp1p)
+    fl0 <= fl0_p;
+  if (cp2n)
+    fl0_p <= fl0 & ~(resp | (id_op_jmpfz & ~testmode)) | id_op_stf;
 end
 
 
@@ -502,6 +540,170 @@ assign ram_right_db_ie = ~cl_sp_to_ram_a;
 assign ram_right_db_oe = ~(ram_right_sel | ~cl_id_Rr_Hp_clk4);
 assign ram_right_sdb_oe = clk4 & ((id_op_tbln_calln & ~testmode) | id_op_retx);
 assign ram_right_wbuf = ram_right_db_ie ? db : sdb;
+
+
+//////////////////////////////////////////////////////////////////////
+// Tone counter
+
+logic [7:0] nc;                 // "NC": Down-counter
+logic [7:0] n;                  // "N": Reload value for NC
+logic [2:0] nuc;                // NC reload / tone counter
+
+wire nc_eq_01 = nc == 8'd1;     // reload condition
+logic nc_eq_01_d;
+logic int_tone_cond;
+logic int_tone_trig, int_tone_cond_d;
+
+always @(posedge CLK) if (clk1) begin
+  n <= cl_n_reg_en ? db : n;
+end
+
+always @(posedge CLK) if (cp1p) begin
+  if (resp)
+    nc <= 0;
+  else if (nc_eq_01)
+    nc <= n;
+  else
+    nc <= nc - 1'd1;
+end
+
+// nuc always increments on NC reload.
+always @(posedge CLK) if (cp1p) begin
+  nc_eq_01_d <= nc_eq_01;
+
+  if (resp)
+    nuc <= 0;
+  else if (nc_eq_01_d)
+    nuc <= nuc + 1'd1;
+end
+
+// The tone interrupt is driven by select nuc bits or the reload
+// signal, depending on the value of N.
+wire n_range_00_07 = (n < 8'h08);
+wire n_range_08_0f = (n >= 8'h08) & (n < 8'h10);
+wire n_range_10_1f = (n >= 8'h10) & (n < 8'h20);
+wire n_range_20_3f = (n >= 8'h20) & (n < 8'h3f);
+wire n_range_40_ff = (n >= 8'h40);
+
+always @* begin
+  case (1'b1)
+    n_range_00_07: int_tone_cond = 1'b0;
+    n_range_08_0f: int_tone_cond = nuc[2];
+    n_range_10_1f: int_tone_cond = nuc[1];
+    n_range_20_3f: int_tone_cond = nuc[0];
+    n_range_40_ff: int_tone_cond = nc_eq_01_d;
+    default: int_tone_cond = 1'bx;
+  endcase
+end
+
+always @(posedge CLK) if (cp1p) begin
+  int_tone_cond_d <= int_tone_cond;
+  // Interrupt is triggered on int_tone_cond negedge.
+  int_tone_trig <= ~int_tone_cond & int_tone_cond_d;
+end
+
+
+//////////////////////////////////////////////////////////////////////
+// Interrupts
+
+logic [3:0] int_pending, int_pending_d, int_active;
+wire [3:0]  int_set_pend;
+logic [3:0] int_set_active_prio;
+logic [3:0] int_load_pc;
+
+typedef enum reg [1:0]
+{
+    II_TONE = 2'd0,
+    II_NS   = 2'd1,
+    II_EXT  = 2'd2,
+    II_TIME = 2'd3
+} e_int_id;
+
+assign int_set_pend[II_TONE] = int_tone_trig & md_tone_ie;
+assign int_set_pend[II_NS]   = '0;
+assign int_set_pend[II_EXT]  = '0;
+assign int_set_pend[II_TIME] = '0;
+
+always @* begin
+  int_pending = int_pending_d;
+
+  if (resp) begin
+    int_pending = '0;
+  end
+  else begin
+    if (cp2) begin
+      // Set inactive interrupt as pending
+      int_pending |= (int_set_pend & ~int_active);
+    end
+
+    // Clear pending on going active
+    int_pending &= ~int_active;
+  end
+end
+
+always @(posedge CLK) begin
+  int_pending_d <= int_pending;
+end
+
+// Only one interrupt can be active at a time
+wire [3:0] int_set_active = |int_active ? '0 : int_pending;
+wire [3:0] int_clr_active;
+
+assign int_clr_active[II_TONE] = id_op_reti_tone;
+assign int_clr_active[II_NS]   = id_op_reti_ns;
+assign int_clr_active[II_EXT]  = id_op_reti_ext;
+assign int_clr_active[II_TIME] = id_op_reti_time;
+
+// Priority selection: lowest index is highest priority
+always @* begin
+  int_set_active_prio = '0;
+  if (~|int_active) begin
+    case (1'b1)
+      int_set_active[0]: int_set_active_prio[0] = '1;
+      int_set_active[1]: int_set_active_prio[1] = '1;
+      int_set_active[2]: int_set_active_prio[2] = '1;
+      int_set_active[3]: int_set_active_prio[3] = '1;
+    endcase
+  end
+end
+
+// Set highest priority pending interrupt as active.
+// Clear active on RETI
+wire [3:0] int_active_p = (int_active | int_set_active_prio) & ~int_clr_active;
+
+always @(posedge CLK) begin
+  if (resp) begin
+    int_active <= '0;
+    int_load_pc <= '0;
+  end
+  else if (cp1p) begin
+    int_active <= int_active_p;
+
+    // When an interrupt goes active, load PC with its interrupt vector.
+    int_load_pc <= int_active_p & ~int_active;
+  end
+end
+
+assign cl_int_load_pc = ~testmode & |int_load_pc;
+
+always @* begin
+  int_vec = '0;
+  if (int_load_pc[II_TONE]) begin
+    int_vec |= 'h20;
+    case (1'b1)
+      n_range_10_1f: int_vec |= 'h04;
+      n_range_20_3f: int_vec |= 'h08;
+      n_range_40_ff: int_vec |= 'h0c;
+      default: ;
+    endcase
+  end
+  if (int_load_pc[II_NS])
+    int_vec |= 'h48;
+  if (int_load_pc[II_EXT])
+    int_vec |= 'h60;
+  if (int_load_pc[II_TIME])
+    int_vec |= 'h80;
+end
 
 
 //////////////////////////////////////////////////////////////////////
