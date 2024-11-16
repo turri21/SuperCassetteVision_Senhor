@@ -39,14 +39,13 @@ wor [15:0]      pdb;
 wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
                 md_time_ie, md_ext_ie, md_out, md_if;
 
-logic           fl0;
+logic           fl0;            // Flag 0 (FL0)
+logic           ts;             // Tone Sign (TS)
+logic           ns;             // Noise Sign (NS)
 logic           cl_t1;
 logic [11:0]    int_vec;
 
 // TODO: Find names and homes for these.
-wire n156 = '0; // TODO: T2 of TBLn?
-wire n678 = (pc_ctrl3 | cl_id_op_calln_dd) | ~n156;
-wire n895 = '1; // TODO: ~(TS ^ NS)?
 
 
 //////////////////////////////////////////////////////////////////////
@@ -188,8 +187,8 @@ wire id_op_mvi_H_n = ~|id[15:14] & &id[13:11]; // 0011_1xxx__xxxx
 wire id_aluop_sb = id[15] & id[10] & ~id[9]; // 1xxx_x10x__xxxx
 wire id_op_mul2 = ~|id[15:11] & id[10] & id[8] & id[3]; // 0000_01x1__1xxx
 wire id_op_mul2_b = ~|id[15:11] & id[10] & id[8] & &id[3:2]; // 0000_01x1__11xx
-wire id_op_mul1 = ~|id[15:11] & id[10] & id[8] & ~id[3] & id[2]; // 0000_01x1__01xx
-wire id_op_not_aluop = ~id[15] & ~(id_op_mul2_b | id_op_mix | id_op_mov_xchg_Hp_Rr_dst);
+wire id_op_mul1 = ~|id[15:11] & id[10] & id[8] & ~id[3] & id[2] & ~y[0]; // 0000_01x1__01xx & ~y[0]
+wire id_op_not_aluop = ~id[15] & ~((id_op_mul2_b & y[0]) | id_op_mix | id_op_mov_xchg_Hp_Rr_dst);
 wire id_op_mix = ~|id[15:13] & id[12] & ~id[11] & id[10] & id[3];
 wire id_op_mov_xchg_Hp_Rr_dst = ~|id[15:13] & id[12] & ~id[11] & id[9]; // 0001_0x1x__xxxx
 wire id_aluop_test_Rr_n = &id[15:13] & id[10]; // 111x_x1xx__xxxx
@@ -219,6 +218,11 @@ wire id_op_jmpfz = ~|id[15:14] & id[13] & ~|id[12] & id[11]; // 0010_1xxx__xxxx
 wire id_op_jmp_n4 = ~|id[15:14] & id[13] & ~|id[12:11] & ~id[8]; // 0010_0xx0__xxxx
 wire id_op_jmpa = ~|id[15:11] & id[10] & id[8] & id[0]; // 0000_01x1__xxx1
 wire id_op_stf = ~|id[15:11] & id[2] & id[0]; // 0000_00xx__x101
+wire id_op_mov_X_RG = ~|id[15:10] & id[3]; // 0000_00xx__1xxx
+wire id_op_tbln_X_Rr = ~|id[15:13] & &id[12:11] & id[1]; // 0001_1xxx__xx1x
+wire id_op_tbln_Y_Rr = ~|id[15:13] & &id[12:11] & id[2]; // 0001_1xxx__x1xx
+wire id_op_mov_Y_Rr = ~|id[15:13] & id[12] & ~id[11] & ~id[9] & ~id[3] & ~id[0]; // 0001_0x0x__0xx0
+wire id_op_muln = ~|id[15:11] & id[10] & id[8] & id[2]; // 0000_01x1__x1xx
 
 
 //////////////////////////////////////////////////////////////////////
@@ -227,13 +231,17 @@ wire id_op_stf = ~|id[15:11] & id[2] & id[0]; // 0000_00xx__x101
 logic cl_id_op_calln_d, cl_id_op_calln_dd;
 logic cl_id_op_tbln_a_Rr_d, cl_id_op_tbln_a_Rr_dd;
 logic cl_skip_d, cl_skip_dd;
+logic cl_id_op_tbln_X_Rr_d, cl_id_op_tbln_X_Rr_dd;
+logic cl_id_op_tbln_Y_Rr_d, cl_id_op_tbln_Y_Rr_dd;
+logic cl_tbln_PRr_odd, cl_tbln_PRr_odd_p;
 logic [4:0] cl_pdb_ram_a;
 logic [2:0] cl_sp_ram_a;
 
 wire cl_pdb7_4_to_sdb7_4 = clk4 & (id_op_jmp_n4 & ~testmode);
 wire cl_pdb11_8_to_sdb3_0 = clk4 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
-wire cl_pdb15_8_to_db7_0 = clk4 & ~n678;
-wire cl_pdb7_0_to_db7_0 = n678 & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
+wire cl_pdb_hi_sel = cl_tbln_PRr_odd & ~(pc_ctrl3 | cl_id_op_calln_dd);
+wire cl_pdb15_8_to_db7_0 = clk4 & cl_pdb_hi_sel;
+wire cl_pdb7_0_to_db7_0 = ~cl_pdb_hi_sel & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
 wire cl_a_reg_en = ((cl_id_op_tbln_a_Rr_dd | id_aluop_A_Rr | id_op_reti | id_aluop_A_n | id_set_a) & cp2) | (id_op_mov_xchg_a_dst & clk4);
 wire cl_op_clear_skip = id_op_adi_sbi_adi5_Rr_n | id_op_xori | id_op_adi_andi_sbi_ori | id_op_not_aluop_or_rets;
 wire cl_skip_test_if_set = ~(id_op_rets | id_aluop_10x_1x0_txnx | id_aluop_txnx_Rr_n);
@@ -254,7 +262,15 @@ wire cl_id_op_out_pa_d = cp2 & id_op_out_pa;
 wire cl_id_op_calln_retx = clk4 & (id_op_tbln_calln & ~testmode | id_op_retx);
 wire cl_id_Rr_Hp_clk4 = clk4 & (id_op_mov_xchg_mix_Rr_Hp | id_aluop_Hp_n | id_aluop_11x);
 wire cl_n_reg_en = clk4 & id_op_mov_N_a;
-wire cl_a_in_ror = id_op_rar | id_op_mul2_b | id_op_mul1;
+wire cl_a_in_lsr = id_op_mul2_b | id_op_mul1;
+wire cl_a_in_ror_lsr = id_op_rar | cl_a_in_lsr;
+wire cl_x_reg_en = clk4 & (id_op_mov_X_RG | cl_id_op_tbln_X_Rr_dd);
+wire cl_x_to_db = clk3 & (id_op_mul2 | id_op_mov_X_RG);
+wire cl_tbln_PRr_odd_pp = clk4 ? ~(pc_load_sdb4_0_db7_1 & db[0]) : ~cl_tbln_PRr_odd_p;
+wire cl_y_reg_en = cl_id_op_tbln_Y_Rr_dd | id_op_mov_Y_Rr;
+wire cl_y_shift = id_op_muln;
+wire cl_mix_sub = (ts ^ ns);
+wire cl_ts_reg_en = clk4 & cl_id_op_tbln_X_Rr_dd;
 
 assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
 assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
@@ -264,12 +280,20 @@ always @(posedge CLK) begin
     cl_id_op_calln_d <= id_op_calln & ~testmode;
     cl_id_op_tbln_a_Rr_d <= id_op_tbln_a_Rr;
     cl_skip_d <= cl_skip;
+    cl_id_op_tbln_X_Rr_d <= id_op_tbln_X_Rr;
+    cl_id_op_tbln_Y_Rr_d <= id_op_tbln_Y_Rr;
+  end
+  if (clk1) begin
+    cl_tbln_PRr_odd_p <= ~cl_tbln_PRr_odd_pp;
   end
   if (cp1p) begin
     cl_t1 <= id_op_tbln_calln;
     cl_id_op_calln_dd <= cl_id_op_calln_d;
     cl_id_op_tbln_a_Rr_dd <= cl_id_op_tbln_a_Rr_d;
     cl_skip_dd <= cl_skip_d;
+    cl_id_op_tbln_X_Rr_dd <= cl_id_op_tbln_X_Rr_d;
+    cl_id_op_tbln_Y_Rr_dd <= cl_id_op_tbln_Y_Rr_d;
+    cl_tbln_PRr_odd <= cl_tbln_PRr_odd_p;
   end
 end
 
@@ -296,7 +320,7 @@ wire        alu_c_zero;
 wire alu_zero_a_lo = id_op_not_aluop;
 wire alu_zero_a_hi = alu_zero_a_lo | id_aluop_Rr_n;
 wire alu_zero_b = id_op_mov_xchg_Hp_Rr_dst;
-wire alu_op_sub = id_op_mix ? ~n895 : (id_aluop_sb | id_aluop_test_Rr_n);
+wire alu_op_sub = id_op_mix ? cl_mix_sub : (id_aluop_sb | id_aluop_test_Rr_n);
 wire alu_op_no_carry = id_aluop_or_xor_equ;
 wire alu_op_or = id_aluop_or;
 wire alu_op_and = id_aluop_and;
@@ -413,10 +437,12 @@ assign pdb = (rom_oe & ~rom_zero) ? rom_do : '0;
 //////////////////////////////////////////////////////////////////////
 // CPU-programmable registers
 
-logic [9:0] md;
-logic [7:0] a, ap;
-logic [5:0] h;
-logic [2:0] sp;
+logic [9:0] md;                 // Mode Register
+logic [7:0] a, ap;              // Accumulator
+logic [5:0] h;                  // Data Pointer
+logic [2:0] sp;                 // Stack Pointer
+logic [6:0] x;                  // X Multiplier Register
+logic [4:0] y, yp;              // Y Multiplier Register
 
 initial begin
   h = '0; // else ram_col[1] is X
@@ -440,8 +466,11 @@ assign md_if = md[7];
 
 always @* begin
   ap = db;
-  if (cl_a_in_ror)
+  if (cl_a_in_ror_lsr) begin
     ap = {ap[0], ap[7:1]};
+    if (cl_a_in_lsr)
+      ap[7] = '0;
+  end
   else if (id_op_ral)
     ap = {ap[6:0], ap[7]};
 end
@@ -463,6 +492,26 @@ always @(posedge CLK) if (cp1p) begin
     sp <= sp + 1'd1;
   else if (cl_spm1_to_ram_a)
     sp <= sp - 1'd1;
+end
+
+always @(posedge CLK) if (clk1) begin
+  if (cl_x_reg_en)
+    x <= db[6:0];
+  if (cl_ts_reg_en)
+    ts <= db[7];
+end
+
+always @(posedge CLK) begin
+  if (cp2n) begin
+    if (cl_y_reg_en)
+      yp <= db[4:0];
+    else if (cl_y_shift)
+      yp <= y >> 1;
+    else
+      yp <= y;
+  end
+  if (cp1p)
+    y <= yp;
 end
 
 logic fl0_p;
@@ -601,6 +650,13 @@ always @(posedge CLK) if (cp1p) begin
   // Interrupt is triggered on int_tone_cond negedge.
   int_tone_trig <= ~int_tone_cond & int_tone_cond_d;
 end
+
+
+//////////////////////////////////////////////////////////////////////
+// Noise generator
+
+// TODO: Implement this, but only if NSS (MD[3]) ever goes 1.
+assign ns = '0;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -787,6 +843,7 @@ always @* begin
   //if (n699)                 db = md[7:0];
   if (cl_a_to_db)           db = a;
   if (cl_h_to_db)           db = h;
+  if (cl_x_to_db)           db = {1'b0, x};
   if (cl_alu_c_to_db)       db = alu_c;
   if (ram_left_db_oe)       db = ram_left_rbuf;
   if (ram_right_db_oe)      db = ram_right_rbuf;
