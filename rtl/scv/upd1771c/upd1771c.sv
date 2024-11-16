@@ -47,8 +47,6 @@ logic [9:0]     da;             // Input to DAC, pre-inversion
 logic           cl_t1;
 logic [11:0]    int_vec;
 
-// TODO: Find names and homes for these.
-
 
 //////////////////////////////////////////////////////////////////////
 // Reset, etc.
@@ -226,6 +224,9 @@ wire id_op_tbln_Y_Rr = ~|id[15:13] & &id[12:11] & id[2]; // 0001_1xxx__x1xx
 wire id_op_mov_Y_Rr = ~|id[15:13] & id[12] & ~id[11] & ~id[9] & ~id[3] & ~id[0]; // 0001_0x0x__0xx0
 wire id_op_muln = ~|id[15:11] & id[10] & id[8] & id[2]; // 0000_01x1__x1xx
 wire id_op_out_da = ~|id[15:11] & id[10] & id[8] & id[1]; // 0000_01x1__xx1x
+wire id_op_adi5 = &id[15:12] & ~id[11] & ~id[9]; // 1111_0x0x__xxxx
+wire id_op_tadi5 = &id[15:11]; // 1111_1xxx__xxxx
+wire id_op_adims = &id[15:12] & id[9]; // 1111_xx1x__xxxx
 
 
 //////////////////////////////////////////////////////////////////////
@@ -274,6 +275,9 @@ wire cl_y_reg_en = cl_id_op_tbln_Y_Rr_dd | id_op_mov_Y_Rr;
 wire cl_y_shift = id_op_muln;
 wire cl_mix_sub = (ts ^ ns);
 wire cl_ts_reg_en = clk4 & cl_id_op_tbln_X_Rr_dd;
+wire cl_alu_c4inh = (id_op_adims & ~md_64_32) | id_op_adi5;
+wire cl_alu_c5inh = id_op_adims & md_64_32;
+wire cl_op_tadi5_or_adims_and_not_md0 = (id_op_adims & ~md_64_32) | id_op_tadi5;
 
 assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
 assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
@@ -304,9 +308,9 @@ end
 wire cl_skip = cl_skip_a; // TODO: add id_op_reti
 wire cl_skip_test_out =
      ((id_aluop_Rr_n_not_c5 | id_aluop_10x_1x0_sk_cb) & alu_co) |
-     (id_aluop_10x_1x0_sk_z & alu_c_zero)/* |
-     (n906 & n910) |
-     (n2986 & n911)*/;
+     (id_aluop_10x_1x0_sk_z & alu_c_zero) |
+     ((id_op_adims & md_64_32) & alu_co5) |
+     (cl_op_tadi5_or_adims_and_not_md0 & alu_co4);
 wire cl_skip_test_failed = cl_skip_test_out ^ cl_skip_test_if_set;
 wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
 
@@ -317,7 +321,7 @@ wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
 logic [7:0] alu_a;              // input A (from TEMP1)
 logic [7:0] alu_b;              // input B (from TEMP2)
 logic [7:0] alu_c;              // output (S)
-logic       alu_co;
+logic       alu_co, alu_co4, alu_co5;
 wire        alu_c_zero;
 
 wire alu_zero_a_lo = id_op_not_aluop;
@@ -350,6 +354,8 @@ always @(posedge CLK) begin
 end
 
 always @* begin
+  alu_co4 = '0;
+  alu_co5 = '0;
   if (alu_op_no_carry) begin
     if (alu_op_or)
       alu_c = alu_a | alu_b;
@@ -361,8 +367,19 @@ always @* begin
       {alu_co, alu_c} = alu_b - alu_a;
     else if (alu_op_and)
       alu_c = alu_a & alu_b;
-    else
-      {alu_co, alu_c} = alu_a + alu_b;
+    else begin
+      // alu_co[5:4] are only used in certain add ins.
+      if (cl_alu_c4inh) begin
+        {alu_co4, alu_c[4:0]} = alu_a[4:0] + alu_b[4:0];
+        {alu_co, alu_c[7:5]} = alu_a[7:5] + alu_b[7:5];
+      end
+      else if (cl_alu_c5inh) begin
+        {alu_co5, alu_c[5:0]} = alu_a[5:0] + alu_b[5:0];
+        {alu_co, alu_c[7:6]} = alu_a[7:6] + alu_b[7:6];
+      end
+      else
+        {alu_co, alu_c} = alu_a + alu_b;
+    end
   end
 end
 
@@ -450,6 +467,7 @@ logic [4:0] y, yp;              // Y Multiplier Register
 
 initial begin
   h = '0; // else ram_col[1] is X
+  ts = '0; // else pcm_neg / PCM_OUT is X
 end
 
 always @(posedge CLK) begin

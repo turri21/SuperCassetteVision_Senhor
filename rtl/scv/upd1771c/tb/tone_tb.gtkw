@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Nov 16 21:09:44 2024
+[*] Sat Nov 16 23:07:58 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Sat Nov 16 21:01:33 2024"
-[dumpfile_size] 8174274
+[dumpfile_mtime] "Sat Nov 16 23:07:52 2024"
+[dumpfile_size] 14940758
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 0
+[timestart] 9725000000
 [size] 1416 762
-[pos] -1 0
-*-31.384705 2247657676 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[pos] -1 -1
+*-30.084705 21166582 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -38,7 +38,7 @@
 [markername] ZZ
 [treeopen] tone_tb.
 [sst_width] 253
-[signals_width] 287
+[signals_width] 292
 [sst_expanded] 1
 [sst_vpaned_height] 215
 @28
@@ -64,11 +64,12 @@ tone_tb.dut.sp[2:0]
 tone_tb.dut.a[7:0]
 tone_tb.dut.h[5:0]
 tone_tb.dut.x[6:0]
-@23
 tone_tb.dut.y[4:0]
-@10420
+@10421
 tone_tb.dut.PCM_OUT[8:0]
 @20000
+-
+-
 -
 @1000200
 -common
@@ -185,8 +186,10 @@ tone_tb.dut.id_get_a_clk3_c
 tone_tb.dut.id_get_a_clk4
 tone_tb.dut.id_get_h_clk3
 tone_tb.dut.id_op_Rr_pdb8_4
+tone_tb.dut.id_op_adi5
 tone_tb.dut.id_op_adi_andi_sbi_ori
 tone_tb.dut.id_op_adi_sbi_adi5_Rr_n
+tone_tb.dut.id_op_adims
 tone_tb.dut.id_op_call
 tone_tb.dut.id_op_calln
 tone_tb.dut.id_op_in_pa
@@ -213,6 +216,7 @@ tone_tb.dut.id_op_mvi_md0_n
 tone_tb.dut.id_op_mvi_md1_n
 tone_tb.dut.id_op_not_aluop
 tone_tb.dut.id_op_not_aluop_or_rets
+tone_tb.dut.id_op_out_da
 tone_tb.dut.id_op_out_pa
 tone_tb.dut.id_op_out_pb
 tone_tb.dut.id_op_ral
@@ -228,6 +232,7 @@ tone_tb.dut.id_op_set_H
 tone_tb.dut.id_op_src_n_a
 tone_tb.dut.id_op_src_n_b
 tone_tb.dut.id_op_stf
+tone_tb.dut.id_op_tadi5
 tone_tb.dut.id_op_tbln_X_Rr
 tone_tb.dut.id_op_tbln_Y_Rr
 tone_tb.dut.id_op_tbln_a_Rr
@@ -243,6 +248,8 @@ tone_tb.dut.cl_a_in_lsr
 tone_tb.dut.cl_a_in_ror_lsr
 tone_tb.dut.cl_a_reg_en
 tone_tb.dut.cl_a_to_db
+tone_tb.dut.cl_alu_c4inh
+tone_tb.dut.cl_alu_c5inh
 tone_tb.dut.cl_alu_c_to_db
 tone_tb.dut.cl_h_reg_en
 tone_tb.dut.cl_h_to_db
@@ -260,6 +267,7 @@ tone_tb.dut.cl_md0_reg_en
 tone_tb.dut.cl_md1_reg_en
 tone_tb.dut.cl_n_reg_en
 tone_tb.dut.cl_op_clear_skip
+tone_tb.dut.cl_op_tadi5_or_adims_and_not_md0
 tone_tb.dut.cl_pc_load_sdb3_0_db7_0
 tone_tb.dut.cl_pdb7_0_to_db7_0
 tone_tb.dut.cl_pdb7_4_to_sdb7_4
