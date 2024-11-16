@@ -560,8 +560,8 @@ assign ram_row[2:0] = ram_addr[3:1];
 assign ram_col[1] = ram_addr[0];
 
 wire ram_lr_col_sel = ram_col[0]; // left/right col. pair select: 0=left
-wire ram_left_sel = ram_col[1];   // left array select
-wire ram_right_sel = ~ram_col[1]; // right array select
+wire ram_left_sel = ~ram_col[1];  // left array select
+wire ram_right_sel = ram_col[1];  // right array select
 
 // Left half of array (cols 0-15): R/W port == db
 logic [7:0] ram_left_mem [2][16];
@@ -576,8 +576,8 @@ always @(posedge CLK) begin
   ram_left_rbuf <= ram_left_mem[ram_lr_col_sel][ram_row];
 end
 
-assign ram_left_write_en = cp2 & ~(ram_right_db_ie & (~cl_id_op_Hp_Rr_dst | ram_left_sel));
-assign ram_left_db_oe = cl_id_op_calln_retx | ~(ram_left_sel | ~cl_id_Rr_Hp_clk4);
+assign ram_left_write_en = cp2 & (~ram_right_db_ie | (cl_id_op_Hp_Rr_dst & ram_left_sel));
+assign ram_left_db_oe = cl_id_op_calln_retx | (ram_left_sel & cl_id_Rr_Hp_clk4);
 
 assign ram_left_wbuf = db;
 
@@ -596,9 +596,9 @@ always @(posedge CLK) begin
   ram_right_rbuf <= ram_right_mem[ram_lr_col_sel][ram_row];
 end
 
-assign ram_right_write_en = cp2 & ~(ram_right_db_ie & (~cl_id_op_Hp_Rr_dst | ram_right_sel));
+assign ram_right_write_en = cp2 & (~ram_right_db_ie | (cl_id_op_Hp_Rr_dst & ram_right_sel));
 assign ram_right_db_ie = ~cl_sp_to_ram_a;
-assign ram_right_db_oe = ~(ram_right_sel | ~cl_id_Rr_Hp_clk4);
+assign ram_right_db_oe = ram_right_sel & cl_id_Rr_Hp_clk4;
 assign ram_right_sdb_oe = clk4 & ((id_op_tbln_calln & ~testmode) | id_op_retx);
 assign ram_right_wbuf = ram_right_db_ie ? db : sdb;
 
