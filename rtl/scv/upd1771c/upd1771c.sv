@@ -42,6 +42,9 @@ wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
 logic           fl0;            // Flag 0 (FL0)
 logic           ts;             // Tone Sign (TS)
 logic           ns;             // Noise Sign (NS)
+logic           ss;             // Samle Sign (SS) = DAC out negative (-)
+logic [9:0]     da;             // Input to DAC, pre-inversion
+
 logic           cl_t1;
 logic [11:0]    int_vec;
 
@@ -223,6 +226,7 @@ wire id_op_tbln_X_Rr = ~|id[15:13] & &id[12:11] & id[1]; // 0001_1xxx__xx1x
 wire id_op_tbln_Y_Rr = ~|id[15:13] & &id[12:11] & id[2]; // 0001_1xxx__x1xx
 wire id_op_mov_Y_Rr = ~|id[15:13] & id[12] & ~id[11] & ~id[9] & ~id[3] & ~id[0]; // 0001_0x0x__0xx0
 wire id_op_muln = ~|id[15:11] & id[10] & id[8] & id[2]; // 0000_01x1__x1xx
+wire id_op_out_da = ~|id[15:11] & id[10] & id[8] & id[1]; // 0000_01x1__xx1x
 
 
 //////////////////////////////////////////////////////////////////////
@@ -657,6 +661,37 @@ end
 
 // TODO: Implement this, but only if NSS (MD[3]) ever goes 1.
 assign ns = '0;
+
+
+//////////////////////////////////////////////////////////////////////
+// DAC Output
+
+// SS flag is updated by MIX.
+always @(posedge CLK) begin
+  if (cp2)                 // needs to update before id_op_out_da ends
+    if (id_op_mix)
+      ss <= ts ^ alu_co;
+end
+
+always @(posedge CLK) if (cp2n) begin
+  if (id_op_out_da) begin
+    da <= {ss ^ ts, ss, db};
+  end
+end
+
+// pcm_neg, pcm_out: Input to DAC
+logic       pcm_neg;
+logic [7:0] pcm_out;
+always @* begin
+  pcm_out = da[7:0];
+  pcm_neg = da[8];
+  // DA[9] inverts sample input to DAC.
+  if (da[9])
+    pcm_out = ~pcm_out;
+end
+
+assign PCM_NEG = pcm_neg;
+assign PCM_OUT = pcm_out;
 
 
 //////////////////////////////////////////////////////////////////////

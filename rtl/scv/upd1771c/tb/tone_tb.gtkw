@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Nov 16 08:34:52 2024
+[*] Sat Nov 16 20:24:13 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.vcd"
-[dumpfile_mtime] "Sat Nov 16 08:29:34 2024"
-[dumpfile_size] 1800168
+[dumpfile_mtime] "Sat Nov 16 20:13:42 2024"
+[dumpfile_size] 1800480
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/tone_tb.gtkw"
-[timestart] 1088600000
+[timestart] 911200000
 [size] 1416 762
 [pos] -1 -1
-*-21.384705 1094495622 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-26.384705 1099662268 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -67,6 +67,10 @@ tone_tb.dut.a[7:0]
 tone_tb.dut.h[5:0]
 tone_tb.dut.x[6:0]
 tone_tb.dut.y[4:0]
+@28
+tone_tb.dut.pcm_neg
+@22
+tone_tb.dut.pcm_out[7:0]
 @1000200
 -common
 @c00200
@@ -345,7 +349,7 @@ tone_tb.dut.rom_zero
 tone_tb.dut.rom_do[15:0]
 @1401200
 -rom
-@800200
+@c00200
 -reg
 @22
 tone_tb.dut.md[9:0]
@@ -358,9 +362,10 @@ tone_tb.dut.x[6:0]
 tone_tb.dut.y[4:0]
 @28
 tone_tb.dut.fl0
-@29
 tone_tb.dut.ts
-@1000200
+tone_tb.dut.ns
+tone_tb.dut.ss
+@1401200
 -reg
 @c00200
 -ram
@@ -411,5 +416,15 @@ tone_tb.dut.int_active[3:0]
 tone_tb.dut.int_load_pc[3:0]
 @1401200
 -int
+@c00200
+-dac
+@22
+tone_tb.dut.da[9:0]
+@28
+tone_tb.dut.pcm_neg
+@22
+tone_tb.dut.pcm_out[7:0]
+@1401200
+-dac
 [pattern_trace] 1
 [pattern_trace] 0
