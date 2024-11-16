@@ -26,8 +26,7 @@ module upd1771c
    output [7:0] PB_O,
    output [7:0] PB_OE,
 
-   output       PCM_NEG,
-   output [7:0] PCM_OUT
+   output [8:0] PCM_OUT
    );
 
 
@@ -251,7 +250,7 @@ wire cl_op_clear_skip = id_op_adi_sbi_adi5_Rr_n | id_op_xori | id_op_adi_andi_sb
 wire cl_skip_test_if_set = ~(id_op_rets | id_aluop_10x_1x0_txnx | id_aluop_txnx_Rr_n);
 wire cl_md0_reg_en = resp | cl_md1_reg_en | id_op_mvi_md0_n; // Yes, cl_md1_reg_en is actually in here.
 wire cl_md1_reg_en = resp | id_op_mvi_md1_n | id_aluop_notest_md1_n;
-wire cl_sp_to_ram_a = id_op_call;
+wire cl_sp_to_ram_a = id_op_call | cl_int_load_pc | cl_id_op_calln_dd;
 wire cl_spm1_to_ram_a = id_op_retx;
 wire cl_pdb12_8_to_ram_a = id_op_mvi_Rr_n;
 wire cl_pdb8_4_to_ram_a = id_aluop_Rr_n | id_op_Rr_pdb8_4 | id_aluop_Rr_pdb8_4;
@@ -443,6 +442,7 @@ assign pdb = (rom_oe & ~rom_zero) ? rom_do : '0;
 
 logic [9:0] md;                 // Mode Register
 logic [7:0] a, ap;              // Accumulator
+logic [7:0] sa;                 // Shadow Accumulator (A')
 logic [5:0] h;                  // Data Pointer
 logic [2:0] sp;                 // Stack Pointer
 logic [6:0] x;                  // X Multiplier Register
@@ -468,6 +468,12 @@ assign md_ext_ie = md[5];
 assign md_out = md[6];
 assign md_if = md[7];
 
+// A is copied to A' on interrupt, and copied back on RETI.
+always @(posedge CLK) if (cp2n) begin
+  if (cl_int_load_pc)
+    sa <= a;
+end
+
 always @* begin
   ap = db;
   if (cl_a_in_ror_lsr) begin
@@ -477,6 +483,8 @@ always @* begin
   end
   else if (id_op_ral)
     ap = {ap[6:0], ap[7]};
+  else if (id_op_reti)
+    ap = sa;
 end
 
 always @(posedge CLK) begin
@@ -690,8 +698,9 @@ always @* begin
     pcm_out = ~pcm_out;
 end
 
-assign PCM_NEG = pcm_neg;
-assign PCM_OUT = pcm_out;
+// Convert to 9-bit two's complement
+assign PCM_OUT[8] = pcm_neg;
+assign PCM_OUT[7:0] = pcm_neg ? ~pcm_out : pcm_out;
 
 
 //////////////////////////////////////////////////////////////////////

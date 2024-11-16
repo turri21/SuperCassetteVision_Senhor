@@ -102,7 +102,7 @@ initial #0 begin
 end
 
 //initial #30000
-initial #3000
+initial #12000
   $finish;
 
 endmodule
