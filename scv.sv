@@ -320,9 +320,13 @@ joykey joykey
 // TODO: Add CDC for AUDIO_* into CLK_AUDIO
 
 wire signed [8:0]   aud_pcm;
+wire signed [15:0]  aud_pcm16, aud_out;
+
+assign aud_pcm16 = {aud_pcm, 7'b0}; // sign-extend to 16 bits
+assign aud_out = aud_pcm16 >>> 1;     // add some headroom
 
 assign AUDIO_S = '1; // signed
-assign AUDIO_L = 16'(signed'(aud_pcm));
+assign AUDIO_L = aud_out;
 assign AUDIO_R = AUDIO_L;
 assign AUDIO_MIX = 0; // no mixing
 
