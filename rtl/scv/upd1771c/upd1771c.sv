@@ -14,6 +14,7 @@
 module upd1771c
   (
    input        CLK,
+   input        CKEN,
    input        RESB,
 
    input        CH1,
@@ -33,7 +34,7 @@ module upd1771c
 logic [7:0]     db;
 logic [7:0]     sdb;
 logic [11:0]    ab;
-wor [15:0]      pdb;
+logic [15:0]    pdb;
 
 wire            md_64_32, md_tone_ie, md_ns_ie, md_nss,
                 md_time_ie, md_ext_ie, md_out, md_if;
@@ -55,11 +56,11 @@ logic resp;
 wire  leader, follower, testmode;
 logic ch1d, ch2d;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   resp <= (resp & ~(cp1p & RESB)) | ~RESB;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cp1)
     ch1d <= CH1;
   if (cp1 | clk4)
@@ -93,7 +94,7 @@ initial begin
   cgcnt = 0;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   cgcnt <= cgcnt + 1'd1;
 end
 
@@ -112,17 +113,17 @@ always_comb begin
 end
 
 // cp* are 1 CLK early, so that cp1/2 align with clk1-5.
-assign cp1p = cgo[0];
-assign cp1n = cgo[1];
-assign cp2p = cgo[2];
-assign cp2n = cgo[3];
-assign clk1 = cgo[4];
-assign clk2 = cgo[5];
-assign clk3 = cgo[6];
-assign clk4 = cgo[7];
-assign clk5 = cgo[8];
+assign cp1p = CKEN & cgo[0];
+assign cp1n = CKEN & cgo[1];
+assign cp2p = CKEN & cgo[2];
+assign cp2n = CKEN & cgo[3];
+assign clk1 = CKEN & cgo[4];
+assign clk2 = CKEN & cgo[5];
+assign clk3 = CKEN & cgo[6];
+assign clk4 = CKEN & cgo[7];
+assign clk5 = CKEN & cgo[8];
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   cp1 <= (cp1 | cp1p) & ~cp1n;
   cp2 <= (cp2 | cp2p) & ~cp2n;
 end
@@ -282,7 +283,7 @@ wire cl_op_tadi5_or_adims_and_not_md0 = (id_op_adims & ~md_64_32) | id_op_tadi5;
 assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
 assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cp2n) begin
     cl_id_op_calln_d <= id_op_calln & ~testmode;
     cl_id_op_tbln_a_Rr_d <= id_op_tbln_a_Rr;
@@ -336,7 +337,7 @@ wire alu_temp1_first = ~(id_aluop_A_Rr_Hp | id_aluop_100);
 wire alu_db_to_temp1 = (clk3 & alu_temp1_first) | (clk4 & ~alu_temp1_first);
 wire alu_db_to_temp2 = (clk3 & ~alu_temp1_first) | (clk4 & alu_temp1_first);
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   // alu_db_to_temp1/2 are high before and during clk1. And clk1
   // drives TEMP1/2 to A/B.
   if (clk1) begin
@@ -354,6 +355,7 @@ always @(posedge CLK) begin
 end
 
 always @* begin
+  alu_co = '0;
   alu_co4 = '0;
   alu_co5 = '0;
   if (alu_op_no_carry) begin
@@ -412,7 +414,7 @@ always @* begin
   abn = (clk4 & pc_pcin_to_abn) ? pcin : ab;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (pc_load_sdb3_0_db7_0)
     pcin <= {sdb[3:0], db[7:0]};
   else if (pc_load_sdb4_0_db7_1)
@@ -424,7 +426,7 @@ always @(posedge CLK) begin
 end
 
 always_comb
-  abadd = ab + pc_abadd_cin;
+  abadd = ab + {11'b0, pc_abadd_cin};
 
 
 //////////////////////////////////////////////////////////////////////
@@ -443,7 +445,7 @@ end
 assign rom_zero = resp | (~testmode & (cl_int_load_pc | cl_skip_dd));
 assign rom_oe = ~leader;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   rom_rbuf <= rom[ab[8:0]];
 end
 
@@ -470,7 +472,7 @@ initial begin
   ts = '0; // else pcm_neg / PCM_OUT is X
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cl_md0_reg_en)
     {md[9], md[8], md[4:0]} <= db[6:0];
   if (cl_md1_reg_en)
@@ -505,14 +507,14 @@ always @* begin
     ap = sa;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cl_a_reg_en)
     a <= ap;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cl_h_reg_en)
-    h <= db;
+    h <= db[5:0];
 end
 
 always @(posedge CLK) if (cp1p) begin
@@ -531,7 +533,7 @@ always @(posedge CLK) if (clk1) begin
     ts <= db[7];
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cp2n) begin
     if (cl_y_reg_en)
       yp <= db[4:0];
@@ -545,7 +547,7 @@ always @(posedge CLK) begin
 end
 
 logic fl0_p;
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cp1p)
     fl0 <= fl0_p;
   if (cp2n)
@@ -588,7 +590,7 @@ logic [7:0] ram_left_wbuf;
 wire        ram_left_write_en;
 wire        ram_left_db_oe;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (ram_left_write_en)
     ram_left_mem[ram_lr_col_sel][ram_row] <= ram_left_wbuf;
   ram_left_rbuf <= ram_left_mem[ram_lr_col_sel][ram_row];
@@ -608,7 +610,7 @@ wire        ram_right_db_ie;
 wire        ram_right_db_oe;
 wire        ram_right_sdb_oe;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (ram_right_write_en)
     ram_right_mem[ram_lr_col_sel][ram_row] <= ram_right_wbuf;
   ram_right_rbuf <= ram_right_mem[ram_lr_col_sel][ram_row];
@@ -693,7 +695,7 @@ assign ns = '0;
 // DAC Output
 
 // SS flag is updated by MIX.
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (cp2)                 // needs to update before id_op_out_da ends
     if (id_op_mix)
       ss <= ts ^ alu_co;
@@ -759,7 +761,7 @@ always @* begin
   end
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   int_pending_d <= int_pending;
 end
 
@@ -789,7 +791,7 @@ end
 // Clear active on RETI
 wire [3:0] int_active_p = (int_active | int_set_active_prio) & ~int_clr_active;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   if (resp) begin
     int_active <= '0;
     int_load_pc <= '0;
@@ -832,6 +834,7 @@ logic [7:0] pao, pbo;
 logic [7:0] pbi_reg;
 logic [7:0] pao_reg, pbo_reg;
 logic [7:0] pao_reg_d, pbo_reg_p;
+logic [7:0] pai_d;
 
 wire io_pabx_pad_pdb_pax_db_out_en, io_pabx_out_reg_pad_en,
      io_pax_out_pbx_pdb_pad_en, io_pax_pdb_out_en, io_pax_db_out_reg_en;
@@ -862,7 +865,10 @@ assign io_pax_db_out_reg_en = ~io_ext_write_latch;
 assign io_pax_out_reg_latch_en = cl_id_op_out_pa_d | io_ext_write_latch;
 assign io_pbx_out_reg_ce = id_op_out_pb;
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
+  // To break circular logic: pao -> PA_O -> pai -> pao_reg -> pao
+  pai_d <= pai;
+
   pao_reg_d <= pao_reg;
 
   if (cp2n)
@@ -874,7 +880,7 @@ end
 always @* begin
   pao_reg = pao_reg_d;
   if (io_pax_out_reg_latch_en)
-    pao_reg = io_pax_db_out_reg_en ? db : pai;
+    pao_reg = io_pax_db_out_reg_en ? db : pai_d;
 end
 
 assign pai = (PA_OE & PA_O) | (~PA_OE & PA_I);
@@ -904,7 +910,7 @@ always @* begin
   if (pc_out_to_db_sdb)     db = pc[7:0];
   //if (n699)                 db = md[7:0];
   if (cl_a_to_db)           db = a;
-  if (cl_h_to_db)           db = h;
+  if (cl_h_to_db)           db = {2'b0, h};
   if (cl_x_to_db)           db = {1'b0, x};
   if (cl_alu_c_to_db)       db = alu_c;
   if (ram_left_db_oe)       db = ram_left_rbuf;
@@ -918,11 +924,11 @@ always @* begin
   sdb = sdb_d;
   if (cl_pdb7_4_to_sdb7_4)  sdb[7:4] = pdb[7:4];
   if (cl_pdb11_8_to_sdb3_0) sdb[3:0] = pdb[11:8];
-  if (pc_out_to_db_sdb)     sdb = pc[11:8];
+  if (pc_out_to_db_sdb)     sdb[3:0] = pc[11:8];
   if (ram_right_sdb_oe)     sdb = ram_right_rbuf;
 end
 
-always @(posedge CLK) begin
+always @(posedge CLK) if (CKEN) begin
   db_d <= db;
   sdb_d <= sdb;
 end

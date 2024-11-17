@@ -24,6 +24,7 @@ end
 upd1771c dut
   (
    .CLK(clk),
+   .CKEN('1),
    .RESB(~res),
    .CH1('1),
    .CH2('0),
