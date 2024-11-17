@@ -319,7 +319,7 @@ joykey joykey
 
 // TODO: Add CDC for AUDIO_* into CLK_AUDIO
 
-signed wire [8:0]   aud_pcm;
+wire signed [8:0]   aud_pcm;
 
 assign AUDIO_S = '1; // signed
 assign AUDIO_L = 16'(signed'(aud_pcm));
