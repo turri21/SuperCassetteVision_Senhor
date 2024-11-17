@@ -235,7 +235,7 @@ wire id_op_adims = &id[15:12] & id[9]; // 1111_xx1x__xxxx
 
 logic cl_id_op_calln_d, cl_id_op_calln_dd;
 logic cl_id_op_tbln_a_Rr_d, cl_id_op_tbln_a_Rr_dd;
-logic cl_skip_d, cl_skip_dd;
+logic cl_skip_p, cl_skip, cl_skip_s;
 logic cl_id_op_tbln_X_Rr_d, cl_id_op_tbln_X_Rr_dd;
 logic cl_id_op_tbln_Y_Rr_d, cl_id_op_tbln_Y_Rr_dd;
 logic cl_tbln_PRr_odd, cl_tbln_PRr_odd_p;
@@ -287,7 +287,7 @@ always @(posedge CLK) if (CKEN) begin
   if (cp2n) begin
     cl_id_op_calln_d <= id_op_calln & ~testmode;
     cl_id_op_tbln_a_Rr_d <= id_op_tbln_a_Rr;
-    cl_skip_d <= cl_skip;
+    cl_skip_p <= cl_skip_pp;
     cl_id_op_tbln_X_Rr_d <= id_op_tbln_X_Rr;
     cl_id_op_tbln_Y_Rr_d <= id_op_tbln_Y_Rr;
   end
@@ -298,7 +298,7 @@ always @(posedge CLK) if (CKEN) begin
     cl_t1 <= id_op_tbln_calln;
     cl_id_op_calln_dd <= cl_id_op_calln_d;
     cl_id_op_tbln_a_Rr_dd <= cl_id_op_tbln_a_Rr_d;
-    cl_skip_dd <= cl_skip_d;
+    cl_skip <= cl_skip_p;
     cl_id_op_tbln_X_Rr_dd <= cl_id_op_tbln_X_Rr_d;
     cl_id_op_tbln_Y_Rr_dd <= cl_id_op_tbln_Y_Rr_d;
     cl_tbln_PRr_odd <= cl_tbln_PRr_odd_p;
@@ -306,7 +306,7 @@ always @(posedge CLK) if (CKEN) begin
 end
 
 // Instruction skip logic
-wire cl_skip = cl_skip_a; // TODO: add id_op_reti
+wire cl_skip_pp = id_op_reti ? cl_skip_s : cl_skip_a;
 wire cl_skip_test_out =
      ((id_aluop_Rr_n_not_c5 | id_aluop_10x_1x0_sk_cb) & alu_co) |
      (id_aluop_10x_1x0_sk_z & alu_c_zero) |
@@ -314,6 +314,11 @@ wire cl_skip_test_out =
      (cl_op_tadi5_or_adims_and_not_md0 & alu_co4);
 wire cl_skip_test_failed = cl_skip_test_out ^ cl_skip_test_if_set;
 wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
+
+always @(posedge CLK) if (cp2n) begin
+  if (cl_int_load_pc)
+    cl_skip_s <= cl_skip;
+end
 
 
 //////////////////////////////////////////////////////////////////////
@@ -441,8 +446,8 @@ initial begin
 end
 
 // Change rom_zero from silicon, to clear PC even in testmode
-//assign rom_zero = ~(testmode | ~(resp | cl_int_load_pc | cl_skip_dd));
-assign rom_zero = resp | (~testmode & (cl_int_load_pc | cl_skip_dd));
+//assign rom_zero = ~(testmode | ~(resp | cl_int_load_pc | cl_skip));
+assign rom_zero = resp | (~testmode & (cl_int_load_pc | cl_skip));
 assign rom_oe = ~leader;
 
 always @(posedge CLK) if (CKEN) begin
