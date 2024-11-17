@@ -668,7 +668,7 @@ end
 wire n_range_00_07 = (n < 8'h08);
 wire n_range_08_0f = (n >= 8'h08) & (n < 8'h10);
 wire n_range_10_1f = (n >= 8'h10) & (n < 8'h20);
-wire n_range_20_3f = (n >= 8'h20) & (n < 8'h3f);
+wire n_range_20_3f = (n >= 8'h20) & (n < 8'h40);
 wire n_range_40_ff = (n >= 8'h40);
 
 always @* begin
