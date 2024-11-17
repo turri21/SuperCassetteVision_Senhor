@@ -193,11 +193,6 @@ assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
 assign HDMI_BLACKOUT = 0;
 
-assign AUDIO_S = 0;
-assign AUDIO_L = 0;
-assign AUDIO_R = 0;
-assign AUDIO_MIX = 0;
-
 assign LED_DISK = 0;
 assign LED_POWER = 0;
 assign BUTTONS = 0;
@@ -319,6 +314,18 @@ joykey joykey
    .HMI(hmi)
    );
 
+////////////////////////////////////////////////////////////////////
+// Audio
+
+// TODO: Add CDC for AUDIO_* into CLK_AUDIO
+
+signed wire [8:0]   aud_pcm;
+
+assign AUDIO_S = '1; // signed
+assign AUDIO_L = 16'(signed'(aud_pcm));
+assign AUDIO_R = AUDIO_L;
+assign AUDIO_MIX = 0; // no mixing
+
 ///////////////////////   CLOCKS   ///////////////////////////////
 
 pll pll
@@ -353,7 +360,9 @@ scv scv
    .VID_DE(VGA_DE),
    .VID_HS(VGA_HS),
    .VID_VS(VGA_VS),
-   .VID_RGB({VGA_R, VGA_G, VGA_B})
+   .VID_RGB({VGA_R, VGA_G, VGA_B}),
+
+   .AUD_PCM(aud_pcm)
    );
 
 assign CLK_VIDEO = clk_sys;

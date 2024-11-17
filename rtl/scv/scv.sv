@@ -33,11 +33,13 @@ module scv
    output        VID_DE,
    output        VID_HS,
    output        VID_VS,
-   output [23:0] VID_RGB
+   output [23:0] VID_RGB,
+
+   output [8:0]  AUD_PCM
    );
 
 wire        cp1p, cp1n, cp2p, cp2n;
-wire        vdc_ce;
+wire        vdc_ce, aud_ce;
 
 wire [15:0] cpu_a;
 reg [7:0]   cpu_db;
@@ -69,6 +71,7 @@ wire [23:0] rgb;
 
 wire        apu_ncs;
 wire        apu_ack;
+wire [7:0]  apu_pb_o;
 
 wire [7:0]  pao, pbi, pci, pco;
 
@@ -79,7 +82,8 @@ clkgen clkgen
    .CP1_NEGEDGE(cp1n),
    .CP2_POSEDGE(cp2p),
    .CP2_NEGEDGE(cp2n),
-   .VDC_CE(vdc_ce)
+   .VDC_CE(vdc_ce),
+   .AUD_CE(aud_ce)
    );
 
 upd7800 cpu
@@ -113,7 +117,7 @@ bootrom rom
   (
 `ifndef SCV_BOOTROM_INIT_FROM_HEX
    .INIT_CLK(CLK),
-   .INIT_ADDR(ROMINIT_ADDR[11:0]),
+   .INIT_ADDR(ROMINIT_ADDR[11:0] ),
    .INIT_DATA(ROMINIT_DATA),
    .INIT_VALID(ROMINIT_SEL_BOOT & ROMINIT_VALID),
 `endif
@@ -208,16 +212,22 @@ dpram #(.DWIDTH(8), .AWIDTH(12)) vramb
    .DO2()
    );
 
-upd1771 apu
+assign apu_ack = apu_pb_o[0];
+
+upd1771c apu
   (
    .CLK(CLK),
+   .CKEN(aud_ce),
    .RESB(pco[3]),
-
-   .DB_I(cpu_db),
-   .WRB(cpu_wrb),
-   .CSB(apu_ncs),
-
-   .ACK(apu_ack)
+   .CH1('1),
+   .CH2('0),
+   .PA_I(cpu_db),
+   .PA_O(),
+   .PA_OE(),
+   .PB_I({apu_ncs, cpu_wrb, ~6'b0}),
+   .PB_O(apu_pb_o),
+   .PB_OE(),
+   .PCM_OUT(AUD_PCM)
    );
 
 hmi2key hmi2key
@@ -300,17 +310,22 @@ module clkgen
    output CP2_NEGEDGE, //  "             -ve edge
 
    // VDC clock: CLK / 7 = 4.090909 MHz
-   output VDC_CE
+   output VDC_CE,
+   // Audio clock: CLK * 22 / 105 = 6.000000 MHz
+   output AUD_CE
    );
 
 reg [3:0] ccnt;
+reg [6:0] acnt;
 
 initial begin
   ccnt = 0;
+  acnt = 0;
 end
 
 always_ff @(posedge CLK) begin
   ccnt <= (ccnt == 4'd13) ? 0 : ccnt + 1'd1;
+  acnt <= AUD_CE ? (acnt - 7'd105) : (acnt + 7'd22);
 end
 
 assign CP2_NEGEDGE = ccnt == 4'd0;
@@ -319,6 +334,7 @@ assign CP1_NEGEDGE = ccnt == 4'd4;
 assign CP2_POSEDGE = ccnt == 4'd6;
 
 assign VDC_CE = (ccnt == 4'd2) | (ccnt == 4'd9);
+assign AUD_CE = acnt >= 7'd105;
 
 endmodule
 

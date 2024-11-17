@@ -437,7 +437,7 @@ logic [15:0] rom_rbuf, rom_do;
 wire         rom_oe, rom_zero;
 
 initial begin
-  $readmemh("rom.hex", rom);
+  $readmemh("upd1771c_rom.hex", rom);
 end
 
 // Change rom_zero from silicon, to clear PC even in testmode

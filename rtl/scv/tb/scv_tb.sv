@@ -11,6 +11,8 @@
 `define FAST_MAIN 1
 `endif
 
+`define TEST_PAUSE 1
+
 module scv_tb();
 
 import scv_pkg::*;
@@ -18,6 +20,7 @@ import scv_pkg::*;
 reg         clk, res;
 wire        pce, de, vs;
 wire [23:0] rgb;
+wire [8:0]  aud_pcm;
 
 reg         rominit_active;
 integer     rominit_fin;
@@ -61,7 +64,9 @@ scv dut
    .VID_DE(de),
    .VID_HS(),
    .VID_VS(vs),
-   .VID_RGB(rgb)
+   .VID_RGB(rgb),
+
+   .AUD_PCM(aud_pcm)
    );
 
 initial begin
@@ -150,11 +155,11 @@ always @(negedge vs) begin
   $display("%t: Frame %03d", $time, frame);
   $sformat(fname, "frames/render-%03d", frame);
   pice = 0;
-  if (frame >= 20) begin
 `ifdef VERILATOR
-    if (frame == 20)
-      $dumpvars();
+  if (frame == 20)
+    $dumpvars();
 `endif
+  if (frame >= 60) begin
     fpic = $fopen({fname, ".hex"}, "w");
   end
   frame = frame + 1;

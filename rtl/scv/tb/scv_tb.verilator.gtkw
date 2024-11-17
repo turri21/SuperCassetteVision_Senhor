@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Sep  1 05:31:59 2024
+[*] Sun Nov 17 01:17:22 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.vcd"
-[dumpfile_mtime] "Sun Sep  1 04:51:30 2024"
-[dumpfile_size] 2244504581
+[dumpfile_mtime] "Sun Nov 17 01:14:49 2024"
+[dumpfile_size] 1165291877
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.gtkw"
-[timestart] 196952320000
+[timestart] 498530000000
 [size] 1288 600
 [pos] -1 -1
-*-23.018291 196968809160 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-33.419983 518052063240 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -39,6 +39,7 @@
 [treeopen] TOP.
 [treeopen] TOP.scv_tb.
 [treeopen] TOP.scv_tb.dut.
+[treeopen] TOP.scv_tb.dut.apu.
 [sst_width] 253
 [signals_width] 243
 [sst_expanded] 1
@@ -54,8 +55,10 @@ TOP.scv_tb.dut.cpu.DB_O[7:0]
 @28
 TOP.scv_tb.dut.cpu.RDB
 TOP.scv_tb.dut.cpu.WRB
-@23
+@22
 TOP.scv_tb.dut.cpu.PC_O[7:0]
+@28
+TOP.scv_tb.dut.cpu.INT1
 @c00200
 -vdc
 @28
@@ -193,15 +196,27 @@ TOP.scv_tb.dut.vdc.RGB[23:0]
 @22
 TOP.scv_tb.dut.HMI[24:0]
 TOP.scv_tb.dut.VID_RGB[23:0]
-@c00200
+@800200
 -apu
 @28
 TOP.scv_tb.dut.apu.RESB
-TOP.scv_tb.dut.apu.ACK
-TOP.scv_tb.dut.apu.CSB
-@22
-TOP.scv_tb.dut.apu.cmd[7:0]
-TOP.scv_tb.dut.apu.data_cnt[3:0]
+@800022
+TOP.scv_tb.dut.apu.PB_I[7:0]
+@28
+(0)TOP.scv_tb.dut.apu.PB_I[7:0]
+(1)TOP.scv_tb.dut.apu.PB_I[7:0]
+@1001200
+-group_end
+@800022
+TOP.scv_tb.dut.apu.PB_O[7:0]
+@28
+(7)TOP.scv_tb.dut.apu.PB_O[7:0]
+@1001200
+-group_end
+@10420
+TOP.scv_tb.dut.apu.PCM_OUT[8:0]
+@20000
+-
 @1000200
 -apu
 [pattern_trace] 1

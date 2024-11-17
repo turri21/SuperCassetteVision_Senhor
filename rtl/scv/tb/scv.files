@@ -12,4 +12,4 @@
 ../epochtv1/epochtv1.sv
 ../epochtv1/dpram.sv
 
-../upd1771/upd1771.sv
+../upd1771c/upd1771c.sv
