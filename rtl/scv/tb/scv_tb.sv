@@ -40,7 +40,7 @@ initial begin
   $dumpfile("scv_tb.vcd");
   $dumpvars();
 `else
-  $dumpfile("scv_tb.verilator.vcd");
+  $dumpfile("scv_tb.verilator.fst");
 `endif
 end
 

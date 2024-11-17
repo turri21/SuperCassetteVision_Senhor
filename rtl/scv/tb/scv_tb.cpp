@@ -35,5 +35,5 @@ int main(int argc, char** argv, char**) {
 }
 
 // Local Variables:
-// compile-command: "verilator --cc --exe scv_tb.cpp --build -j 0 --timing --assert --trace --top-module scv_tb --relative-includes -F scv.files scv_tb.sv"
+// compile-command: "verilator --cc --exe scv_tb.cpp --build -j 0 --timing --assert --trace-fst --trace-threads 1 --top-module scv_tb --relative-includes -F scv.files scv_tb.sv"
 // End:

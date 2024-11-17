@@ -2,7 +2,7 @@
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
 [*] Sun Nov 17 01:17:22 2024
 [*]
-[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.vcd"
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.fst"
 [dumpfile_mtime] "Sun Nov 17 01:14:49 2024"
 [dumpfile_size] 1165291877
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.verilator.gtkw"
