@@ -52,12 +52,13 @@ logic [11:0]    int_vec;
 //////////////////////////////////////////////////////////////////////
 // Reset, etc.
 
+wire  res = ~RESB;
 logic resp;
 wire  leader, follower, testmode;
 logic ch1d, ch2d;
 
 always @(posedge CLK) if (CKEN) begin
-  resp <= (resp & ~(cp1p & RESB)) | ~RESB;
+  resp <= (resp & ~(cp1p & ~res)) | res;
 end
 
 always @(posedge CLK) if (CKEN) begin
@@ -523,7 +524,7 @@ always @(posedge CLK) if (CKEN) begin
 end
 
 always @(posedge CLK) if (cp1p) begin
-  if (resp)
+  if (res)
     sp <= 0;
   else if (cl_sp_to_ram_a)
     sp <= sp + 1'd1;
@@ -645,7 +646,7 @@ always @(posedge CLK) if (clk1) begin
 end
 
 always @(posedge CLK) if (cp1p) begin
-  if (resp)
+  if (res)
     nc <= 0;
   else if (nc_eq_01)
     nc <= n;
@@ -657,7 +658,7 @@ end
 always @(posedge CLK) if (cp1p) begin
   nc_eq_01_d <= nc_eq_01;
 
-  if (resp)
+  if (res)
     nuc <= 0;
   else if (nc_eq_01_d)
     nuc <= nuc + 1'd1;
