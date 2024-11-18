@@ -13,6 +13,7 @@ wire [7:0]  pa_i, pb_i, pb_o;
 logic [7:0] din;
 logic       ncs, nwr;
 wire        dsb;
+int         cycle;
 
 initial begin
   $timeformat(-6, 0, " us", 1);
@@ -53,24 +54,34 @@ task tx(input [7:0] b);
     @(posedge clk) ;
   ncs <= 1;
   nwr <= 1;
+  repeat (8*9)
+    @(posedge clk) ;
 endtask
 
 task packet_start(input [7:0] b);
+  // Align to CP1
+  while (~dut.cp1p)
+    @(posedge clk) ;
   tx(b);
 endtask
 
 task packet_cont(input [7:0] b);
   while (~dsb)
-    repeat (8)
+    repeat (80)
       @(posedge clk) ;
   tx(b);
   while (dsb)
-    repeat (8)
+    repeat (80)
       @(posedge clk) ;
 endtask
 
 always begin :ckgen
   #(0.5/6) clk = ~clk;
+end
+
+always @(posedge clk) begin
+  if (~res & dut.cp1p)
+    cycle += 1;
 end
 
 initial #0 begin
@@ -79,11 +90,12 @@ initial #0 begin
   din = 8'hxx;
   ncs = 1;
   nwr = 1;
+  cycle = 0;
 
   #2 @(posedge clk) ;
   res = 0;
 
-  #320 @(posedge clk) ;
+  #318 @(posedge clk) ;
 
   packet_start(8'h02);
   packet_cont(8'h80);
