@@ -311,12 +311,15 @@ module clkgen
 
    // VDC clock: CLK / 7 = 4.090909 MHz
    output VDC_CE,
-   // Audio clock: CLK * 22 / 105 = 6.000000 MHz
+   // Audio clock: CLK * 22 / 82 = 7.682926 MHz
+   // (totally going by ear)
    output AUD_CE
    );
 
 reg [3:0] ccnt;
 reg [6:0] acnt;
+
+localparam [6:0] AUD_DIV = 7'd82;
 
 initial begin
   ccnt = 0;
@@ -325,7 +328,7 @@ end
 
 always_ff @(posedge CLK) begin
   ccnt <= (ccnt == 4'd13) ? 0 : ccnt + 1'd1;
-  acnt <= AUD_CE ? (acnt - 7'd105) : (acnt + 7'd22);
+  acnt <= AUD_CE ? (acnt - AUD_DIV) : (acnt + 7'd22);
 end
 
 assign CP2_NEGEDGE = ccnt == 4'd0;
@@ -334,7 +337,7 @@ assign CP1_NEGEDGE = ccnt == 4'd4;
 assign CP2_POSEDGE = ccnt == 4'd6;
 
 assign VDC_CE = (ccnt == 4'd2) | (ccnt == 4'd9);
-assign AUD_CE = acnt >= 7'd105;
+assign AUD_CE = acnt >= AUD_DIV;
 
 endmodule
 
