@@ -1,0 +1,439 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sat Nov 16 23:07:58 2024
+[*]
+[dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/digital_tb.vcd"
+[dumpfile_mtime] "Sat Nov 16 23:07:52 2024"
+[dumpfile_size] 14940758
+[savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/digital_tb.gtkw"
+[timestart] 9725000000
+[size] 1416 762
+[pos] -1 -1
+*-30.084705 21166582 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[markername] AA
+[markername] BB
+[markername] CC
+[markername] DD
+[markername] EE
+[markername] FF
+[markername] GG
+[markername] HH
+[markername] II
+[markername] JJ
+[markername] KK
+[markername] LL
+[markername] MM
+[markername] NN
+[markername] OO
+[markername] PP
+[markername] QQ
+[markername] RR
+[markername] SS
+[markername] TT
+[markername] UU
+[markername] VV
+[markername] WW
+[markername] XX
+[markername] YY
+[markername] ZZ
+[treeopen] digital_tb.
+[sst_width] 253
+[signals_width] 292
+[sst_expanded] 1
+[sst_vpaned_height] 215
+@28
+digital_tb.ncs
+digital_tb.nwr
+digital_tb.dsb
+@22
+digital_tb.din[7:0]
+@28
+digital_tb.dut.CLK
+digital_tb.dut.RESB
+@800200
+-common
+@28
+digital_tb.dut.cp1
+@22
+digital_tb.dut.ab[11:0]
+digital_tb.dut.pdb[15:0]
+digital_tb.dut.db[7:0]
+digital_tb.dut.sdb[7:0]
+digital_tb.dut.pc[11:0]
+digital_tb.dut.sp[2:0]
+digital_tb.dut.a[7:0]
+digital_tb.dut.h[5:0]
+digital_tb.dut.x[6:0]
+digital_tb.dut.y[4:0]
+@10421
+digital_tb.dut.PCM_OUT[8:0]
+@20000
+-
+-
+-
+@1000200
+-common
+@c00200
+-io
+@22
+digital_tb.dut.PA_I[7:0]
+digital_tb.dut.PA_O[7:0]
+digital_tb.dut.PA_OE[7:0]
+digital_tb.dut.PB_I[7:0]
+digital_tb.dut.PB_OE[7:0]
+digital_tb.dut.PB_O[7:0]
+digital_tb.dut.pbi_reg[7:0]
+@28
+digital_tb.dut.io_ext_cs
+digital_tb.dut.io_ext_read
+digital_tb.dut.io_ext_read_latch
+digital_tb.dut.io_ext_write
+digital_tb.dut.io_ext_write_latch
+digital_tb.dut.io_pabx_pad_pdb_pax_db_out_en
+digital_tb.dut.io_pax_db_out_reg_en
+digital_tb.dut.io_pax_noe
+digital_tb.dut.io_pax_out_pbx_pdb_pad_en
+digital_tb.dut.io_pax_out_reg_db_en
+digital_tb.dut.io_pax_out_reg_latch_en
+digital_tb.dut.io_pax_pdb_out_en
+digital_tb.dut.io_pbx2_0_noe
+digital_tb.dut.io_pbx7_3_noe
+digital_tb.dut.io_pbx_noe
+digital_tb.dut.io_pbx_out_reg_ce
+digital_tb.dut.io_pbx_pad_db_en
+@22
+digital_tb.dut.pai[7:0]
+digital_tb.dut.pao[7:0]
+digital_tb.dut.pao_reg[7:0]
+digital_tb.dut.pbi[7:0]
+digital_tb.dut.pbi_reg[7:0]
+digital_tb.dut.pbo[7:0]
+digital_tb.dut.pbo_reg_p[7:0]
+digital_tb.dut.pbo_reg[7:0]
+@1401200
+-io
+@c00200
+-bus
+@22
+digital_tb.dut.db[7:0]
+digital_tb.dut.sdb[7:0]
+digital_tb.dut.pdb[15:0]
+@1401200
+-bus
+@c00200
+-res
+@28
+digital_tb.dut.resp
+digital_tb.dut.ch1d
+digital_tb.dut.ch2d
+digital_tb.dut.leader
+digital_tb.dut.follower
+digital_tb.dut.testmode
+@1401200
+-res
+@c00200
+-clkgen
+@28
+digital_tb.dut.cp1p
+digital_tb.dut.cp1n
+digital_tb.dut.cp1
+digital_tb.dut.cp2p
+digital_tb.dut.cp2n
+digital_tb.dut.cp2
+digital_tb.dut.clk1
+digital_tb.dut.clk2
+digital_tb.dut.clk3
+digital_tb.dut.clk4
+digital_tb.dut.clk5
+@1401200
+-clkgen
+@c00200
+-id
+@22
+digital_tb.dut.id[15:0]
+@28
+digital_tb.dut.id_aluop_1x0
+digital_tb.dut.id_aluop_1x1
+digital_tb.dut.id_aluop_10x
+digital_tb.dut.id_aluop_10x_1x0
+digital_tb.dut.id_aluop_10x_1x0_sk_cb
+digital_tb.dut.id_aluop_10x_1x0_sk_z
+digital_tb.dut.id_aluop_10x_1x0_txnx
+digital_tb.dut.id_aluop_11x
+digital_tb.dut.id_aluop_100
+digital_tb.dut.id_aluop_A_Rr
+digital_tb.dut.id_aluop_A_Rr_Hp
+digital_tb.dut.id_aluop_A_n
+digital_tb.dut.id_aluop_H_n
+digital_tb.dut.id_aluop_Hp_n
+digital_tb.dut.id_aluop_Rr_A_Hp_A
+digital_tb.dut.id_aluop_Rr_n
+digital_tb.dut.id_aluop_Rr_n_not_c5
+digital_tb.dut.id_aluop_Rr_pdb8_4
+digital_tb.dut.id_aluop_and
+digital_tb.dut.id_aluop_notest_H_n
+digital_tb.dut.id_aluop_notest_Hp_n
+digital_tb.dut.id_aluop_notest_Rr_n
+digital_tb.dut.id_aluop_notest_md1_n
+digital_tb.dut.id_aluop_or
+digital_tb.dut.id_aluop_or_xor_equ
+digital_tb.dut.id_aluop_sb
+digital_tb.dut.id_aluop_test_Rr_n
+digital_tb.dut.id_aluop_txnx_Rr_n
+digital_tb.dut.id_get_a_clk3_a
+digital_tb.dut.id_get_a_clk3_b
+digital_tb.dut.id_get_a_clk3_c
+digital_tb.dut.id_get_a_clk4
+digital_tb.dut.id_get_h_clk3
+digital_tb.dut.id_op_Rr_pdb8_4
+digital_tb.dut.id_op_adi5
+digital_tb.dut.id_op_adi_andi_sbi_ori
+digital_tb.dut.id_op_adi_sbi_adi5_Rr_n
+digital_tb.dut.id_op_adims
+digital_tb.dut.id_op_call
+digital_tb.dut.id_op_calln
+digital_tb.dut.id_op_in_pa
+digital_tb.dut.id_op_in_pb
+digital_tb.dut.id_op_jmp_call
+digital_tb.dut.id_op_jmp_call_n_t2
+digital_tb.dut.id_op_jmp_n4
+digital_tb.dut.id_op_jmpa
+digital_tb.dut.id_op_jmpfz
+digital_tb.dut.id_op_mix
+digital_tb.dut.id_op_mov_N_a
+digital_tb.dut.id_op_mov_X_RG
+digital_tb.dut.id_op_mov_xchg_Hp_Rr_dst
+digital_tb.dut.id_op_mov_xchg_Hp_Rr_x
+digital_tb.dut.id_op_mov_xchg_a_dst
+digital_tb.dut.id_op_mov_xchg_mix_Rr_Hp
+digital_tb.dut.id_op_mul1
+digital_tb.dut.id_op_mul2
+digital_tb.dut.id_op_mul2_b
+digital_tb.dut.id_op_muln
+digital_tb.dut.id_op_mvi_H_n
+digital_tb.dut.id_op_mvi_Rr_n
+digital_tb.dut.id_op_mvi_md0_n
+digital_tb.dut.id_op_mvi_md1_n
+digital_tb.dut.id_op_not_aluop
+digital_tb.dut.id_op_not_aluop_or_rets
+digital_tb.dut.id_op_out_da
+digital_tb.dut.id_op_out_pa
+digital_tb.dut.id_op_out_pb
+digital_tb.dut.id_op_ral
+digital_tb.dut.id_op_rar
+digital_tb.dut.id_op_reti
+digital_tb.dut.id_op_reti_ext
+digital_tb.dut.id_op_reti_ns
+digital_tb.dut.id_op_reti_time
+digital_tb.dut.id_op_reti_tone
+digital_tb.dut.id_op_rets
+digital_tb.dut.id_op_retx
+digital_tb.dut.id_op_set_H
+digital_tb.dut.id_op_src_n_a
+digital_tb.dut.id_op_src_n_b
+digital_tb.dut.id_op_stf
+digital_tb.dut.id_op_tadi5
+digital_tb.dut.id_op_tbln_X_Rr
+digital_tb.dut.id_op_tbln_Y_Rr
+digital_tb.dut.id_op_tbln_a_Rr
+digital_tb.dut.id_op_tbln_calln
+digital_tb.dut.id_op_xori
+digital_tb.dut.id_set_a
+@1401200
+-id
+@c00200
+-cl
+@28
+digital_tb.dut.cl_a_in_lsr
+digital_tb.dut.cl_a_in_ror_lsr
+digital_tb.dut.cl_a_reg_en
+digital_tb.dut.cl_a_to_db
+digital_tb.dut.cl_alu_c4inh
+digital_tb.dut.cl_alu_c5inh
+digital_tb.dut.cl_alu_c_to_db
+digital_tb.dut.cl_h_reg_en
+digital_tb.dut.cl_h_to_db
+digital_tb.dut.cl_id_Rr_Hp_clk4
+digital_tb.dut.cl_id_op_Hp_Rr_dst
+digital_tb.dut.cl_id_op_calln_d
+digital_tb.dut.cl_id_op_calln_dd
+digital_tb.dut.cl_id_op_calln_retx
+digital_tb.dut.cl_id_op_out_pa_d
+digital_tb.dut.cl_id_op_tbln_X_Rr_dd
+digital_tb.dut.cl_id_op_tbln_Y_Rr_dd
+digital_tb.dut.cl_id_op_tbln_a_Rr_dd
+digital_tb.dut.cl_int_load_pc
+digital_tb.dut.cl_md0_reg_en
+digital_tb.dut.cl_md1_reg_en
+digital_tb.dut.cl_n_reg_en
+digital_tb.dut.cl_op_clear_skip
+digital_tb.dut.cl_op_tadi5_or_adims_and_not_md0
+digital_tb.dut.cl_pc_load_sdb3_0_db7_0
+digital_tb.dut.cl_pdb7_0_to_db7_0
+digital_tb.dut.cl_pdb7_4_to_sdb7_4
+digital_tb.dut.cl_pdb8_4_to_ram_a
+digital_tb.dut.cl_pdb11_8_to_sdb3_0
+digital_tb.dut.cl_pdb12_8_to_ram_a
+digital_tb.dut.cl_pdb15_8_to_db7_0
+digital_tb.dut.cl_pdb_hi_sel
+@22
+digital_tb.dut.cl_pdb_ram_a[4:0]
+@28
+digital_tb.dut.cl_skip
+digital_tb.dut.cl_skip_a
+digital_tb.dut.cl_skip_d
+digital_tb.dut.cl_skip_dd
+digital_tb.dut.cl_skip_test_failed
+digital_tb.dut.cl_skip_test_if_set
+digital_tb.dut.cl_skip_test_out
+digital_tb.dut.cl_sp_ram_a[2:0]
+digital_tb.dut.cl_sp_to_ram_a
+digital_tb.dut.cl_spm1_to_ram_a
+digital_tb.dut.cl_t1
+digital_tb.dut.cl_tbln_PRr_odd
+digital_tb.dut.cl_tbln_PRr_odd_p
+digital_tb.dut.cl_tbln_PRr_odd_pp
+digital_tb.dut.cl_ts_reg_en
+digital_tb.dut.cl_x_reg_en
+digital_tb.dut.cl_x_to_db
+digital_tb.dut.cl_y_reg_en
+digital_tb.dut.cl_y_shift
+@1401200
+-cl
+@c00200
+-alu
+@28
+digital_tb.dut.clk1
+@22
+digital_tb.dut.alu_a[7:0]
+digital_tb.dut.alu_b[7:0]
+digital_tb.dut.alu_c[7:0]
+@28
+digital_tb.dut.alu_co
+digital_tb.dut.alu_c_zero
+digital_tb.dut.alu_db_to_temp1
+digital_tb.dut.alu_db_to_temp2
+digital_tb.dut.alu_op_and
+digital_tb.dut.alu_op_no_carry
+digital_tb.dut.alu_op_or
+digital_tb.dut.alu_op_sub
+digital_tb.dut.alu_temp1_first
+digital_tb.dut.alu_zero_a_hi
+digital_tb.dut.alu_zero_a_lo
+digital_tb.dut.alu_zero_b
+digital_tb.dut.cl_alu_c_to_db
+@1401200
+-alu
+@c00200
+-pc
+@22
+digital_tb.dut.pc[11:0]
+digital_tb.dut.ab[11:0]
+digital_tb.dut.pcn[11:0]
+digital_tb.dut.abn[11:0]
+digital_tb.dut.pcin[11:0]
+digital_tb.dut.abadd[11:0]
+@28
+digital_tb.dut.pc_load_sdb3_0_db7_0
+digital_tb.dut.pc_load_sdb4_0_db7_1
+digital_tb.dut.pc_abadd_cin
+digital_tb.dut.pc_load_int_vec
+digital_tb.dut.pc_load_sdb3_0_db7_0
+digital_tb.dut.pc_load_sdb4_0_db7_1
+digital_tb.dut.pc_out_to_db_sdb
+digital_tb.dut.pc_pcin_to_abn
+digital_tb.dut.pc_ctrl1
+digital_tb.dut.pc_ctrl3
+digital_tb.dut.pc_ctrl4
+@1401200
+-pc
+@c00200
+-rom
+@28
+digital_tb.dut.rom_oe
+digital_tb.dut.rom_zero
+@22
+digital_tb.dut.rom_do[15:0]
+@1401200
+-rom
+@c00200
+-reg
+@22
+digital_tb.dut.md[9:0]
+digital_tb.dut.a[7:0]
+digital_tb.dut.sa[7:0]
+digital_tb.dut.h[5:0]
+@28
+digital_tb.dut.sp[2:0]
+@22
+digital_tb.dut.x[6:0]
+digital_tb.dut.y[4:0]
+@28
+digital_tb.dut.fl0
+digital_tb.dut.ts
+digital_tb.dut.ns
+digital_tb.dut.ss
+@1401200
+-reg
+@c00200
+-ram
+@22
+digital_tb.dut.ram_row[3:0]
+@28
+digital_tb.dut.ram_col[1:0]
+digital_tb.dut.ram_left_sel
+digital_tb.dut.ram_right_sel
+digital_tb.dut.ram_left_db_oe
+digital_tb.dut.id_op_tbln_a_Rr
+@22
+digital_tb.dut.ram_left_rbuf[7:0]
+digital_tb.dut.ram_left_wbuf[7:0]
+@28
+digital_tb.dut.ram_left_write_en
+digital_tb.dut.ram_right_db_ie
+digital_tb.dut.ram_right_db_oe
+@22
+digital_tb.dut.ram_right_rbuf[7:0]
+@28
+digital_tb.dut.ram_right_sdb_oe
+@22
+digital_tb.dut.ram_right_wbuf[7:0]
+@28
+digital_tb.dut.ram_right_write_en
+@1401200
+-ram
+@c00200
+-tone
+@22
+digital_tb.dut.n[7:0]
+digital_tb.dut.nc[7:0]
+digital_tb.dut.nuc[2:0]
+@28
+digital_tb.dut.int_tone_cond
+@1401200
+-tone
+@c00200
+-int
+@22
+digital_tb.dut.int_set_pend[3:0]
+digital_tb.dut.int_pending[3:0]
+digital_tb.dut.int_set_active[3:0]
+digital_tb.dut.int_set_active_prio[3:0]
+digital_tb.dut.int_clr_active[3:0]
+digital_tb.dut.int_active[3:0]
+digital_tb.dut.int_load_pc[3:0]
+@1401200
+-int
+@c00200
+-dac
+@22
+digital_tb.dut.da[9:0]
+@28
+digital_tb.dut.pcm_neg
+@22
+digital_tb.dut.pcm_out[7:0]
+digital_tb.dut.PCM_OUT[8:0]
+@1401200
+-dac
+[pattern_trace] 1
+[pattern_trace] 0
