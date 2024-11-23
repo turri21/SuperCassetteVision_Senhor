@@ -56,7 +56,7 @@ Two cartridges had a mix of ROM sizes. No special mappers exist for them (yet). 
 32K ROM + (first 24K [24,576 bytes] of 32K ROM) + 8K ROM --> 64K .BIN
 
 ##### Star Speeder
-(4 * (8K ROM)) + 32K ROM --> 64K .BIN
+32K ROM + (first 24K [24,576 bytes] of 32K ROM) + 8K ROM --> 64K .BIN
 
 
 ## Known issues
