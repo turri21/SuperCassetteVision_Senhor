@@ -1043,17 +1043,18 @@ always @(posedge CLK) begin
   end
 end
 
-assign pai = pao;
-assign pbi = (PB_I & ~pboe) | (pbo & pboe);
-assign pci = (PC_I & ~pcoe) | (pco & pcoe);
+assign pai = PA_O;
+assign pbi = (PB_I & ~pboe) | (PB_O & pboe);
+assign pci = (PC_I & ~pcoe) | (PC_O & pcoe);
 
 assign pboe = ~mb;
 assign pcoe = {~mc[7], 5'b11110, ~mc[1:0]};
 
 assign PA_O = pao;
 assign PB_O = pbo;
+assign PC_O = pco & {mc[7:2], ~mc[1:0]}; // mask control function outputs
+
 assign PB_OE = pboe;
-assign PC_O = pco;
 assign PC_OE = pcoe;
 
 
