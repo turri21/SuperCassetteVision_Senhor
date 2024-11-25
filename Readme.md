@@ -15,13 +15,16 @@ It is hoped that, in the future, hardware will be acquired, examined (nicely), a
 - Create a folder on the SD card named "SCV" and copy boot.rom to it
 
 ### How to build boot.rom
-Acquire these two files:
+Acquire these three files:
 - upd7801g.s01 (MD5 sum 635a978fd40db9a18ee44eff449fc126)
 - epochtv.chr (MD5 sum 929617bc739e58e550fe9025cae4158b)
+- upd1771c-017.s03 (MD5 sum 9b03b66c6dc89de9a11d5cd908538ac3)
 
 Concatenate the files to create boot.rom. Windows example:
 
-`COPY /B upd7801g.s01 +epochtv.chr boot.rom`
+`COPY /B upd7801g.s01 +epochtv.chr upd1771c-017.s03 boot.rom`
+
+Note: upd1771c-017.s03 is in little-endian order (ROM low byte first).
 
 
 ## Usage
