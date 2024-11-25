@@ -137,5 +137,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s digital_tb -o digital_tb.vvp ../upd1771c.sv digital_tb.sv && ./digital_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -DUPD1771C_ROM_INIT_FROM_HEX -s digital_tb -o digital_tb.vvp ../upd1771c.sv digital_tb.sv && ./digital_tb.vvp"
 // End:

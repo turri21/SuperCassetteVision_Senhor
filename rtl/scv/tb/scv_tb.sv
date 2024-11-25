@@ -24,7 +24,8 @@ wire [8:0]  aud_pcm;
 
 reg         rominit_active;
 integer     rominit_fin;
-reg         rominit_sel_boot, rominit_sel_chr, rominit_sel_cart;
+reg         rominit_sel_boot, rominit_sel_chr, rominit_sel_apu,
+            rominit_sel_cart;
 reg [24:0]  rominit_addr;
 reg [7:0]   rominit_data;
 reg         rominit_valid;
@@ -51,6 +52,7 @@ scv dut
 
    .ROMINIT_SEL_BOOT(rominit_sel_boot),
    .ROMINIT_SEL_CHR(rominit_sel_chr),
+   .ROMINIT_SEL_APU(rominit_sel_apu),
    .ROMINIT_SEL_CART(rominit_sel_cart),
    .ROMINIT_ADDR(rominit_addr),
    .ROMINIT_DATA(rominit_data),
@@ -76,6 +78,7 @@ initial begin
   rominit_active = 0;
   rominit_sel_boot = 0;
   rominit_sel_chr = 0;
+  rominit_sel_apu = 0;
   rominit_sel_cart = 0;
   rominit_valid = 0;
 
@@ -127,8 +130,14 @@ endtask
 
 task rominit_chr;
   rominit_sel_chr = '1;
-  rominit_go("epochtv.chr");
+  rominit_go("epochtv.chr.s02");
   rominit_sel_chr = '0;
+endtask
+
+task rominit_apu;
+  rominit_sel_apu = '1;
+  rominit_go("upd1771c-017.s03");
+  rominit_sel_apu = '0;
 endtask
 
 task rominit_cart;
@@ -185,6 +194,7 @@ end
 initial #0 begin
   rominit_boot();
   rominit_chr();
+  rominit_apu();
   rominit_cart();
   $display("ROMs loaded.");
 

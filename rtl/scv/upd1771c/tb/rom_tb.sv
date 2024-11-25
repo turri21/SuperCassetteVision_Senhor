@@ -56,5 +56,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s rom_tb -o rom_tb.vvp ../upd1771c.sv rom_tb.sv && ./rom_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -DUPD1771C_ROM_INIT_FROM_HEX -s rom_tb -o rom_tb.vvp ../upd1771c.sv rom_tb.sv && ./rom_tb.vvp"
 // End:

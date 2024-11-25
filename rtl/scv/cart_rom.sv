@@ -32,7 +32,7 @@ always @(posedge CLK) begin
 end
 
 always @(posedge CLK) begin
-  if (INIT_VALID) begin
+  if (INIT_SEL & INIT_VALID) begin
     mem[INIT_ADDR] = INIT_DATA;
   end
 end

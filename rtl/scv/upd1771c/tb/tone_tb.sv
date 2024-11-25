@@ -121,5 +121,5 @@ endmodule
 
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s tone_tb -o tone_tb.vvp ../upd1771c.sv tone_tb.sv && ./tone_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -DUPD1771C_ROM_INIT_FROM_HEX -s tone_tb -o tone_tb.vvp ../upd1771c.sv tone_tb.sv && ./tone_tb.vvp"
 // End:

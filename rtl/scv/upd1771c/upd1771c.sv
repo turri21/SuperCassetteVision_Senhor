@@ -17,6 +17,13 @@ module upd1771c
    input        CKEN,
    input        RESB,
 
+`ifndef UPD1771C_ROM_INIT_FROM_HEX
+   input        INIT_SEL,
+   input [9:0]  INIT_ADDR,
+   input [7:0]  INIT_DATA,
+   input        INIT_VALID,
+`endif
+
    input        CH1,
    input        CH2,
 
@@ -441,10 +448,15 @@ always_comb
 logic [15:0] rom [1 << 9];
 logic [15:0] rom_rbuf, rom_do;
 wire         rom_oe, rom_zero;
+`ifndef UPD1771C_ROM_INIT_FROM_HEX
+logic [7:0]  rom_init_data_lo, rom_init_data_hi;
+`endif
 
+`ifdef UPD1771C_ROM_INIT_FROM_HEX
 initial begin
   $readmemh("upd1771c_rom.hex", rom);
 end
+`endif
 
 // Change rom_zero from silicon, to clear PC even in testmode
 //assign rom_zero = ~(testmode | ~(resp | cl_int_load_pc | cl_skip));
@@ -454,6 +466,21 @@ assign rom_oe = ~leader;
 always @(posedge CLK) if (CKEN) begin
   rom_rbuf <= rom[ab[8:0]];
 end
+
+`ifndef UPD1771C_ROM_INIT_FROM_HEX
+// Convert incoming 8-bit data to 16-bit writes. Data are in
+// little-endian order (ROM low byte first).
+always @(posedge CLK) begin
+  if (INIT_SEL & INIT_VALID & ~INIT_ADDR[0])
+    rom_init_data_lo <= INIT_DATA;
+end
+always @* rom_init_data_hi = INIT_DATA;
+
+always @(posedge CLK) begin
+  if (INIT_SEL & INIT_VALID & INIT_ADDR[0])
+    rom[INIT_ADDR[9:1]] = {rom_init_data_hi, rom_init_data_lo};
+end
+`endif
 
 always @(posedge CLK) if (cp1p) begin
   rom_do <= (|ab[11:9]) ? '0 : rom_rbuf;
