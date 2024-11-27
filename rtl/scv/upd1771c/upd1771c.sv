@@ -278,7 +278,8 @@ wire cl_n_reg_en = clk4 & id_op_mov_N_a;
 wire cl_a_in_lsr = id_op_mul2_b | id_op_mul1;
 wire cl_a_in_ror_lsr = id_op_rar | cl_a_in_lsr;
 wire cl_x_reg_en = clk4 & (id_op_mov_X_RG | cl_id_op_tbln_X_Rr_dd);
-wire cl_x_to_db = clk3 & (id_op_mul2 | id_op_mov_X_RG);
+wire cl_x_to_db = clk3 & id_op_mul2;
+wire cl_rg_to_db = clk3 & id_op_mov_X_RG;
 wire cl_tbln_PRr_odd_pp = clk4 ? ~(pc_load_sdb4_0_db7_1 & db[0]) : ~cl_tbln_PRr_odd_p;
 wire cl_y_reg_en = cl_id_op_tbln_Y_Rr_dd | id_op_mov_Y_Rr;
 wire cl_y_shift = id_op_muln;
@@ -718,10 +719,73 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
+// Timer up-counter, NS interrupt
+
+logic [8:0] tc;                 // timer counter
+logic       int_ns_cond;
+logic       int_time_cond, int_time_cond_d, int_time_trig;
+logic       ns_tc_sel_p, ns_tc_sel;
+
+always @(posedge CLK) if (cp1p) begin
+  if (res) begin
+    tc <= 0;
+  end
+  else begin
+    // Up-counter tc always runs
+    tc <= tc + 1'd1;
+  end
+end
+
+// 'Time' interrupt is triggered on tc[8] negedge.
+assign int_time_cond = tc[8];
+always @(posedge CLK) if (cp1p) begin
+  int_time_cond_d <= int_time_cond;
+end
+assign int_time_trig = ~int_time_cond & int_time_cond_d;
+
+// md[9:8] set the 'NS' interrupt trigger rate.
+always @* begin
+  case (md[9:8])
+    2'b00: ns_tc_sel_p = tc[8];
+    2'b01: ns_tc_sel_p = tc[7];
+    2'b10: ns_tc_sel_p = tc[5];
+    2'b11: ns_tc_sel_p = tc[4];
+    default: ns_tc_sel_p = 'X;
+  endcase
+end
+
+always @(posedge CLK) if (cp1p) begin
+  ns_tc_sel <= ns_tc_sel_p;
+end
+
+wire int_ns_trig = ~ns_tc_sel_p & ns_tc_sel;
+
+// The noise generator and RG LFSR are enabled by the NS interrupt trigger.
+wire ns_rg_en = int_ns_trig | res;
+
+
+//////////////////////////////////////////////////////////////////////
 // Noise generator
 
 // TODO: Implement this, but only if NSS (MD[3]) ever goes 1.
 assign ns = '0;
+
+
+//////////////////////////////////////////////////////////////////////
+// Polynomial (?) RG LFSR
+
+logic [6:0] rg;
+
+initial // else short RESB means rg is X
+  rg = '0;
+
+// RG advances on NS interrupt trigger.
+always @(posedge CLK) if (cp1p) begin
+  if (ns_rg_en) begin
+    rg[0] <= ~res & ~(rg[5] ^ rg[6]);
+    rg[6:1] <= rg[5:0];
+  end
+end
 
 
 //////////////////////////////////////////////////////////////////////
@@ -773,9 +837,9 @@ typedef enum reg [1:0]
 } e_int_id;
 
 assign int_set_pend[II_TONE] = int_tone_trig & md_tone_ie;
-assign int_set_pend[II_NS]   = '0;
+assign int_set_pend[II_NS]   = int_ns_trig & md_ns_ie;
 assign int_set_pend[II_EXT]  = '0;
-assign int_set_pend[II_TIME] = '0;
+assign int_set_pend[II_TIME] = int_time_trig & md_time_ie;
 
 always @* begin
   int_pending = int_pending_d;
@@ -945,6 +1009,7 @@ always @* begin
   if (cl_a_to_db)           db = a;
   if (cl_h_to_db)           db = {2'b0, h};
   if (cl_x_to_db)           db = {1'b0, x};
+  if (cl_rg_to_db)          db = {1'b0, rg};
   if (cl_alu_c_to_db)       db = alu_c;
   if (ram_left_db_oe)       db = ram_left_rbuf;
   if (ram_right_db_oe)      db = ram_right_rbuf;

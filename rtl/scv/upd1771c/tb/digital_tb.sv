@@ -69,11 +69,11 @@ endtask
 
 task packet_cont(input [7:0] b);
   while (~dsb)
-    repeat (80)
+    repeat (40)
       @(posedge clk) ;
   tx(b);
   while (dsb)
-    repeat (80)
+    repeat (40)
       @(posedge clk) ;
 endtask
 
