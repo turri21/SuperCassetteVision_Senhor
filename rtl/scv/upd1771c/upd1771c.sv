@@ -280,7 +280,7 @@ wire cl_a_in_lsr = id_op_mul2_b | id_op_mul1;
 wire cl_a_in_ror_lsr = id_op_rar | cl_a_in_lsr;
 wire cl_x_reg_en = t45 & (id_op_mov_X_RG | cl_id_op_tbln_X_Rr_dd);
 wire cl_x_to_db = t23 & id_op_mul2;
-wire cl_rg_to_db = t23 & id_op_mov_X_RG;
+wire cl_pnc1_to_db = t23 & id_op_mov_X_RG;
 wire cl_tbln_PRr_odd_pp = t45 ? ~(pc_load_db12_1 & db[0]) : ~cl_tbln_PRr_odd_p;
 wire cl_y_reg_en = cl_id_op_tbln_Y_Rr_dd | id_op_mov_Y_Rr;
 wire cl_y_shift = id_op_muln;
@@ -762,31 +762,33 @@ end
 wire int_ns_trig = ~ns_tc_sel_p & ns_tc_sel;
 
 // The noise generator and RG LFSR are enabled by the NS interrupt trigger.
-wire ns_rg_en = int_ns_trig | res;
+wire pnc_en = int_ns_trig | res;
 
 
 //////////////////////////////////////////////////////////////////////
-// Noise generator
+// PNC1, PNC2: Polynomial (?) noise generator LFSRs
 
-// TODO: Implement this, but only if NSS (MD[3]) ever goes 1.
-assign ns = '0;
+logic [6:0] pnc1;
+logic [2:0] pnc2;
 
+initial begin // else short RESB means pnc* is X
+  pnc1 = '0;
+  pnc2 = '0;
+end
 
-//////////////////////////////////////////////////////////////////////
-// Polynomial (?) RG LFSR
-
-logic [6:0] rg;
-
-initial // else short RESB means rg is X
-  rg = '0;
-
-// RG advances on NS interrupt trigger.
+// PNC1/2 advance on NS interrupt trigger.
 always @(posedge CLK) if (phi2p) begin
-  if (ns_rg_en) begin
-    rg[0] <= ~res & ~(rg[5] ^ rg[6]);
-    rg[6:1] <= rg[5:0];
+  if (pnc_en) begin
+    pnc1[0] <= ~res & ~(pnc1[5] ^ pnc1[6]);
+    pnc1[6:1] <= pnc1[5:0];
+
+    pnc2[0] <= ~res & ~(md_nss ? pnc2[0] : (pnc2[1] ^ ns));
+    pnc2[2:1] <= pnc2[1:0];
   end
 end
+
+// Clearing NSS immediately forces PNC2[2] / NS to zero.
+assign ns = md_nss & pnc2[2];
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1009,7 +1011,7 @@ always @* begin
   if (cl_a_to_db)           db[7:0] = a;
   if (cl_h_to_db)           db[7:0] = {2'b0, h};
   if (cl_x_to_db)           db[7:0] = {1'b0, x};
-  if (cl_rg_to_db)          db[7:0] = {1'b0, rg};
+  if (cl_pnc1_to_db)        db[7:0] = {1'b0, pnc1};
   if (cl_alu_c_to_db)       db[7:0] = alu_c;
   if (ram_left_db_oe)       db[7:0] = ram_left_rbuf;
   if (ram_right_db7_0_oe)   db[7:0] = ram_right_rbuf;

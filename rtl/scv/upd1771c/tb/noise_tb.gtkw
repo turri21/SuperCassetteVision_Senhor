@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Wed Nov 27 20:34:43 2024
+[*] Mon Dec  9 08:05:19 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/noise_tb.vcd"
-[dumpfile_mtime] "Wed Nov 27 20:24:27 2024"
-[dumpfile_size] 16879895
+[dumpfile_mtime] "Mon Dec  9 07:59:12 2024"
+[dumpfile_size] 78379504
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd1771c/tb/noise_tb.gtkw"
-[timestart] 22636560000
+[timestart] 0
 [size] 1288 762
 [pos] -1 -1
-*-23.684704 22661909352 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-31.684704 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -37,10 +37,11 @@
 [markername] YY
 [markername] ZZ
 [treeopen] noise_tb.
+[treeopen] noise_tb.dut.
 [sst_width] 253
 [signals_width] 292
 [sst_expanded] 1
-[sst_vpaned_height] 292
+[sst_vpaned_height] 197
 @28
 noise_tb.ncs
 noise_tb.nwr
@@ -114,12 +115,12 @@ noise_tb.dut.pbo_reg_p[7:0]
 noise_tb.dut.pbo_reg[7:0]
 @1401200
 -io
-@c00201
+@c00200
 -bus
-@23
+@22
 noise_tb.dut.db[15:0]
 noise_tb.dut.pdb[15:0]
-@1401201
+@1401200
 -bus
 @c00200
 -res
@@ -280,7 +281,7 @@ noise_tb.dut.cl_pdb_hi_sel
 @22
 noise_tb.dut.cl_pdb_ram_a[4:0]
 @28
-noise_tb.dut.cl_rg_to_db
+noise_tb.dut.cl_pnc1_to_db
 noise_tb.dut.cl_skip
 noise_tb.dut.cl_skip_a
 noise_tb.dut.cl_skip_test_failed
@@ -418,20 +419,22 @@ noise_tb.dut.int_tone_cond
 noise_tb.dut.tc[8:0]
 @28
 noise_tb.dut.ns_tc_sel
-noise_tb.dut.ns_rg_en
-noise_tb.dut.ns
+noise_tb.dut.pnc_en
 @c00022
-noise_tb.dut.rg[6:0]
+noise_tb.dut.pnc1[6:0]
 @28
-(0)noise_tb.dut.rg[6:0]
-(1)noise_tb.dut.rg[6:0]
-(2)noise_tb.dut.rg[6:0]
-(3)noise_tb.dut.rg[6:0]
-(4)noise_tb.dut.rg[6:0]
-(5)noise_tb.dut.rg[6:0]
-(6)noise_tb.dut.rg[6:0]
+(0)noise_tb.dut.pnc1[6:0]
+(1)noise_tb.dut.pnc1[6:0]
+(2)noise_tb.dut.pnc1[6:0]
+(3)noise_tb.dut.pnc1[6:0]
+(4)noise_tb.dut.pnc1[6:0]
+(5)noise_tb.dut.pnc1[6:0]
+(6)noise_tb.dut.pnc1[6:0]
 @1401200
 -group_end
+@28
+noise_tb.dut.pnc2[2:0]
+noise_tb.dut.ns
 @1000200
 -time_ns
 @c00200
