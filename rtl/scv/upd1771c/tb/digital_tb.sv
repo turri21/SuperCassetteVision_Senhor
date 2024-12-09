@@ -61,8 +61,8 @@ task tx(input [7:0] b);
 endtask
 
 task packet_start(input [7:0] b);
-  // Align to CP1
-  while (~dut.cp1p)
+  // Align to PHI2
+  while (~dut.phi2p)
     @(posedge clk) ;
   tx(b);
 endtask
@@ -82,7 +82,7 @@ always begin :ckgen
 end
 
 always @(posedge clk) begin
-  if (~res & dut.cp1p)
+  if (~res & dut.phi2p)
     cycle += 1;
 end
 
@@ -97,7 +97,7 @@ initial begin
   faud = $fopen("dig.raw", "w");
 end
 always @(posedge clk) begin
-  if (~res & dut.cp1p) begin
+  if (~res & dut.phi2p) begin
     $fwrite(faud, "%c%c", aud_out[15:8], aud_out[7:0]);
   end
 end
