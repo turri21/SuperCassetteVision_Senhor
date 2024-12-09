@@ -8,6 +8,7 @@
 // . https://github.com/mamedev/mame/blob/master/src/devices/sound/upd1771.cpp - MAME's emulation
 // . https://siliconpr0n.org/map/nec/d1771c-017/mcmaster_mz_mit20x/ - photomicrograph of D1771C-017 die
 // . http://reverendgumby.gitlab.io/visuald1771c - JavaScript simulator derived from above die shot
+// . https://oura.oguchi-rd.com/1776/1771&1776%20Instruction.pdf - instruction design documentation
 
 `timescale 1us / 1ns
 
