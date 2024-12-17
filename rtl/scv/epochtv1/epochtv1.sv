@@ -56,29 +56,35 @@ module epochtv1
    );
 
 
-// Timing is a complete guess. Partially inspired by VIC6560 (4MHz PCLK).
-localparam [8:0] NUM_ROWS = 9'd262;
+// Timing acquired by measuring actual hardware.
+localparam [8:0] NUM_ROWS = 9'd263;
 localparam [8:0] NUM_COLS = 9'd260;
 
-localparam [8:0] FIRST_ROW_RENDER = 9'd24;
-localparam [8:0] LAST_ROW_RENDER = 9'd24 + 9'd222 - 1'd1;
-localparam [8:0] FIRST_ROW_VSYNC = 9'd256;
-localparam [8:0] LAST_ROW_VSYNC = 9'd2;
+// Actual render window (incl. overscan): 208 x 232
+localparam [8:0] FIRST_ROW_RENDER = 9'd19;
+localparam [8:0] LAST_ROW_RENDER = 9'd250;
+localparam [8:0] FIRST_COL_RENDER = 9'd23;
+localparam [8:0] LAST_COL_RENDER = 9'd230;
+localparam [8:0] FIRST_ROW_VSYNC = 9'd260;
+localparam [8:0] LAST_ROW_VSYNC = 9'd262;
+localparam [8:0] FIRST_COL_HSYNC = 9'd240;
+localparam [8:0] LAST_COL_HSYNC = 9'd259;
 
-localparam [8:0] FIRST_COL_RENDER = 9'd24;
-localparam [8:0] LAST_COL_RENDER = 9'd24 + 9'd192 - 1'd1;
-localparam [8:0] FIRST_COL_HSYNC = 9'd256;
-localparam [8:0] LAST_COL_HSYNC = 9'd15;
+// Visible window: 192 x 222
+localparam [8:0] FIRST_ROW_VISIBLE = 9'd24;
+localparam [8:0] LAST_ROW_VISIBLE = FIRST_ROW_VISIBLE + 9'd222 - 1'd1;
+localparam [8:0] FIRST_COL_VISIBLE = 9'd24;
+localparam [8:0] LAST_COL_VISIBLE = FIRST_COL_VISIBLE + 9'd192 - 1'd1;
 
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
 localparam [8:0] FIRST_ROW_BOC_START = LAST_ROW_RENDER + 'd2;
 
 `ifdef EPOCHTV1_BORDERS
 // left/right borders
-localparam [8:0] FIRST_COL_LEFT = FIRST_COL_RENDER - 1'd8;
-localparam [8:0] LAST_COL_LEFT = FIRST_COL_RENDER - 1'd1;
-localparam [8:0] FIRST_COL_RIGHT = LAST_COL_RENDER + 1'd1;
-localparam [8:0] LAST_COL_RIGHT = LAST_COL_RENDER + 1'd8;
+localparam [8:0] FIRST_COL_LEFT = FIRST_COL_VISIBLE - 1'd8;
+localparam [8:0] LAST_COL_LEFT = FIRST_COL_VISIBLE - 1'd1;
+localparam [8:0] FIRST_COL_RIGHT = LAST_COL_VISIBLE + 1'd1;
+localparam [8:0] LAST_COL_RIGHT = LAST_COL_VISIBLE + 1'd8;
 `endif
 
 
@@ -86,6 +92,7 @@ reg [8:0]    row, col;
 reg          field;
 wire         pre_render_row;
 wire         render_row, render_col, render_px;
+wire         visible_row, visible_col, visible_px;
 wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
 wire         cpu_rd, cpu_wr, cpu_rdwr;
 wire         sbofp_stall;
@@ -839,13 +846,13 @@ reg  visible;
 
 always_comb begin
   // Enable DE for visible region...
-  visible = render_px;
+  visible = visible_px;
 `ifdef EPOCHTV1_BORDERS
   // plus right border...
-  if (render_row)
+  if (visible_row)
     visible = visible | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
   // plus left border.
-  if (render_row)
+  if (visible_row)
     visible = visible | ((col >= FIRST_COL_LEFT) & (col <= LAST_COL_LEFT));
 `endif
 end
@@ -853,9 +860,9 @@ end
 always_ff @(posedge CLK) if (CE) begin
   de <= visible;
 /* verilator lint_off UNSIGNED */
-  hsync <= (col >= FIRST_COL_HSYNC) | (col <= LAST_COL_HSYNC);
+  hsync <= (col >= FIRST_COL_HSYNC) & (col <= LAST_COL_HSYNC);
 /* verilator lint_on UNSIGNED */
-  vsync <= (row >= FIRST_ROW_VSYNC) | (row <= LAST_ROW_VSYNC);
+  vsync <= (row >= FIRST_ROW_VSYNC) & (row <= LAST_ROW_VSYNC);
   vbl <= ~render_row;
 end
 
@@ -887,6 +894,10 @@ assign pre_render_row = (row >= FIRST_ROW_PRE_RENDER) & (row < FIRST_ROW_RENDER)
 assign render_row = (row >= FIRST_ROW_RENDER) & (row <= LAST_ROW_RENDER);
 assign render_col = (col >= FIRST_COL_RENDER) & (col <= LAST_COL_RENDER);
 assign render_px = render_row & render_col;
+
+assign visible_row = (row >= FIRST_ROW_VISIBLE) & (row <= LAST_ROW_VISIBLE);
+assign visible_col = (col >= FIRST_COL_VISIBLE) & (col <= LAST_COL_VISIBLE);
+assign visible_px = visible_row & visible_col;
 
 
 //////////////////////////////////////////////////////////////////////

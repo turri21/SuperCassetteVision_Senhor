@@ -224,7 +224,7 @@ initial #0 begin
 
   -> init_regs;
 
-  #17000 $finish;
+  #17500 $finish;
 end
 
 endmodule

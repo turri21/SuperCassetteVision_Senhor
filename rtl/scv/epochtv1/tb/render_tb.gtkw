@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Sep  7 23:20:17 2024
+[*] Tue Dec 17 05:58:19 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.vcd"
-[dumpfile_mtime] "Sat Sep  7 23:19:35 2024"
-[dumpfile_size] 46108415
+[dumpfile_mtime] "Tue Dec 17 05:55:11 2024"
+[dumpfile_size] 46317467
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/epochtv1/tb/render_tb.gtkw"
 [timestart] 0
 [size] 1288 600
 [pos] -1 -1
-*-30.019493 127108800 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-32.156998 762652800 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -45,8 +45,9 @@
 @28
 render_tb.dut.CE
 render_tb.dut.field
-@24
+@25
 render_tb.dut.row[8:0]
+@24
 render_tb.dut.col[8:0]
 @c00200
 -cpu bus
@@ -161,11 +162,13 @@ render_tb.dut.sbofp_rrs[2:0]
 render_tb.dut.sbofp_px[3:0]
 @1000200
 -sbofp
-@c00200
+@800200
 -out
 @28
 render_tb.dut.render_row
 render_tb.dut.render_col
+render_tb.dut.visible_row
+render_tb.dut.visible_col
 @22
 render_tb.dut.pd[3:0]
 @28
@@ -175,7 +178,7 @@ render_tb.dut.HS
 render_tb.dut.VS
 @22
 render_tb.dut.RGB[23:0]
-@1401200
+@1000200
 -out
 [pattern_trace] 1
 [pattern_trace] 0

@@ -15,6 +15,28 @@ Overview
   . (32) VRAM bus: A[11:0], D[15:0], nOE*2, nWE*2
   .  (1) CPU INT2 = VBL
 . Clock: 14.318181 MHz XTAL (NTSC)
+. Pinout:
+  . 21      AGND
+  . 22      CHROMA -- 50mV +/-270mV-p @ 3.58MHz
+  . 23-25   R,G,B
+  . 26      \CSYNC
+  . 27      AVCC (5V)
+  . 64      VBL
+. Analog video -- R,G,B,\CSYNC
+  . R,G,B
+    . Three voltage levels
+    . Always lowest level during blanking
+  . \CSYNC
+    . Two voltage levels: LOW=60mV, HIGH=1.00V
+      . Normally LOW
+      . HIGH at HSYNC
+      . HIGH (XOR w/ HSYNC) at VSYNC
+  . Timing
+    . Full frame (incl. blanking): 260 cols x 263 rows
+    . Render area: 208 cols x 232 rows
+    . Pixel rate: 4.090909 MHz
+    . Line rate (horizontal refresh): 15734 kHz
+    . Frame rate (vertical refresh): 59.826 Hz
 
 
 External VRAM
@@ -67,7 +89,7 @@ R3 ($3403)
 . bits 3-0: char. BG color
 
 
-Background 
+Background
 ----------
 
 Screen is divided into character and graphics areas.
@@ -120,3 +142,68 @@ Character patterns
 7x pqrs tuvw xyz{ |}~■
 
 8x-Fx repeat 0x-7x
+
+
+Colors
+------
+
+4-bit color == 16 colors
+R,G,B output three voltage levels: V0=250mV, V1=1110mV, V2=1400mV
+
+. V0-2 map of each color channel for all 16 colors
+
+Color #          11 1111
+     0123 4567 8901 2345
+     ---- ---- ---- ----
+  R: 0001 0100 2222 2112
+  G: 0000 2221 0101 2112
+  B: 1022 0120 0021 0012
+
+
+Video timing
+------------
+
+1q = 1/2 clock = (0.5 / 14.318181) us
+1p = pixel = 7q
+
+HSYNC period: 63.556us -- 15734 kHz
+VSYNC period: 16.7151ms -- 59.826 Hz
+
+Row 0 starts on VSYNC falling edge. (Actual row counter value is unknown.)
+- VBL is HIGH during rows 251-18.
+- VSYNC is HIGH (\CSYNC is inverted) during rows 260-262.
+
+Rows  19-250: VBL = 0, VSYNC = 0
+Rows 251-259: VBL = 1, VSYNC = 0
+Rows 260-262: VBL = 1, VSYNC = 1
+Rows   0- 18: VBL = 1, VSYNC = 0
+
+ -0.010us / v  -18q / ~-3p: VBL falling edge
+  0.614us / v    0q /   0p: \CSYNC falling edge
+  6.232us / ^  161q /  23p: start of first pixel rendered in row 19
+ 57.076us / v 1617q / 231p: end of last pixel rendered    "
+ 59.290us / v 1680q / 240p: \CSYNC rising edge
+ 64.172us / v 1820q / 260p: \CSYNC falling edge
+ 69.786us / ^ 1981q / 283p: start of first pixel rendered in row 20
+120.630us / ^ 3437q / 491p: end of last pixel rendered    "
+122.838us / v 3500q / 500p: \CSYNC rising edge
+127.724us / v 3640q / 520p: \CSYNC falling edge
+
+-62.948us / v    0q /   0p: \CSYNC falling edge               --- 14.6819ms
+-57.324us / ^  161q /  23p: start of first pixel rendered in row 18
+ -6.483us / ^ 1617q / 231p: end of last pixel rendered    "
+ -4.276us / v 1680q / 240p: \CSYNC rising edge
+ -0.017us / v 1802q /~257p: VBL rising edge                   --- 14.7449ms
+
+(^/v = clock [XOUT] rising/falling edge)
+
+
+Column 0 starts on HSYNC falling edge (\CSYNC falling). (Actual column counter value is unknown.)
+- VBL toggles on column 257 + 3q.
+- HSYNC is HIGH during columns 240-259.
+- Pixels are rendered during columns 23-230.
+
+Columns   0- 22: HBL = 1, HSYNC = 0
+Columns  23-230: HBL = 0, HSYNC = 0
+Columns 231-239: HBL = 1, HSYNC = 0
+Columns 240-259: HBL = 1, HSYNC = 1
