@@ -251,7 +251,7 @@ logic cl_tbln_PRr_odd, cl_tbln_PRr_odd_p;
 logic [4:0] cl_pdb_ram_a;
 logic [2:0] cl_sp_ram_a;
 
-wire cl_pdb7_4_to_db15_12 = t45 & (id_op_jmp_n4 & ~testmode);
+wire cl_pdb7_4_to_db11_8 = t45 & (id_op_jmp_n4 & ~testmode);
 wire cl_pdb11_8_to_db11_8 = t45 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
 wire cl_pdb_hi_sel = cl_tbln_PRr_odd & ~(pc_ctrl3 | cl_id_op_calln_dd);
 wire cl_pdb15_8_to_db7_0 = t45 & cl_pdb_hi_sel;
@@ -1018,7 +1018,7 @@ always @* begin
   if (io_pax_out_reg_db_en) db[7:0] = pao_reg_d[7:0];
   if (io_pbx_pad_db_en)     db[7:0] = pbi_reg[7:0];
 
-  if (cl_pdb7_4_to_db15_12) db[15:8] = pdb[7:4];
+  if (cl_pdb7_4_to_db11_8)  db[11:8] = pdb[7:4];
   if (cl_pdb11_8_to_db11_8) db[11:8] = pdb[11:8];
   if (pc_out_to_db)         db[11:8] = pc[11:8];
   if (ram_right_db15_8_oe)  db[15:8] = ram_right_rbuf;
