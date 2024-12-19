@@ -8,6 +8,7 @@
 // . https://github.com/mamedev/mame/blob/master/src/devices/sound/upd1771.cpp - MAME's emulation
 // . https://siliconpr0n.org/map/nec/d1771c-017/mcmaster_mz_mit20x/ - photomicrograph of D1771C-017 die
 // . http://reverendgumby.gitlab.io/visuald1771c - JavaScript simulator derived from above die shot
+// . https://oura.oguchi-rd.com - original LSI design docs
 
 `timescale 1us / 1ns
 
@@ -38,8 +39,7 @@ module upd1771c
    );
 
 
-logic [7:0]     db;
-logic [7:0]     sdb;
+logic [15:0]    db;
 logic [11:0]    ab;
 logic [15:0]    pdb;
 
@@ -65,13 +65,13 @@ wire  leader, follower, testmode;
 logic ch1d, ch2d;
 
 always @(posedge CLK) if (CKEN) begin
-  resp <= (resp & ~(cp1p & ~res)) | res;
+  resp <= (resp & ~(phi2p & ~res)) | res;
 end
 
 always @(posedge CLK) if (CKEN) begin
-  if (cp1)
+  if (phi2)
     ch1d <= CH1;
-  if (cp1 | clk4)
+  if (phi2 | t45)
     ch2d <= CH2;
 end
 
@@ -83,22 +83,23 @@ assign testmode = ~(leader | follower);
 //////////////////////////////////////////////////////////////////////
 // Clock generator
 
-wire cp1p, cp1n;                // CLK / 8, phase 1, DC=3/8
-wire cp2p, cp2n;                // CLK / 8, phase 2, DC=2/8
-wire clk1;
-wire clk2;                      // ROM clock - ground columns
-wire clk3;
-wire clk4;
-wire clk5;
+// 1 cycle = 8 * CLK
+wire phi2p, phi2n;              // 1~3
+wire phi1p, phi1n;              // 6~7
+wire philsi;                    // 3,5,7
+wire phi56;                     // 5~6 (ROM clock)
+wire t23;                       // 2~3
+wire t45;                       // 4~5
+wire t68;                       // 6~8
 
-logic cp1, cp2;
+logic phi2, phi1;
 
 logic [2:0] cgcnt;
 logic [8:0] cgo;
 
 initial begin
-  cp1 = 0;
-  cp2 = 0;
+  phi2 = 0;
+  phi1 = 0;
   cgcnt = 0;
 end
 
@@ -120,20 +121,20 @@ always_comb begin
   endcase
 end
 
-// cp* are 1 CLK early, so that cp1/2 align with clk1-5.
-assign cp1p = CKEN & cgo[0];
-assign cp1n = CKEN & cgo[1];
-assign cp2p = CKEN & cgo[2];
-assign cp2n = CKEN & cgo[3];
-assign clk1 = CKEN & cgo[4];
-assign clk2 = CKEN & cgo[5];
-assign clk3 = CKEN & cgo[6];
-assign clk4 = CKEN & cgo[7];
-assign clk5 = CKEN & cgo[8];
+// phi*p/n are 1 CLK early, so that phi1/2 align with other clocks.
+assign phi2p = CKEN & cgo[0];
+assign phi2n = CKEN & cgo[1];
+assign phi1p = CKEN & cgo[2];
+assign phi1n = CKEN & cgo[3];
+assign philsi = CKEN & cgo[4];
+assign phi56 = CKEN & cgo[5];
+assign t23 = CKEN & cgo[6];
+assign t45 = CKEN & cgo[7];
+assign t68 = CKEN & cgo[8];
 
 always @(posedge CLK) if (CKEN) begin
-  cp1 <= (cp1 | cp1p) & ~cp1n;
-  cp2 <= (cp2 | cp2p) & ~cp2n;
+  phi2 <= (phi2 | phi2p) & ~phi2n;
+  phi1 <= (phi1 | phi1p) & ~phi1n;
 end
 
 
@@ -202,12 +203,12 @@ wire id_op_mix = ~|id[15:13] & id[12] & ~id[11] & id[10] & id[3];
 wire id_op_mov_xchg_Hp_Rr_dst = ~|id[15:13] & id[12] & ~id[11] & id[9]; // 0001_0x1x__xxxx
 wire id_aluop_test_Rr_n = &id[15:13] & id[10]; // 111x_x1xx__xxxx
 wire id_aluop_A_Rr_Hp = &id[15:14] & ~id[13] & ~id[3]; // 110x_xxxx__0xxx
-wire id_get_a_clk4 = ~|id[15:11] & ~(~|id[10:9] & id[3]) & ~resp; // 0000_0xxx__xxxx & ~xxxx_x00x__1xxx & ~resp
-wire id_get_a_clk3_a = ~|id[15:13] & id[12] & ~id[11] & id[0]; // 0001_0xxx__xxx1
-wire id_get_a_clk3_b = &id[15:14] & ~id[13]; // 110x_xxxx__xxxx
-wire id_get_a_clk3_c = id[15] & ~|id[14:13] & ~id[8]; // 100x_xxx0__xxxx
+wire id_get_a_t45 = ~|id[15:11] & ~(~|id[10:9] & id[3]) & ~resp; // 0000_0xxx__xxxx & ~xxxx_x00x__1xxx & ~resp
+wire id_get_a_t23_a = ~|id[15:13] & id[12] & ~id[11] & id[0]; // 0001_0xxx__xxx1
+wire id_get_a_t23_b = &id[15:14] & ~id[13]; // 110x_xxxx__xxxx
+wire id_get_a_t23_c = id[15] & ~|id[14:13] & ~id[8]; // 100x_xxx0__xxxx
 wire id_aluop_H_n = id[15] & ~id[14] & id[13] & id[8]; // 101x_xxx1__xxxx
-wire id_get_h_clk3 = ~|id[15:13] & id[12] & ~id[11] & id[1]; // 0001_0xxx__xx1x
+wire id_get_h_t23 = ~|id[15:13] & id[12] & ~id[11] & id[1]; // 0001_0xxx__xx1x
 wire id_op_jmp_call_n_t2 = ~id[15] & &id[14:13] & ~cl_t1; // 011x_xxxx__xxxx & ~cl_t1
 wire id_aluop_Rr_n_not_c5 = &id[15:13] & ~id[12]; // 1110_xxxx__xxxx
 wire id_aluop_10x_1x0_sk_cb = id_aluop_10x_1x0 & ~id[9]; // xxxx_xx0x__xxxx & aluop_10x_1x0
@@ -250,12 +251,12 @@ logic cl_tbln_PRr_odd, cl_tbln_PRr_odd_p;
 logic [4:0] cl_pdb_ram_a;
 logic [2:0] cl_sp_ram_a;
 
-wire cl_pdb7_4_to_sdb7_4 = clk4 & (id_op_jmp_n4 & ~testmode);
-wire cl_pdb11_8_to_sdb3_0 = clk4 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
+wire cl_pdb7_4_to_db11_8 = t45 & (id_op_jmp_n4 & ~testmode);
+wire cl_pdb11_8_to_db11_8 = t45 & (resp | cl_t1 | (id_op_jmp_call & ~testmode));
 wire cl_pdb_hi_sel = cl_tbln_PRr_odd & ~(pc_ctrl3 | cl_id_op_calln_dd);
-wire cl_pdb15_8_to_db7_0 = clk4 & cl_pdb_hi_sel;
-wire cl_pdb7_0_to_db7_0 = ~cl_pdb_hi_sel & (cl_pdb11_8_to_sdb3_0 | (clk3 & id_aluop_1x1) | (clk4 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
-wire cl_a_reg_en = ((cl_id_op_tbln_a_Rr_dd | id_aluop_A_Rr | id_op_reti | id_aluop_A_n | id_set_a) & cp2) | (id_op_mov_xchg_a_dst & clk4);
+wire cl_pdb15_8_to_db7_0 = t45 & cl_pdb_hi_sel;
+wire cl_pdb7_0_to_db7_0 = ~cl_pdb_hi_sel & (cl_pdb11_8_to_db11_8 | (t23 & id_aluop_1x1) | (t45 & (id_op_src_n_a | id_op_src_n_b | id_aluop_100)));
+wire cl_a_reg_en = ((cl_id_op_tbln_a_Rr_dd | id_aluop_A_Rr | id_op_reti | id_aluop_A_n | id_set_a) & phi1) | (id_op_mov_xchg_a_dst & t45);
 wire cl_op_clear_skip = id_op_adi_sbi_adi5_Rr_n | id_op_xori | id_op_adi_andi_sbi_ori | id_op_not_aluop_or_rets;
 wire cl_skip_test_if_set = ~(id_op_rets | id_aluop_10x_1x0_txnx | id_aluop_txnx_Rr_n);
 wire cl_md0_reg_en = resp | cl_md1_reg_en | id_op_mvi_md0_n; // Yes, cl_md1_reg_en is actually in here.
@@ -265,25 +266,26 @@ wire cl_spm1_to_ram_a = id_op_retx;
 wire cl_pdb12_8_to_ram_a = id_op_mvi_Rr_n;
 wire cl_pdb8_4_to_ram_a = id_aluop_Rr_n | id_op_Rr_pdb8_4 | id_aluop_Rr_pdb8_4;
 wire cl_id_op_Hp_Rr_dst = id_aluop_Rr_A_Hp_A | id_aluop_notest_Hp_n | id_aluop_notest_Rr_n | id_op_mvi_Rr_n | id_op_mov_xchg_Hp_Rr_x;
-wire cl_h_reg_en = clk1 & ((cp2 & id_aluop_notest_H_n) | (clk4 & (id_op_mvi_H_n | id_op_set_H)));
-wire cl_a_to_db = (clk3 & (id_get_a_clk3_a | id_get_a_clk3_b | id_get_a_clk3_c)) | (clk4 & id_get_a_clk4);
-wire cl_h_to_db = (clk3 & id_get_h_clk3) | (clk4 & id_aluop_H_n);
+wire cl_h_reg_en = philsi & ((phi1 & id_aluop_notest_H_n) | (t45 & (id_op_mvi_H_n | id_op_set_H)));
+wire cl_a_to_db = (t23 & (id_get_a_t23_a | id_get_a_t23_b | id_get_a_t23_c)) | (t45 & id_get_a_t45);
+wire cl_h_to_db = (t23 & id_get_h_t23) | (t45 & id_aluop_H_n);
 wire cl_int_load_pc;
-wire cl_alu_c_to_db = clk5 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | cl_int_load_pc | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
-wire cl_pc_load_sdb3_0_db7_0 = resp | id_op_retx | (id_op_jmpa & ~testmode) | ((id_op_jmpfz & ~testmode) & ~fl0) | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | (id_op_jmp_n4 & ~testmode);
-wire cl_id_op_out_pa_d = cp2 & id_op_out_pa;
-wire cl_id_op_calln_retx = clk4 & (id_op_tbln_calln & ~testmode | id_op_retx);
-wire cl_id_Rr_Hp_clk4 = clk4 & (id_op_mov_xchg_mix_Rr_Hp | id_aluop_Hp_n | id_aluop_11x);
-wire cl_n_reg_en = clk4 & id_op_mov_N_a;
+wire cl_alu_c_to_db = t68 & ~(id_op_in_pa | id_op_in_pb | id_op_jmp_call_n_t2 | cl_int_load_pc | cl_id_op_calln_dd | (id_op_jmp_call & ~testmode));
+wire cl_pc_load_db11_0 = resp | id_op_retx | (id_op_jmpa & ~testmode) | ((id_op_jmpfz & ~testmode) & ~fl0) | (id_op_jmp_call & ~testmode) | cl_id_op_calln_dd | (id_op_jmp_n4 & ~testmode);
+wire cl_id_op_out_pa_d = phi1 & id_op_out_pa;
+wire cl_id_op_calln_retx = t45 & (id_op_tbln_calln & ~testmode | id_op_retx);
+wire cl_id_Rr_Hp_t45 = t45 & (id_op_mov_xchg_mix_Rr_Hp | id_aluop_Hp_n | id_aluop_11x);
+wire cl_n_reg_en = t45 & id_op_mov_N_a;
 wire cl_a_in_lsr = id_op_mul2_b | id_op_mul1;
 wire cl_a_in_ror_lsr = id_op_rar | cl_a_in_lsr;
-wire cl_x_reg_en = clk4 & (id_op_mov_X_RG | cl_id_op_tbln_X_Rr_dd);
-wire cl_x_to_db = clk3 & (id_op_mul2 | id_op_mov_X_RG);
-wire cl_tbln_PRr_odd_pp = clk4 ? ~(pc_load_sdb4_0_db7_1 & db[0]) : ~cl_tbln_PRr_odd_p;
+wire cl_x_reg_en = t45 & (id_op_mov_X_RG | cl_id_op_tbln_X_Rr_dd);
+wire cl_x_to_db = t23 & id_op_mul2;
+wire cl_pnc1_to_db = t23 & id_op_mov_X_RG;
+wire cl_tbln_PRr_odd_pp = t45 ? ~(pc_load_db12_1 & db[0]) : ~cl_tbln_PRr_odd_p;
 wire cl_y_reg_en = cl_id_op_tbln_Y_Rr_dd | id_op_mov_Y_Rr;
 wire cl_y_shift = id_op_muln;
 wire cl_mix_sub = (ts ^ ns);
-wire cl_ts_reg_en = clk4 & cl_id_op_tbln_X_Rr_dd;
+wire cl_ts_reg_en = t45 & cl_id_op_tbln_X_Rr_dd;
 wire cl_alu_c4inh = (id_op_adims & ~md_64_32) | id_op_adi5;
 wire cl_alu_c5inh = id_op_adims & md_64_32;
 wire cl_op_tadi5_or_adims_and_not_md0 = (id_op_adims & ~md_64_32) | id_op_tadi5;
@@ -292,17 +294,17 @@ assign cl_pdb_ram_a[4:0] = cl_pdb12_8_to_ram_a ? pdb[12:8] : pdb[8:4];
 assign cl_sp_ram_a = cl_spm1_to_ram_a ? (sp - 1'd1) : sp;
 
 always @(posedge CLK) if (CKEN) begin
-  if (cp2n) begin
+  if (phi1n) begin
     cl_id_op_calln_d <= id_op_calln & ~testmode;
     cl_id_op_tbln_a_Rr_d <= id_op_tbln_a_Rr;
     cl_skip_p <= cl_skip_pp;
     cl_id_op_tbln_X_Rr_d <= id_op_tbln_X_Rr;
     cl_id_op_tbln_Y_Rr_d <= id_op_tbln_Y_Rr;
   end
-  if (clk1) begin
+  if (philsi) begin
     cl_tbln_PRr_odd_p <= ~cl_tbln_PRr_odd_pp;
   end
-  if (cp1p) begin
+  if (phi2p) begin
     cl_t1 <= id_op_tbln_calln;
     cl_id_op_calln_dd <= cl_id_op_calln_d;
     cl_id_op_tbln_a_Rr_dd <= cl_id_op_tbln_a_Rr_d;
@@ -323,7 +325,7 @@ wire cl_skip_test_out =
 wire cl_skip_test_failed = cl_skip_test_out ^ cl_skip_test_if_set;
 wire cl_skip_a = ~(cl_op_clear_skip | cl_skip_test_failed);
 
-always @(posedge CLK) if (cp2n) begin
+always @(posedge CLK) if (phi1n) begin
   if (cl_int_load_pc)
     cl_skip_s <= cl_skip;
 end
@@ -347,17 +349,17 @@ wire alu_op_or = id_aluop_or;
 wire alu_op_and = id_aluop_and;
 
 wire alu_temp1_first = ~(id_aluop_A_Rr_Hp | id_aluop_100);
-wire alu_db_to_temp1 = (clk3 & alu_temp1_first) | (clk4 & ~alu_temp1_first);
-wire alu_db_to_temp2 = (clk3 & ~alu_temp1_first) | (clk4 & alu_temp1_first);
+wire alu_db_to_temp1 = (t23 & alu_temp1_first) | (t45 & ~alu_temp1_first);
+wire alu_db_to_temp2 = (t23 & ~alu_temp1_first) | (t45 & alu_temp1_first);
 
 always @(posedge CLK) if (CKEN) begin
-  // alu_db_to_temp1/2 are high before and during clk1. And clk1
+  // alu_db_to_temp1/2 are high before and during philsi. And philsi
   // drives TEMP1/2 to A/B.
-  if (clk1) begin
+  if (philsi) begin
     if (alu_db_to_temp1)
-      alu_a <= db;
+      alu_a <= db[7:0];
     else if (alu_db_to_temp2)
-      alu_b <= db;
+      alu_b <= db[7:0];
   end
   if (alu_zero_a_lo)
     alu_a[3:0] <= '0;
@@ -407,31 +409,31 @@ assign alu_c_zero = alu_c == '0;
 logic [11:0] pc, pcin, pcn;
 logic [11:0] abn, abadd;
 
-wire pc_ctrl1 = clk4 & ~(id_op_tbln_calln & ~testmode | cl_int_load_pc | cl_pc_load_sdb3_0_db7_0);
+wire pc_ctrl1 = t45 & ~(id_op_tbln_calln & ~testmode | cl_int_load_pc | cl_pc_load_db11_0);
 wire pc_ctrl3 = ~cl_t1;
 wire pc_ctrl4 = ~id_op_jmp_n4;
-wire pc_load_int_vec = clk4 & cl_int_load_pc;
-wire pc_load_sdb3_0_db7_0 = clk4 & cl_pc_load_sdb3_0_db7_0;
-wire pc_load_sdb4_0_db7_1 = clk4 & id_op_tbln_calln & ~testmode;
+wire pc_load_int_vec = t45 & cl_int_load_pc;
+wire pc_load_db11_0 = t45 & cl_pc_load_db11_0;
+wire pc_load_db12_1 = t45 & id_op_tbln_calln & ~testmode;
 wire pc_abadd_cin = ~cl_int_load_pc;
-wire pc_pcin_to_abn = clk4 & pc_ctrl4;
-wire pc_out_to_db_sdb = clk5 & (cl_int_load_pc | (id_op_call & ~testmode) | cl_id_op_calln_dd);
+wire pc_pcin_to_abn = t45 & pc_ctrl4;
+wire pc_out_to_db = t68 & (cl_int_load_pc | (id_op_call & ~testmode) | cl_id_op_calln_dd);
 
-always @(posedge CLK) if (clk1) begin
+always @(posedge CLK) if (philsi) begin
   pc <= pcn;
   ab <= abn;
 end
 
 always @* begin
-  pcn = (clk3 & pc_ctrl3) ? abadd : pc;
-  abn = (clk4 & pc_pcin_to_abn) ? pcin : ab;
+  pcn = (t23 & pc_ctrl3) ? abadd : pc;
+  abn = (t45 & pc_pcin_to_abn) ? pcin : ab;
 end
 
 always @(posedge CLK) if (CKEN) begin
-  if (pc_load_sdb3_0_db7_0)
-    pcin <= {sdb[3:0], db[7:0]};
-  else if (pc_load_sdb4_0_db7_1)
-    pcin <= {sdb[4:0], db[7:1]};
+  if (pc_load_db11_0)
+    pcin <= db[11:0];
+  else if (pc_load_db12_1)
+    pcin <= db[12:1];
   else if (pc_load_int_vec)
     pcin <= int_vec;
   else if (pc_ctrl1)
@@ -482,7 +484,7 @@ always @(posedge CLK) begin
 end
 `endif
 
-always @(posedge CLK) if (cp1p) begin
+always @(posedge CLK) if (phi2p) begin
   rom_do <= (|ab[11:9]) ? '0 : rom_rbuf;
 end
 
@@ -522,13 +524,13 @@ assign md_out = md[6];
 assign md_if = md[7];
 
 // A is copied to A' on interrupt, and copied back on RETI.
-always @(posedge CLK) if (cp2n) begin
+always @(posedge CLK) if (phi1n) begin
   if (cl_int_load_pc)
     sa <= a;
 end
 
 always @* begin
-  ap = db;
+  ap = db[7:0];
   if (cl_a_in_ror_lsr) begin
     ap = {ap[0], ap[7:1]};
     if (cl_a_in_lsr)
@@ -550,7 +552,7 @@ always @(posedge CLK) if (CKEN) begin
     h <= db[5:0];
 end
 
-always @(posedge CLK) if (cp1p) begin
+always @(posedge CLK) if (phi2p) begin
   if (res)
     sp <= 0;
   else if (cl_sp_to_ram_a)
@@ -559,7 +561,7 @@ always @(posedge CLK) if (cp1p) begin
     sp <= sp - 1'd1;
 end
 
-always @(posedge CLK) if (clk1) begin
+always @(posedge CLK) if (philsi) begin
   if (cl_x_reg_en)
     x <= db[6:0];
   if (cl_ts_reg_en)
@@ -567,7 +569,7 @@ always @(posedge CLK) if (clk1) begin
 end
 
 always @(posedge CLK) if (CKEN) begin
-  if (cp2n) begin
+  if (phi1n) begin
     if (cl_y_reg_en)
       yp <= db[4:0];
     else if (cl_y_shift)
@@ -575,15 +577,15 @@ always @(posedge CLK) if (CKEN) begin
     else
       yp <= y;
   end
-  if (cp1p)
+  if (phi2p)
     y <= yp;
 end
 
 logic fl0_p;
 always @(posedge CLK) if (CKEN) begin
-  if (cp1p)
+  if (phi2p)
     fl0 <= fl0_p;
-  if (cp2n)
+  if (phi1n)
     fl0_p <= fl0 & ~(resp | (id_op_jmpfz & ~testmode)) | id_op_stf;
 end
 
@@ -616,7 +618,7 @@ wire ram_lr_col_sel = ram_col[0]; // left/right col. pair select: 0=left
 wire ram_left_sel = ~ram_col[1];  // left array select
 wire ram_right_sel = ram_col[1];  // right array select
 
-// Left half of array (cols 0-15): R/W port == db
+// Left half of array (cols 0-15): R/W port == db[7:0]
 logic [7:0] ram_left_mem [2][16];
 logic [7:0] ram_left_rbuf;
 logic [7:0] ram_left_wbuf;
@@ -629,19 +631,19 @@ always @(posedge CLK) if (CKEN) begin
   ram_left_rbuf <= ram_left_mem[ram_lr_col_sel][ram_row];
 end
 
-assign ram_left_write_en = cp2 & (~ram_right_db_ie | (cl_id_op_Hp_Rr_dst & ram_left_sel));
-assign ram_left_db_oe = cl_id_op_calln_retx | (ram_left_sel & cl_id_Rr_Hp_clk4);
+assign ram_left_write_en = phi1 & (~ram_right_db7_0_ie | (cl_id_op_Hp_Rr_dst & ram_left_sel));
+assign ram_left_db_oe = cl_id_op_calln_retx | (ram_left_sel & cl_id_Rr_Hp_t45);
 
-assign ram_left_wbuf = db;
+assign ram_left_wbuf = db[7:0];
 
-// Right half of array (cols 16-31): R/W port == db or sdb
+// Right half of array (cols 16-31): R/W port == db[7:0] or db[15:8]
 logic [7:0] ram_right_mem [2][16];
 logic [7:0] ram_right_rbuf;
 logic [7:0] ram_right_wbuf;
 wire        ram_right_write_en;
-wire        ram_right_db_ie;
-wire        ram_right_db_oe;
-wire        ram_right_sdb_oe;
+wire        ram_right_db7_0_ie;
+wire        ram_right_db7_0_oe;
+wire        ram_right_db15_8_oe;
 
 always @(posedge CLK) if (CKEN) begin
   if (ram_right_write_en)
@@ -649,11 +651,11 @@ always @(posedge CLK) if (CKEN) begin
   ram_right_rbuf <= ram_right_mem[ram_lr_col_sel][ram_row];
 end
 
-assign ram_right_write_en = cp2 & (~ram_right_db_ie | (cl_id_op_Hp_Rr_dst & ram_right_sel));
-assign ram_right_db_ie = ~cl_sp_to_ram_a;
-assign ram_right_db_oe = ram_right_sel & cl_id_Rr_Hp_clk4;
-assign ram_right_sdb_oe = clk4 & ((id_op_tbln_calln & ~testmode) | id_op_retx);
-assign ram_right_wbuf = ram_right_db_ie ? db : sdb;
+assign ram_right_write_en = phi1 & (~ram_right_db7_0_ie | (cl_id_op_Hp_Rr_dst & ram_right_sel));
+assign ram_right_db7_0_ie = ~cl_sp_to_ram_a;
+assign ram_right_db7_0_oe = ram_right_sel & cl_id_Rr_Hp_t45;
+assign ram_right_db15_8_oe = t45 & ((id_op_tbln_calln & ~testmode) | id_op_retx);
+assign ram_right_wbuf = ram_right_db7_0_ie ? db[7:0] : db[15:8];
 
 
 //////////////////////////////////////////////////////////////////////
@@ -668,11 +670,11 @@ logic nc_eq_01_d;
 logic int_tone_cond;
 logic int_tone_trig, int_tone_cond_d;
 
-always @(posedge CLK) if (clk1) begin
-  n <= cl_n_reg_en ? db : n;
+always @(posedge CLK) if (philsi) begin
+  n <= cl_n_reg_en ? db[7:0] : n;
 end
 
-always @(posedge CLK) if (cp1p) begin
+always @(posedge CLK) if (phi2p) begin
   if (res)
     nc <= 0;
   else if (nc_eq_01)
@@ -682,7 +684,7 @@ always @(posedge CLK) if (cp1p) begin
 end
 
 // nuc always increments on NC reload.
-always @(posedge CLK) if (cp1p) begin
+always @(posedge CLK) if (phi2p) begin
   nc_eq_01_d <= nc_eq_01;
 
   if (res)
@@ -710,7 +712,7 @@ always @* begin
   endcase
 end
 
-always @(posedge CLK) if (cp1p) begin
+always @(posedge CLK) if (phi2p) begin
   int_tone_cond_d <= int_tone_cond;
   // Interrupt is triggered on int_tone_cond negedge.
   int_tone_trig <= ~int_tone_cond & int_tone_cond_d;
@@ -718,10 +720,75 @@ end
 
 
 //////////////////////////////////////////////////////////////////////
-// Noise generator
+// Timer up-counter, NS interrupt
 
-// TODO: Implement this, but only if NSS (MD[3]) ever goes 1.
-assign ns = '0;
+logic [8:0] tc;                 // timer counter
+logic       int_ns_cond;
+logic       int_time_cond, int_time_cond_d, int_time_trig;
+logic       ns_tc_sel_p, ns_tc_sel;
+
+always @(posedge CLK) if (phi2p) begin
+  if (res) begin
+    tc <= 0;
+  end
+  else begin
+    // Up-counter tc always runs
+    tc <= tc + 1'd1;
+  end
+end
+
+// 'Time' interrupt is triggered on tc[8] negedge.
+assign int_time_cond = tc[8];
+always @(posedge CLK) if (phi2p) begin
+  int_time_cond_d <= int_time_cond;
+end
+assign int_time_trig = ~int_time_cond & int_time_cond_d;
+
+// md[9:8] set the 'NS' interrupt trigger rate.
+always @* begin
+  case (md[9:8])
+    2'b00: ns_tc_sel_p = tc[8];
+    2'b01: ns_tc_sel_p = tc[7];
+    2'b10: ns_tc_sel_p = tc[5];
+    2'b11: ns_tc_sel_p = tc[4];
+    default: ns_tc_sel_p = 'X;
+  endcase
+end
+
+always @(posedge CLK) if (phi2p) begin
+  ns_tc_sel <= ns_tc_sel_p;
+end
+
+wire int_ns_trig = ~ns_tc_sel_p & ns_tc_sel;
+
+// The noise generator and RG LFSR are enabled by the NS interrupt trigger.
+wire pnc_en = int_ns_trig | res;
+
+
+//////////////////////////////////////////////////////////////////////
+// PNC1, PNC2: Polynomial (?) noise generator LFSRs
+
+logic [6:0] pnc1;
+logic [2:0] pnc2;
+
+initial begin // else short RESB means pnc* is X
+  pnc1 = '0;
+  pnc2 = '0;
+end
+
+// PNC1/2 advance on NS interrupt trigger.
+always @(posedge CLK) if (phi2p) begin
+  if (pnc_en) begin
+    pnc1[0] <= ~res & ~(pnc1[5] ^ pnc1[6]);
+    pnc1[6:1] <= pnc1[5:0];
+
+    pnc2[0] <= ~res & ~(md_nss ? pnc2[0] : (pnc2[1] ^ ns));
+    pnc2[2:1] <= pnc2[1:0];
+  end
+end
+
+// Clearing NSS immediately forces PNC2[2] / NS to zero.
+assign ns = md_nss & pnc2[2];
 
 
 //////////////////////////////////////////////////////////////////////
@@ -729,14 +796,14 @@ assign ns = '0;
 
 // SS flag is updated by MIX.
 always @(posedge CLK) if (CKEN) begin
-  if (cp2)                 // needs to update before id_op_out_da ends
+  if (phi1)                 // needs to update before id_op_out_da ends
     if (id_op_mix)
       ss <= ts ^ alu_co;
 end
 
-always @(posedge CLK) if (cp2n) begin
+always @(posedge CLK) if (phi1n) begin
   if (id_op_out_da) begin
-    da <= {ss ^ ts, ss, db};
+    da <= {ss ^ ts, ss, db[7:0]};
   end
 end
 
@@ -773,9 +840,9 @@ typedef enum reg [1:0]
 } e_int_id;
 
 assign int_set_pend[II_TONE] = int_tone_trig & md_tone_ie;
-assign int_set_pend[II_NS]   = '0;
+assign int_set_pend[II_NS]   = int_ns_trig & md_ns_ie;
 assign int_set_pend[II_EXT]  = '0;
-assign int_set_pend[II_TIME] = '0;
+assign int_set_pend[II_TIME] = int_time_trig & md_time_ie;
 
 always @* begin
   int_pending = int_pending_d;
@@ -784,7 +851,7 @@ always @* begin
     int_pending = '0;
   end
   else begin
-    if (cp2) begin
+    if (phi1) begin
       // Set inactive interrupt as pending
       int_pending |= (int_set_pend & ~int_active);
     end
@@ -829,7 +896,7 @@ always @(posedge CLK) if (CKEN) begin
     int_active <= '0;
     int_load_pc <= '0;
   end
-  else if (cp1p) begin
+  else if (phi2p) begin
     int_active <= int_active_p;
 
     // When an interrupt goes active, load PC with its interrupt vector.
@@ -881,8 +948,8 @@ assign io_pabx_pad_pdb_pax_db_out_en = leader;
 assign io_pabx_out_reg_pad_en = ~testmode;
 assign io_pax_out_pbx_pdb_pad_en = ~io_pabx_out_reg_pad_en;
 assign io_pax_pdb_out_en = ~io_pabx_pad_pdb_pax_db_out_en;
-assign io_pax_out_reg_db_en = id_op_in_pa & clk5;
-assign io_pbx_pad_db_en = id_op_in_pb & clk5;
+assign io_pax_out_reg_db_en = id_op_in_pa & t68;
+assign io_pbx_pad_db_en = id_op_in_pb & t68;
 assign io_pax_noe = ~(io_ext_read_latch | leader);
 assign io_pbx_noe = ~((md_out & follower) | testmode);
 assign io_pbx7_3_noe = io_pbx_noe;
@@ -904,23 +971,23 @@ always @(posedge CLK) if (CKEN) begin
 
   pao_reg_d <= pao_reg;
 
-  if (cp2n)
-    pbo_reg_p <= io_pbx_out_reg_ce ? db : pbo_reg;
-  if (cp1p)
+  if (phi1n)
+    pbo_reg_p <= io_pbx_out_reg_ce ? db[7:0] : pbo_reg;
+  if (phi2p)
     pbo_reg <= pbo_reg_p;
 end
 
 always @* begin
   pao_reg = pao_reg_d;
   if (io_pax_out_reg_latch_en)
-    pao_reg = io_pax_db_out_reg_en ? db : pai_d;
+    pao_reg = io_pax_db_out_reg_en ? db[7:0] : pai_d;
 end
 
 assign pai = (PA_OE & PA_O) | (~PA_OE & PA_I);
 assign pbi = (PB_OE & PB_O) | (~PB_OE & PB_I);
 
 assign pao = io_pabx_out_reg_pad_en ? pao_reg :
-             (io_pax_pdb_out_en ? pdb[15:8] : db);
+             (io_pax_pdb_out_en ? pdb[15:8] : db[7:0]);
 assign pbo = io_pabx_out_reg_pad_en ? pbo_reg : pdb[7:0];
 
 assign PA_O = pao;
@@ -932,38 +999,33 @@ assign PB_OE = {{5{~io_pbx7_3_noe}}, {3{~io_pbx2_0_noe}}};
 //////////////////////////////////////////////////////////////////////
 // Internal buses
 
-logic [7:0]     db_d;
-logic [7:0]     sdb_d;
+logic [15:0]    db_d;
 
 // db: Data bus
 always @* begin
   db = db_d;
-  if (cl_pdb15_8_to_db7_0)  db = pdb[15:8];
-  if (cl_pdb7_0_to_db7_0)   db = pdb[7:0];
-  if (pc_out_to_db_sdb)     db = pc[7:0];
-  //if (n699)                 db = md[7:0];
-  if (cl_a_to_db)           db = a;
-  if (cl_h_to_db)           db = {2'b0, h};
-  if (cl_x_to_db)           db = {1'b0, x};
-  if (cl_alu_c_to_db)       db = alu_c;
-  if (ram_left_db_oe)       db = ram_left_rbuf;
-  if (ram_right_db_oe)      db = ram_right_rbuf;
-  if (io_pax_out_reg_db_en) db = pao_reg_d[7:0];
-  if (io_pbx_pad_db_en)     db = pbi_reg[7:0];
-end
+  if (cl_pdb15_8_to_db7_0)  db[7:0] = pdb[15:8];
+  if (cl_pdb7_0_to_db7_0)   db[7:0] = pdb[7:0];
+  if (pc_out_to_db)         db[7:0] = pc[7:0];
+  //if (n699)                 db[7:0] = md[7:0];
+  if (cl_a_to_db)           db[7:0] = a;
+  if (cl_h_to_db)           db[7:0] = {2'b0, h};
+  if (cl_x_to_db)           db[7:0] = {1'b0, x};
+  if (cl_pnc1_to_db)        db[7:0] = {1'b0, pnc1};
+  if (cl_alu_c_to_db)       db[7:0] = alu_c;
+  if (ram_left_db_oe)       db[7:0] = ram_left_rbuf;
+  if (ram_right_db7_0_oe)   db[7:0] = ram_right_rbuf;
+  if (io_pax_out_reg_db_en) db[7:0] = pao_reg_d[7:0];
+  if (io_pbx_pad_db_en)     db[7:0] = pbi_reg[7:0];
 
-// sdb: Special data bus
-always @* begin
-  sdb = sdb_d;
-  if (cl_pdb7_4_to_sdb7_4)  sdb[7:4] = pdb[7:4];
-  if (cl_pdb11_8_to_sdb3_0) sdb[3:0] = pdb[11:8];
-  if (pc_out_to_db_sdb)     sdb[3:0] = pc[11:8];
-  if (ram_right_sdb_oe)     sdb = ram_right_rbuf;
+  if (cl_pdb7_4_to_db11_8)  db[11:8] = pdb[7:4];
+  if (cl_pdb11_8_to_db11_8) db[11:8] = pdb[11:8];
+  if (pc_out_to_db)         db[11:8] = pc[11:8];
+  if (ram_right_db15_8_oe)  db[15:8] = ram_right_rbuf;
 end
 
 always @(posedge CLK) if (CKEN) begin
   db_d <= db;
-  sdb_d <= sdb;
 end
 
 

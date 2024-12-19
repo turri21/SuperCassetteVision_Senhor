@@ -59,19 +59,19 @@ task tx(input [7:0] b);
 endtask
 
 task packet_start(input [7:0] b);
-  // Align to CP1
-  while (~dut.cp1p)
+  // Align to PHI2
+  while (~dut.phi2p)
     @(posedge clk) ;
   tx(b);
 endtask
 
 task packet_cont(input [7:0] b);
   while (~dsb)
-    repeat (80)
+    repeat (40)
       @(posedge clk) ;
   tx(b);
   while (dsb)
-    repeat (80)
+    repeat (40)
       @(posedge clk) ;
 endtask
 
@@ -80,7 +80,7 @@ always begin :ckgen
 end
 
 always @(posedge clk) begin
-  if (~res & dut.cp1p)
+  if (~res & dut.phi2p)
     cycle += 1;
 end
 
