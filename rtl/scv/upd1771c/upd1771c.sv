@@ -744,7 +744,7 @@ always @(posedge CLK) if (phi2p) begin
 end
 assign int_time_trig = ~int_time_cond & int_time_cond_d;
 
-// md[9:8] set the 'NS' interrupt trigger rate.
+// md[9:8] set the 'NS' interrupt trigger rate by selecting a TC bit.
 always @* begin
   case (md[9:8])
     2'b00: ns_tc_sel_p = tc[8];
@@ -759,6 +759,7 @@ always @(posedge CLK) if (phi2p) begin
   ns_tc_sel <= ns_tc_sel_p;
 end
 
+// NS interrupt is triggered on falling edge of the selected TC bit.
 wire int_ns_trig = ~ns_tc_sel_p & ns_tc_sel;
 
 // The noise generator and RG LFSR are enabled by the NS interrupt trigger.
