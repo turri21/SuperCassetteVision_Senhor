@@ -6,22 +6,13 @@ References
 https://forums.atariage.com/topic/130365-atari-7800-vs-epoch-super-cassette-vision/ - [takeda.txt]
 http://takeda-toshiya.my.coocan.jp/scv/index.html
 https://github.com/mamedev/mame - src/mame/epoch/scv.cpp
+http://cmpslv2.starfree.jp/Scv/EnrScv.htm - pin names
 
 
 Overview
 --------
-. 64-pin DIP. Guessing at the pinout:
-  . (24) CPU bus: A[12:0], D[7:0], nCS, nRD, nWR
-  . (32) VRAM bus: A[11:0], D[15:0], nOE*2, nWE*2
-  .  (1) CPU INT2 = VBL
+. 64-pin DIP
 . Clock: 14.318181 MHz XTAL (NTSC)
-. Pinout:
-  . 21      AGND
-  . 22      CHROMA -- 50mV +/-270mV-p @ 3.58MHz
-  . 23-25   R,G,B
-  . 26      \CSYNC
-  . 27      AVCC (5V)
-  . 64      VBL
 . Analog video -- R,G,B,\CSYNC
   . R,G,B
     . Three voltage levels
@@ -34,9 +25,32 @@ Overview
   . Timing
     . Full frame (incl. blanking): 260 cols x 263 rows
     . Render area: 208 cols x 232 rows
-    . Pixel rate: 4.090909 MHz
+    . Pixel rate: 4.090909 MHz (XTAL / 3.5)
     . Line rate (horizontal refresh): 15734 kHz
     . Frame rate (vertical refresh): 59.826 Hz
+
+
+Pinout
+------
+. 1-8     VD[0:7]     VRAM data
+. 9-16    DB[0:7]     CPU data
+. 18,19   X1,X2
+. 21      AGND
+. 22      CHROMA      50mV +/-270mV-p @ 3.58MHz
+. 23-25   R,G,B
+. 26      \CSYNC
+. 27      AVCC (5V)
+. 28      \VWE        VRAM write en.
+. 29      \SCPU       uPD1771C chip select
+. 30,31   \VCS[1:0]   VRAM chip selects
+. 33-43   VAB[0:10]   VRAM address
+. 44-57   AB[15,12:0] CPU address
+. 58      CLK         CPU Phi clock out
+. 60      \WAIT       CPU bus stall
+. 61      \RD         CPU read
+. 62      \WR         CPU write
+. 63      \RESET
+. 64      VBL         INT1 to CPU
 
 
 External VRAM
@@ -44,9 +58,10 @@ External VRAM
 . Directly addressable from CPU ($2000-$2FFF)
 . uPD4016C-2 -- 200ns transaction time
 . 2 chips x 128 row x 128 col = 2 x 2048 x 8 bits
-  . I think RAMs are in parallel: data bus is 16 bits wide
+. shared address and data buses
+. \VCS always select one chip
 . contents: sprite patterns
-. 5 MT/s x 16 bits
+. 5 MT/s x 16 bits          --- WRONG
   . given max. 30 sprite per row, 120 bytes are fetched per row
 
 
