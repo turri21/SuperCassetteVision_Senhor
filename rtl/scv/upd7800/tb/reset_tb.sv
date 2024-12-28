@@ -34,6 +34,7 @@ upd7800 dut
    .DB_I(8'hzz),
    .DB_O(),
    .DB_OE(),
+   .WAITB('1),
    .M1()
    );
 

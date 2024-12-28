@@ -63,6 +63,7 @@ wire        cart_db_oe;
 wire [7:0]  vdc_db_o;
 wire        vdc_db_oe;
 wire        vdc_ncs;
+wire        vdc_waitb;
 wire [11:0] vaa, vba;
 wire [7:0]  vad_i, vad_o, vbd_i, vbd_o;
 wire        nvard, nvawr, nvbrd, nvbwr;
@@ -102,6 +103,7 @@ upd7800 cpu
    .DB_I(cpu_db),
    .DB_O(cpu_db_o),
    .DB_OE(cpu_db_oe),
+   .WAITB(vdc_waitb),
    .M1(),
    .RDB(cpu_rdb),
    .WRB(cpu_wrb),
@@ -174,6 +176,8 @@ epochtv1 vdc
    .VS(vs),
    .RGB(rgb)
    );
+
+assign vdc_waitb = '1; // TODO
 
 dpram #(.DWIDTH(8), .AWIDTH(12)) vrama
   (

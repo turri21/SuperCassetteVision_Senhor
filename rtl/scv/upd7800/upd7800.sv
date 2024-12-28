@@ -33,6 +33,7 @@ module upd7800
    input [7:0]   DB_I,
    output [7:0]  DB_O,
    output        DB_OE,
+   input         WAITB, // extend T2 request (memory not ready)
    output        M1, // opcode fetch cycle
    output        RDB, // read
    output        WRB, // write
@@ -74,6 +75,7 @@ wire [7:0]   pboe, pcoe;
 wire         irf1;
 wire [7:0]   pai, pbi, pci;
 wire         tc_uf;
+wire         t2_wait;
 
 reg          resg;
 reg [3:0]    intv1, intv2;
@@ -107,6 +109,7 @@ reg [15:0]   uabi, nabi;
 reg          skso;
 reg [7:0]    sdg;
 reg [1:0]    sefso;
+reg          t2_wait_d;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
@@ -303,6 +306,17 @@ initial begin
   wr_ext = 1'b1;
 end
 
+// WAITB is sampled in T2 on CP2 falling. If asserted, the machine
+// stays in T2.
+assign t2_wait = (cl_load_db | cl_store_dor) & ~WAITB;
+
+always_ff @(posedge CLK) begin
+  if (resg)
+    t2_wait_d <= 0;
+  else if (cp2n)
+    t2_wait_d <= t2_wait;
+end
+
 always_ff @(posedge CLK) begin
   if (resg) begin
     rd_ext <= 0;
@@ -339,7 +353,7 @@ end
 
 // General-purpose registers
 always @(posedge CLK) begin
-  if (cp2n) begin
+  if (cp2n & ~t2_wait) begin
     if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_V: v <= idb;
@@ -380,7 +394,7 @@ end
 
 // Working register
 always @(posedge CLK) begin
-  if (cp2n) begin
+  if (cp2n & ~t2_wait) begin
     if ((cl_lts == ULTS_RF) & (nc.rfts == URFS_W)) begin
       w <= idb;
     end
@@ -392,7 +406,7 @@ always @(posedge CLK) begin
   if (resg) begin
     psw <= 0;
   end
-  else if (cp2n) begin
+  else if (cp2n & ~t2_wait) begin
     if (cl_co_z)
       `psw_z <= ~|co;
 
@@ -421,7 +435,7 @@ always @(posedge CLK) begin
   if (resg) begin
     sp <= 0;
   end
-  else if (cp2p) begin
+  else if (cp2p & ~t2_wait_d) begin
     if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_SPL: sp[7:0] <= idb;
@@ -440,7 +454,7 @@ always @(posedge CLK) begin
   if (resg) begin
     pc <= 0;
   end
-  else if (cp2p) begin
+  else if (cp2p & ~t2_wait_d) begin
     if (cl_abi_pc) begin
       pc <= nabi;
     end
@@ -640,7 +654,7 @@ reg       sub;
   alu_cco = hsum[4] ^ sub;
 end
 
-always @(posedge CLK) if (cp2n) begin
+always @(posedge CLK) if (cp2n & ~t2_wait) begin
   if (cl_sums | cl_subs | cl_incs | cl_decs) begin
     co <= alu_co;
     cho <= alu_cho;
@@ -670,7 +684,7 @@ end
 
 // update: change part or all
 always @(posedge CLK) begin
-  if (cp1p) begin
+  if (cp1p & ~t2_wait_d) begin
     uabi <= ab;
 
     if (cl_idb_abil)
@@ -749,7 +763,7 @@ always_ff @(posedge CLK) begin
     m1ext <= 0;
   end
   else begin
-    if (cp2n) begin
+    if (cp2n & ~t2_wait) begin
       oft[3:1] <= oft[2:0];
     end
     if (cp1p) begin
@@ -831,7 +845,7 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-  if (cp2n) begin
+  if (cp2n & (resg | ~t2_wait)) begin
     uc <= ucp;
     nc <= ncp;
   end
@@ -866,7 +880,7 @@ always @(posedge CLK) begin
   if (resg) begin
     uptr <= UA_IDLE;
   end
-  else if (cp1p) begin
+  else if (cp1p & ~t2_wait_d) begin
     uptr <= uptr_next;
 
 `ifndef VIVADO
@@ -1029,7 +1043,7 @@ always @(posedge CLK) begin
     mb <= 8'hff;
     mc <= 8'hff;
   end
-  else if (cp2n) begin
+  else if (cp2n & ~t2_wait) begin
     if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_PA: pao <= idb;
@@ -1076,7 +1090,7 @@ end
 always_ff @(posedge CLK) begin
   if (resg) begin
   end
-  else if (cp2n) begin
+  else if (cp2n & ~t2_wait) begin
     if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_TM0: tm[7:0] <= idb;

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Wed Aug 28 03:44:32 2024
+[*] Thu Dec 26 05:37:09 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/cputest_tb.vcd"
-[dumpfile_mtime] "Wed Aug 28 03:43:54 2024"
-[dumpfile_size] 3893065
+[dumpfile_mtime] "Thu Dec 26 05:36:35 2024"
+[dumpfile_size] 534799226
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/cputest_tb.gtkw"
-[timestart] 1562340000
+[timestart] 457260000
 [size] 1288 687
 [pos] -1 -1
-*-22.975546 1580125000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-22.975546 471770000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -40,7 +40,7 @@
 [sst_width] 253
 [signals_width] 181
 [sst_expanded] 1
-[sst_vpaned_height] 198
+[sst_vpaned_height] 281
 @28
 cputest_tb.dut.CLK
 cputest_tb.dut.CP1_POSEDGE
@@ -55,6 +55,8 @@ cputest_tb.cart.nCS
 @22
 cputest_tb.dut.DB_I[7:0]
 cputest_tb.dut.DB_O[7:0]
+@29
+cputest_tb.dut.WAITB
 @28
 cputest_tb.dut.RDB
 cputest_tb.dut.WRB
@@ -79,7 +81,7 @@ cputest_tb.dut.intg
 cputest_tb.dut.intva[7:0]
 @1401200
 -int
-@800200
+@c00200
 -regs
 @22
 cputest_tb.dut.v[7:0]
@@ -104,9 +106,9 @@ cputest_tb.dut.pbo[7:0]
 cputest_tb.dut.pco[7:0]
 cputest_tb.dut.mb[7:0]
 cputest_tb.dut.mc[7:0]
-@1000200
+@1401200
 -regs
-@800200
+@c00200
 -buses
 @22
 cputest_tb.dut.rfo[7:0]
@@ -115,9 +117,9 @@ cputest_tb.dut.dor[7:0]
 cputest_tb.dut.ab[15:0]
 cputest_tb.dut.nabi[15:0]
 cputest_tb.dut.aor[15:0]
-@1000200
+@1401200
 -buses
-@800200
+@c00200
 -alu
 @22
 cputest_tb.dut.ai[7:0]
@@ -130,7 +132,7 @@ cputest_tb.dut.co[7:0]
 @28
 cputest_tb.dut.cco
 cputest_tb.dut.cho
-@1000200
+@1401200
 -alu
 @c00200
 -of
@@ -151,7 +153,13 @@ cputest_tb.dut.m1
 @c00200
 -uc
 @22
+cputest_tb.dut.uptr[10:0]
+cputest_tb.dut.uc[9:0]
 cputest_tb.dut.nptr[7:0]
+cputest_tb.dut.nc[53:0]
+@28
+cputest_tb.dut.t2_wait
+cputest_tb.dut.t2_wait_d
 @1401200
 -uc
 @800200
@@ -205,9 +213,7 @@ cputest_tb.dut.cl_rols
 cputest_tb.dut.cl_rors
 cputest_tb.dut.cl_rpir_dec
 cputest_tb.dut.cl_rpir_inc
-@29
 cputest_tb.dut.cl_sefm[1:0]
-@28
 cputest_tb.dut.cl_sefs_psw
 cputest_tb.dut.cl_sks_sk
 @22

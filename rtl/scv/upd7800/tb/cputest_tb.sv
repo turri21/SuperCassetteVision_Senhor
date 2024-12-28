@@ -11,12 +11,14 @@
 `define FAST_MAIN 1
 `endif
 
+`define TEST_WAIT 1
+
 module cputest_tb();
 
 reg         clk, res;
 reg         cp1p, cp1n, cp2p, cp2n;
-reg [7:0]   din;
 reg [7:0]   dut_db_i;
+reg         mem_ready;
 reg         vbl;
 
 wire [15:0] a;
@@ -54,6 +56,7 @@ upd7800 dut
    .DB_I(dut_db_i),
    .DB_O(dut_db_o),
    .DB_OE(),
+   .WAITB(mem_ready),
    .M1(),
    .RDB(dut_rdb),
    .WRB(dut_wrb),
@@ -106,7 +109,9 @@ cart cart
 
 always_comb begin
   dut_db_i = 8'hxx;
-  if (~rom_ncs)
+  if (~mem_ready)
+    ;
+  else if (~rom_ncs)
     dut_db_i = rom_db;
   else if (~wram_ncs)
     dut_db_i = wram_db;
@@ -121,6 +126,11 @@ assign wram_ncs = ~&a[15:7];    // 'hFF80-'hFFFF
 assign vram_ncs = (a & ~16'h03ff) != 16'h3000;
 assign cart_ncs = ~a[15] | ~wram_ncs | ~vram_ncs;
 
+`ifdef TEST_WAIT
+always @(posedge clk) if (cp1p) begin
+  mem_ready <= ~(dut_rdb & dut_wrb);
+end
+`endif
 
 initial begin
   vbl = 0;
@@ -130,6 +140,11 @@ initial begin
   cp2n = 0;
   res = 1;
   clk = 1;
+`ifdef TEST_WAIT
+  mem_ready = 0;
+`else
+  mem_ready = 1;
+`endif
 end
 
 always begin :ckgen
@@ -175,14 +190,24 @@ initial #0 begin
   dut.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #44 @(posedge clk) ;
+`ifdef TEST_WAIT
+  #46 ;
+`else
+  #44 ;
+`endif
+  @(posedge clk) ;
   assert(dut.pc == 16'h0018);
   dut.b = 0;
   dut.c = 1;
   #1 ;
 
   // Double 'block' in ClearScreen
-  #338 @(posedge clk) ;
+`ifdef TEST_WAIT
+  #382 ;
+`else
+  #338 ;
+`endif
+  @(posedge clk) ;
   assert(dut.pc == 16'h0a25);
   dut.c -= 8'hF8;
   dut.e += 8'hF8;

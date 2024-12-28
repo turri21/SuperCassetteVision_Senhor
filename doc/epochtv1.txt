@@ -104,6 +104,22 @@ R3 ($3403)
 . bits 3-0: char. BG color
 
 
+CPU memory bus
+--------------
+
+The TV-1 effectively uses A15 as its chip select. It only connects to
+address bits 15 and 12 - 0. (Note that A15 is externally pulled up,
+and uPD7801 tri-states A when accessing internal RAM/ROM.)
+
+The TV-1 decodes address and drives chip select for uPD1771C. The
+address decode appears to be combinatorial logic -- glitches are
+evident on chip select.
+
+Probing the SCV reveals that the TV-1 asserts \WAIT when accessed,
+extending T2 by one T-cycle. This includes uPD1771C accesses (for
+which the TV-1 decodes address).
+
+
 Background
 ----------
 

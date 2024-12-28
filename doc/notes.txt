@@ -10,8 +10,8 @@ Memory maps
 
 CPU memory
 ----------
-0000-0FFF   uPD7801G ROM
-1000-1FFF   (unused)
+0000-0FFF   uPD7801G internal ROM
+1000-1FFF   (undefined; alias of 3000-3FFF?)
 2000-2FFF   External VRAM (2*2KB SRAM) - sprite patterns
 3000-31FF   EPOCH TV-1 internal VRAM - screen data (char. index / bitmap)
 3200-33FF   EPOCH TV-1 internal VRAM - sprite attributes

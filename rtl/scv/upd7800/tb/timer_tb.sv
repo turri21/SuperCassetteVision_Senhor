@@ -46,6 +46,7 @@ upd7800 dut
    .DB_I(dut_db_i),
    .DB_O(dut_db_o),
    .DB_OE(),
+   .WAITB('1),
    .M1(),
    .RDB(dut_rdb),
    .WRB(dut_wrb),
