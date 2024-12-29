@@ -25,6 +25,7 @@ module epochtv1
    input         ROMINIT_VALID,
 
    // CPU address / data bus
+   input         CP1_POSEDGE, // for CPU bus timing
    input [12:0]  A,
    input [7:0]   DB_I,
    output [7:0]  DB_O,
@@ -32,6 +33,8 @@ module epochtv1
    input         RDB,
    input         WRB,
    input         CSB,
+   output        WAITB,
+   output        SCPUB, // uPD1771C chip select
 
    // VRAM address / data bus A, low byte
    output [11:0] VAA,
@@ -93,7 +96,7 @@ reg          field;
 wire         pre_render_row;
 wire         render_row, render_col, render_px;
 wire         visible_row, visible_col, visible_px;
-wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg;
+wire         cpu_sel_bgm, cpu_sel_oam, cpu_sel_vram, cpu_sel_reg, cpu_sel_apu;
 wire         cpu_rd, cpu_wr, cpu_rdwr;
 wire         sbofp_stall;
 reg [5:0]    sbofp_bgr_idx;
@@ -349,16 +352,25 @@ assign oam2_we = boc_we;
 // CPU address / data bus interface
 
 reg [7:0] cpu_do;
+reg       cpu_csb_d;
+reg       cpu_waitb_p;
 
 // Address decoder
 assign cpu_sel_vram = ~CSB & (A[12] == 1'b0);     // $0000 - $0FFF
 assign cpu_sel_bgm = ~CSB & (A[12:9] == 4'b1000); // $1000 - $11FF
 assign cpu_sel_oam = ~CSB & (A[12:9] == 4'b1001); // $1200 - $13FF
 assign cpu_sel_reg = ~CSB & (A[12:9] == 4'b1010); // $1400 - $15FF
+assign cpu_sel_apu = ~CSB & (A[12:9] == 4'b1011); // $1600 - $17FF
 
 assign cpu_rd = ~(CSB | RDB);
 assign cpu_wr = ~(CSB | WRB);
 assign cpu_rdwr = cpu_rd | cpu_wr;
+
+always @(posedge CLK) if (CP1_POSEDGE) begin
+  cpu_csb_d <= CSB;
+  cpu_waitb_p <= CSB | cpu_rdwr;
+end
+wire cpu_csb_negedge = ~CSB & cpu_csb_d;
 
 always_ff @(posedge CLK) if (CE) begin
   if (cpu_rd) begin
@@ -375,6 +387,8 @@ end
 
 assign DB_O = DB_OE ? cpu_do : 8'hzz;
 assign DB_OE = cpu_rd;
+assign SCPUB = ~cpu_sel_apu;
+assign WAITB = ~cpu_csb_negedge & cpu_waitb_p;
 
 assign bgm_a_sel_cpu = cpu_sel_bgm & cpu_rdwr;
 assign oam_a_sel_cpu = cpu_sel_oam & cpu_rdwr;

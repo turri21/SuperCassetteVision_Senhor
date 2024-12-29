@@ -42,19 +42,12 @@ module scv
 wire        cp1p, cp1n, cp2p, cp2n;
 wire        vdc_ce, aud_ce;
 
-wire [15:0] cpu_a;
+wire [15:0] cpu_a, cpu_a_o;
+wire        cpu_a_oe;
 reg [7:0]   cpu_db;
 wire [7:0]  cpu_db_o;
 wire        cpu_db_oe;
 wire        cpu_rdb, cpu_wrb;
-
-wire [7:0]  rom_db;
-wire        rom_db_oe;
-wire        rom_ncs;
-
-wire        wram_ncs;
-wire        wram_db_oe;
-wire [7:0]  wram_db;
 
 wire        cart_ncs;
 wire [7:0]  cart_db;
@@ -64,6 +57,7 @@ wire [7:0]  vdc_db_o;
 wire        vdc_db_oe;
 wire        vdc_ncs;
 wire        vdc_waitb;
+wire        vdc_scpub;
 wire [11:0] vaa, vba;
 wire [7:0]  vad_i, vad_o, vbd_i, vbd_o;
 wire        nvard, nvawr, nvbrd, nvbwr;
@@ -88,7 +82,7 @@ clkgen clkgen
    .AUD_CE(aud_ce)
    );
 
-upd7800 cpu
+upd7801 cpu
   (
    .CLK(CLK),
    .CP1_POSEDGE(cp1p),
@@ -96,10 +90,17 @@ upd7800 cpu
    .CP2_POSEDGE(cp2p),
    .CP2_NEGEDGE(cp2n),
    .RESETB(RESB),
+
+   .INIT_SEL_BOOT(ROMINIT_SEL_BOOT),
+   .INIT_ADDR(ROMINIT_ADDR),
+   .INIT_DATA(ROMINIT_DATA),
+   .INIT_VALID(ROMINIT_VALID),
+
    .INT0(1'b0),
    .INT1(apu_ack),
    .INT2(vbl),
-   .A(cpu_a),
+   .A(cpu_a_o),
+   .A_OE(cpu_a_oe),
    .DB_I(cpu_db),
    .DB_O(cpu_db_o),
    .DB_OE(cpu_db_oe),
@@ -116,30 +117,6 @@ upd7800 cpu
    .PC_OE()
    );
 
-bootrom rom
-  (
-`ifndef SCV_BOOTROM_INIT_FROM_HEX
-   .INIT_CLK(CLK),
-   .INIT_ADDR(ROMINIT_ADDR[11:0] ),
-   .INIT_DATA(ROMINIT_DATA),
-   .INIT_VALID(ROMINIT_SEL_BOOT & ROMINIT_VALID),
-`endif
-   .A(cpu_a[11:0]),
-   .DB(rom_db),
-   .nCS(rom_ncs)
-   );
-
-wram wram
-  (
-   .CLK(CLK),
-   .nCE(wram_ncs),
-   .nWE(cpu_wrb),
-   .nOE(~wram_db_oe),
-   .A(cpu_a[6:0]),
-   .DI(cpu_db),
-   .DO(wram_db)
-   );
-
 epochtv1 vdc
   (
    .CLK(CLK),
@@ -150,6 +127,7 @@ epochtv1 vdc
    .ROMINIT_DATA(ROMINIT_DATA),
    .ROMINIT_VALID(ROMINIT_VALID),
 
+   .CP1_POSEDGE(cp1p),
    .A(cpu_a[12:0]),
    .DB_I(cpu_db),
    .DB_O(vdc_db_o),
@@ -157,6 +135,8 @@ epochtv1 vdc
    .RDB(cpu_rdb),
    .WRB(cpu_wrb),
    .CSB(vdc_ncs),
+   .WAITB(vdc_waitb),
+   .SCPUB(vdc_scpub),
 
    .VAA(vaa),
    .VAD_I(vad_i),
@@ -176,8 +156,6 @@ epochtv1 vdc
    .VS(vs),
    .RGB(rgb)
    );
-
-assign vdc_waitb = '1; // TODO
 
 dpram #(.DWIDTH(8), .AWIDTH(12)) vrama
   (
@@ -233,7 +211,7 @@ upd1771c apu
    .PA_I(cpu_db),
    .PA_O(),
    .PA_OE(),
-   .PB_I({apu_ncs, cpu_wrb, ~6'b0}),
+   .PB_I({vdc_scpub, cpu_wrb, ~6'b0}),
    .PB_O(apu_pb_o),
    .PB_OE(),
    .PCM_OUT(AUD_PCM)
@@ -269,26 +247,15 @@ cart cart
    .PC(pco[6:5])
    );
 
-// Partial address select for MMIO peripherals
-wire [7:0] psel = {cpu_a[15:9], 1'b0};
-
-assign rom_ncs = |cpu_a[15:12];
-assign wram_ncs = ~&cpu_a[15:7];    // 'hFF80-'hFFFF
-assign vdc_ncs = ~((psel >= 8'h20) & (psel <= 8'h35)); // 'h2000-'h35FF
-assign apu_ncs = ~(psel == 8'h36); // 'h3600-'h37FF
-assign cart_ncs = ~(cpu_a[15] & wram_ncs);
-
-assign rom_db_oe = ~(rom_ncs | cpu_rdb);
-assign wram_db_oe = ~(wram_ncs | cpu_rdb);
+// A[15] is externally pulled up, effectively making it VDC chip select.
+assign cpu_a = {~cpu_a_oe | cpu_a_o[15], cpu_a_o[14:0]};
+assign vdc_ncs = cpu_a[15];
+assign cart_ncs = ~vdc_ncs;
 
 always_comb begin
   cpu_db = 8'hxx;
   if (cpu_db_oe)
     cpu_db = cpu_db_o;
-  else if (rom_db_oe)
-    cpu_db = rom_db;
-  else if (wram_db_oe)
-    cpu_db = wram_db;
   else if (vdc_db_oe)
     cpu_db = vdc_db_o;
   else if (cart_db_oe)
@@ -349,80 +316,5 @@ assign CP2_POSEDGE = ccnt == 4'd6;
 
 assign VDC_CE = (ccnt == 4'd2) | (ccnt == 4'd9);
 assign AUD_CE = acntn >= AUD_DIV;
-
-endmodule
-
-//////////////////////////////////////////////////////////////////////
-
-module bootrom
-  (
-`ifndef SCV_BOOTROM_INIT_FROM_HEX
-   input            INIT_CLK,
-   input [11:0]     INIT_ADDR,
-   input [7:0]      INIT_DATA,
-   input            INIT_VALID,
-`endif
-   input [11:0]     A,
-   output reg [7:0] DB,
-   input            nCS
-   );
-
-logic [7:0] mem [1 << 12];
-
-`ifdef SCV_BOOTROM_INIT_FROM_HEX
-initial begin
-  $readmemh("bootrom.hex", mem);
-end
-`endif
-
-always_comb begin
-  DB = nCS ? 8'hzz : mem[A];
-end
-
-`ifndef SCV_BOOTROM_INIT_FROM_HEX
-always @(posedge INIT_CLK) begin
-  if (INIT_VALID) begin
-    mem[INIT_ADDR] = INIT_DATA;
-  end
-end
-`endif
-
-endmodule
-
-//////////////////////////////////////////////////////////////////////
-
-module wram
-  #(parameter AW=7,
-    parameter DW=8)
-  (
-   input           CLK,
-   input           nCE,
-   input           nWE,
-   input           nOE,
-   input [AW-1:0]  A,
-   input [DW-1:0]  DI,
-   output [DW-1:0] DO
-   );
-
-reg [DW-1:0] ram [0:((1 << AW) - 1)];
-reg [DW-1:0] dor;
-
-// Undefined RAM contents make simulation eventually die.
-initial begin
-int i;
-  for (i = 0; i < (1 << AW); i++)
-    ram[i] = 0;
-end
-
-always @(posedge CLK)
-  dor <= ram[A];
-
-assign DO = ~(nCE | nOE) ? dor : {DW{1'bz}};
-
-always @(negedge CLK) begin
-  if (~(nCE | nWE)) begin
-    ram[A] <= DI;
-  end
-end
 
 endmodule

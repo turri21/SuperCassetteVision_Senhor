@@ -35,5 +35,5 @@ int main(int argc, char** argv, char**) {
 }
 
 // Local Variables:
-// compile-command: "verilator --cc --exe bootrom_tb.cpp --build -j 0 --timing --assert --trace --top-module bootrom_tb -I.. ../upd7800.sv bootrom_tb.sv"
+// compile-command: "verilator --cc --exe bootrom_tb.cpp --build -j 0 --timing --assert --trace --top-module bootrom_tb -I.. ../upd7800.sv ../upd7801.sv bootrom_tb.sv"
 // End:

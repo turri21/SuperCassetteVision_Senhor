@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Tue Sep  3 06:28:20 2024
+[*] Sun Dec 29 01:24:30 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.vcd"
-[dumpfile_mtime] "Tue Sep  3 06:28:06 2024"
-[dumpfile_size] 6045228
+[dumpfile_mtime] "Sun Dec 29 01:24:21 2024"
+[dumpfile_size] 450763673
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/tb/scv_tb.gtkw"
-[timestart] 746800000
+[timestart] 0
 [size] 1288 600
 [pos] -1 -1
-*-21.036085 751164120 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+*-30.213037 3238410960 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -38,7 +38,7 @@
 [markername] ZZ
 [treeopen] scv_tb.
 [treeopen] scv_tb.dut.
-[treeopen] scv_tb.dut.cart.
+[treeopen] scv_tb.dut.cart.mapper.
 [treeopen] scv_tb.dut.cart.rom.
 [sst_width] 253
 [signals_width] 208
@@ -47,16 +47,22 @@
 @28
 scv_tb.dut.CLK
 scv_tb.dut.RESB
+scv_tb.dut.cpu_a_oe
+scv_tb.dut.cart_ncs
+scv_tb.dut.vdc_ncs
 @800200
 -cpu
 @28
 scv_tb.dut.cpu.CP2_NEGEDGE
 @22
-scv_tb.dut.cpu.A[15:0]
+scv_tb.dut.cpu_a[15:0]
 scv_tb.dut.cpu.DB_I[7:0]
 scv_tb.dut.cpu.DB_O[7:0]
 @28
+scv_tb.dut.cpu.DB_OE
+scv_tb.dut.cpu.RDB
 scv_tb.dut.cpu.WRB
+scv_tb.dut.cpu.WAITB
 @1000200
 -cpu
 @c00200
@@ -78,6 +84,9 @@ scv_tb.dut.vdc.cpu_sel_vram
 scv_tb.dut.vdc.cpu_sel_reg
 scv_tb.dut.vdc.cpu_rd
 scv_tb.dut.vdc.cpu_wr
+scv_tb.dut.vdc.cpu_csb_d
+scv_tb.dut.vdc.cpu_csb_negedge
+scv_tb.dut.vdc.cpu_waitb_p
 @22
 scv_tb.dut.vdc.oam_a[6:0]
 scv_tb.dut.vdc.oam_rbuf[31:0]
@@ -86,6 +95,8 @@ scv_tb.dut.vdc.oam_wbuf[31:0]
 -vdc
 @800200
 -cart
+@28
+scv_tb.dut.cart.CSB
 @22
 scv_tb.dut.cart.id.IN_MAPPER[3:0]
 scv_tb.dut.cart.id.ROM_CKSUM[31:0]

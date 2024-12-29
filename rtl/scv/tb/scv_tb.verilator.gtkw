@@ -49,7 +49,7 @@ TOP.scv_tb.dut.CLK
 TOP.scv_tb.dut.RESB
 TOP.scv_tb.dut.cpu.M1
 @22
-TOP.scv_tb.dut.cpu.A[15:0]
+TOP.scv_tb.dut.cpu_a[15:0]
 TOP.scv_tb.dut.cpu.DB_I[7:0]
 TOP.scv_tb.dut.cpu.DB_O[7:0]
 @28

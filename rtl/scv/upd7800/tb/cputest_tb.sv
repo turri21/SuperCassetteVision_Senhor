@@ -22,9 +22,11 @@ reg         mem_ready;
 reg         vbl;
 
 wire [15:0] a;
-wire [7:0]  dut_db_o, rom_db, wram_db, vram_db, cart_db;
+wire [7:0]  dut_db_o, vram_db, cart_db;
+wire        a_oe;
+wire        waitb;
 wire        dut_rdb, dut_wrb;
-wire        rom_ncs, wram_ncs, vram_ncs, cart_ncs;
+wire        vram_ncs, cart_ncs;
 
 int         tvbl1 = 5000;
 int         tvbl0 = 5000;
@@ -41,22 +43,27 @@ initial begin
 `endif
 end
 
-upd7800 dut
+upd7801 dut
   (
    .CLK(clk),
    .CP1_POSEDGE(cp1p),
    .CP1_NEGEDGE(cp1n),
    .CP2_POSEDGE(cp2p),
    .CP2_NEGEDGE(cp2n),
+   .INIT_SEL_BOOT('0),
+   .INIT_ADDR('0),
+   .INIT_DATA('0),
+   .INIT_VALID('0),
    .RESETB(~res),
    .INT0(1'b0),
    .INT1(1'b0),
    .INT2(vbl),
    .A(a),
+   .A_OE(a_oe),
    .DB_I(dut_db_i),
    .DB_O(dut_db_o),
    .DB_OE(),
-   .WAITB(mem_ready),
+   .WAITB(waitb),
    .M1(),
    .RDB(dut_rdb),
    .WRB(dut_wrb),
@@ -69,31 +76,15 @@ upd7800 dut
    .PC_OE()
    );
 
-bootrom rom
-  (
-   .CLK(clk),
-   .A(a[11:0]),
-   .DB(rom_db),
-   .nCS(rom_ncs | dut_rdb)
-   );
-
-ram #(7, 8) wram
-  (
-   .CLK(clk),
-   .nCE(wram_ncs),
-   .nWE(dut_wrb),
-   .nOE(wram_ncs | ~dut_wrb),
-   .A(a[6:0]),
-   .DI(dut_db_o),
-   .DO(wram_db)
-   );
+initial
+  $readmemh("bootrom.hex", dut.rom.mem);
 
 ram #(10, 8) vram
   (
    .CLK(clk),
    .nCE(vram_ncs),
    .nWE(dut_wrb),
-   .nOE(vram_ncs | ~dut_wrb),
+   .nOE(vram_ncs | dut_rdb),
    .A(a[9:0]),
    .DI(dut_db_o),
    .DO(vram_db)
@@ -108,29 +99,26 @@ cart cart
    );
 
 always_comb begin
-  dut_db_i = 8'hxx;
+  dut_db_i = 'Z;
   if (~mem_ready)
     ;
-  else if (~rom_ncs)
-    dut_db_i = rom_db;
-  else if (~wram_ncs)
-    dut_db_i = wram_db;
   else if (~vram_ncs)
     dut_db_i = vram_db;
-  else if (~cart_ncs)
+  else
     dut_db_i = cart_db;
 end
 
-assign rom_ncs = |a[15:12];
-assign wram_ncs = ~&a[15:7];    // 'hFF80-'hFFFF
-assign vram_ncs = (a & ~16'h03ff) != 16'h3000;
-assign cart_ncs = ~a[15] | ~wram_ncs | ~vram_ncs;
+assign vram_ncs = ~(a_oe & ~a[15]);
+assign cart_ncs = ~vram_ncs;
 
 `ifdef TEST_WAIT
+// HACK: This works because WAITB also affects internal RAM/ROM accesses.
+wire mem_cs = ~(dut.core_rdb & dut.core_wrb);
 always @(posedge clk) if (cp1p) begin
-  mem_ready <= ~(dut_rdb & dut_wrb);
+  mem_ready <= mem_cs;
 end
 `endif
+assign waitb = mem_ready;
 
 initial begin
   vbl = 0;
@@ -158,7 +146,7 @@ always begin :cpgen
   @(posedge clk) cp2p <= 0; cp2n <= 1;
 end
 
-wire cp2 = dut.cp2;
+wire cp2 = dut.core.cp2;
 
 initial begin :vblgen
   @(negedge res) ;
@@ -186,37 +174,33 @@ initial #0 begin
 
   // We're looping until C reaches 0 (inner loop).
   #40 @(posedge clk) ;
-  assert(dut.pc == 16'h0016);
-  dut.c = 1;
+  assert(dut.core.pc == 16'h0016);
+  dut.core.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
 `ifdef TEST_WAIT
-  #46 ;
-`else
-  #44 ;
+  #2 ;
 `endif
-  @(posedge clk) ;
-  assert(dut.pc == 16'h0018);
-  dut.b = 0;
-  dut.c = 1;
+  #44 @(posedge clk) ;
+  assert(dut.core.pc == 16'h0018);
+  dut.core.b = 0;
+  dut.core.c = 1;
   #1 ;
 
   // Double 'block' in ClearScreen
 `ifdef TEST_WAIT
-  #382 ;
-`else
-  #338 ;
+  #44 ;
 `endif
-  @(posedge clk) ;
-  assert(dut.pc == 16'h0a25);
-  dut.c -= 8'hF8;
-  dut.e += 8'hF8;
-  dut.l += 8'hF8;
+  #338 @(posedge clk) ;
+  assert(dut.core.pc == 16'h0a25);
+  dut.core.c -= 8'hF8;
+  dut.core.e += 8'hF8;
+  dut.core.l += 8'hF8;
   #21 @(posedge clk) ;
-  assert(dut.pc == 16'h0a26);
-  dut.c -= 8'hFD;
-  dut.e += 8'hFD;
-  dut.l += 8'hFD;
+  assert(dut.core.pc == 16'h0a26);
+  dut.core.c -= 8'hFD;
+  dut.core.e += 8'hFD;
+  dut.core.l += 8'hFD;
 
   normal_video();
 end
@@ -234,9 +218,9 @@ end
 
 logic [15:0] test_num = 'hffff;
 always @(posedge clk) begin
-  if (cp2n & ~wram_ncs & ~dut_wrb & (a[6:0] == 7'h01)) begin
+  if (cp2n & ~dut.wram_ncs & ~dut.core_wrb & (dut.core_a[6:0] == 7'h01)) begin
   logic [15:0] n;
-    n = {wram.mem[1], wram.mem[0]};
+    n = {dut.wram.mem[1], dut.wram.mem[0]};
     if (test_num != n) begin
       test_num = n;
       $display("%t: Test %4x", $time, test_num);
@@ -244,8 +228,8 @@ always @(posedge clk) begin
   end
 
   // JR $, PSW.SK=0
-  if (cp1p && dut.ir == 'hFF && dut.of_done & ~dut.psw[5]) begin
-    if (dut.pc == 'h812A) begin     // end of success
+  if (cp1p && dut.core.ir == 'hFF && dut.core.of_done & ~dut.core.psw[5]) begin
+    if (dut.core.pc == 'h812A) begin     // end of success
       $display("Success!");
       $finish;
     end
@@ -254,29 +238,6 @@ always @(posedge clk) begin
       $fatal(2);
     end
   end
-end
-
-endmodule
-
-
-//////////////////////////////////////////////////////////////////////
-
-module bootrom
-  (
-   input            CLK,
-   input [11:0]     A,
-   output reg [7:0] DB,
-   input            nCS
-   );
-
-logic [7:0] mem [1 << 12];
-
-initial begin
-  $readmemh("bootrom.hex", mem);
-end
-
-always @(posedge CLK) begin
-  DB <= nCS ? 8'hzz : mem[A];
 end
 
 endmodule
@@ -320,6 +281,7 @@ end
 
 endmodule
 
+
 //////////////////////////////////////////////////////////////////////
 
 module cart #(parameter AW=15)
@@ -348,5 +310,5 @@ end
 endmodule
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s cputest_tb -o cputest_tb.vvp ../upd7800.sv cputest_tb.sv && ./cputest_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -s cputest_tb -o cputest_tb.vvp ../upd7800.sv ../upd7801.sv cputest_tb.sv && ./cputest_tb.vvp"
 // End:

@@ -513,7 +513,10 @@ end
 // aor: address bus output register
 // register latches on cp1p
 always @(posedge CLK) begin
-  if (cp1p) begin
+  if (resg) begin
+    aor <= '0;
+  end
+  else if (cp1p) begin
     if (cl_abl_aor)
       aor[7:0] <= ab[7:0];
     else if (cl_abh_aor)

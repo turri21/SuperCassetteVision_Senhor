@@ -11,8 +11,6 @@
 `define FAST_MAIN 1
 `endif
 
-`define TEST_PAUSE 1
-
 module scv_tb();
 
 import scv_pkg::*;
@@ -157,6 +155,7 @@ initial fpic = -1;
 always @(negedge vs) begin
   if (fpic != -1) begin
     $fclose(fpic);
+    fpic = -1;
 `ifdef VERILATOR
     $system({"python3 ../epochtv1/tb/render2png.py ", fname, {".hex "}, fname, ".png; rm ", fname, ".hex"});
 `endif
@@ -165,10 +164,12 @@ always @(negedge vs) begin
   $sformat(fname, "frames/render-%03d", frame);
   pice = 0;
 `ifdef VERILATOR
-  if (frame == 20)
+  if (frame == 10)
     $dumpvars();
+  if (frame == 30)
+    $finish();
 `endif
-  if (frame >= 60) begin
+  if ((frame % 10) == 0) begin
     fpic = $fopen({fname, ".hex"}, "w");
   end
   frame = frame + 1;
@@ -205,39 +206,40 @@ initial #0 begin
 `ifdef FAST_MAIN
   // We're looping until C reaches 0 (inner loop).
   #40 @(posedge clk) ;
-  assert(dut.cpu.pc == 16'h0016);
-  dut.cpu.c = 1;
+  assert(dut.cpu.core.pc == 16'h0016);
+  dut.cpu.core.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
   #42 @(posedge clk) ;
-  assert(dut.cpu.pc == 16'h0018);
-  dut.cpu.b = 0;
-  dut.cpu.c = 1;
+  assert(dut.cpu.core.pc == 16'h0018);
+  dut.cpu.core.b = 0;
+  dut.cpu.core.c = 1;
   #1 ;
 `endif
 
-`ifndef VERILATOR
-  #(60e3) @(posedge clk) ;
-`else
-  #(1000e3) @(posedge clk) ;
-`endif
-
-  $finish;
 end
 
-`ifdef TEST_PAUSE
-initial begin
-  #(500e3) ;
-  $display("Pausing...");
-  hmi.pause = '1;
-  #(30e3) hmi.pause = 0;
+initial if (1) begin
+  #(300e3);
+  $display("Pressing 1...");
+  hmi.num[1] = '1;
+  #(30e3) hmi.num[1] = 0;
 
-  #(800e3) ;
-  $display("Resuming...");
-  hmi.pause = '1;
-  #(30e3) hmi.pause = 0;
+  #(200e3);
+  $display("Pressing 1...");
+  hmi.num[1] = '1;
+  #(30e3) hmi.num[1] = 0;
+
+  #(200e3);
+  $display("Pressing T1...");
+  hmi.c1.t1 = '1;
+  #(30e3) hmi.c1.t1 = 0;
+
+  repeat (4) #(1000e3);
+  $display("Pressing T1...");
+  hmi.c1.t1 = '1;
+  #(30e3) hmi.c1.t1 = 0;
 end
-`endif
 
 endmodule
 

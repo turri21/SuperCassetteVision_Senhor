@@ -8,6 +8,7 @@
 ../cart_ram.sv
 
 ../upd7800/upd7800.sv
+../upd7800/upd7801.sv
 
 ../epochtv1/epochtv1.sv
 ../epochtv1/dpram.sv
