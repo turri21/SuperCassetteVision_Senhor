@@ -113,18 +113,20 @@ reg          t2_wait_d;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
-wire         of_start, of_start_d, of_done, of_pc_inc, of_skip;
+wire         of_start, of_start_d, of_done, of_pc_inc;
 reg          m1, m1ext;
 wire         m1_next, oft0_next;
-wire         m1_overlap, m1_skip;
+wire         m1_overlap;
 
 s_ird        ird;
 
 s_uc         ucp, uc;
-e_uaddr      uptr, uptr_next;
+e_uaddr      uptr, uptr_next, uptr_p;
+wire         uc_done;
 s_nc         ncp, nc;
 t_naddr      nptr;
 
+reg          cl_skip;
 reg          cl_idb_psw, cl_co_z, cl_cco_c, cl_zero_c, cl_one_c, cl_cho_hc;
 reg          cl_sks_sk;
 e_sks        cl_pswsk;
@@ -353,7 +355,7 @@ end
 
 // General-purpose registers
 always @(posedge CLK) begin
-  if (cp2n & ~t2_wait) begin
+  if (cp2n & ~(t2_wait | cl_skip)) begin
     if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_V: v <= idb;
@@ -394,7 +396,7 @@ end
 
 // Working register
 always @(posedge CLK) begin
-  if (cp2n & ~t2_wait) begin
+  if (cp2n & ~(t2_wait | cl_skip)) begin
     if ((cl_lts == ULTS_RF) & (nc.rfts == URFS_W)) begin
       w <= idb;
     end
@@ -407,26 +409,29 @@ always @(posedge CLK) begin
     psw <= 0;
   end
   else if (cp2n & ~t2_wait) begin
-    if (cl_co_z)
-      `psw_z <= ~|co;
-
-    if (cl_cco_c)
-      `psw_cy <= cco;
-    if (cl_zero_c)
-      `psw_cy <= 1'b0;
-    if (cl_one_c)
-      `psw_cy <= 1'b1;
-
-    if (cl_cho_hc)
-      `psw_hc <= cho;
-
     if (cl_sks_sk)
       `psw_sk <= skso;
-    if (cl_sefs_psw)
-      {`psw_l1, `psw_l0} <= sefso;
 
-    if (cl_idb_psw)
-      psw <= idb;
+    if (~cl_skip) begin
+      if (cl_co_z)
+        `psw_z <= ~|co;
+
+      if (cl_cco_c)
+        `psw_cy <= cco;
+      if (cl_zero_c)
+        `psw_cy <= 1'b0;
+      if (cl_one_c)
+        `psw_cy <= 1'b1;
+
+      if (cl_cho_hc)
+        `psw_hc <= cho;
+
+      if (cl_sefs_psw)
+        {`psw_l1, `psw_l0} <= sefso;
+
+      if (cl_idb_psw)
+        psw <= idb;
+    end
   end
 end
 
@@ -435,7 +440,7 @@ always @(posedge CLK) begin
   if (resg) begin
     sp <= 0;
   end
-  else if (cp2p & ~t2_wait_d) begin
+  else if (cp2p & ~(t2_wait_d | cl_skip)) begin
     if (cl_lts == ULTS_RF) begin
       case (cl_rfts)
         URFS_SPL: sp[7:0] <= idb;
@@ -649,11 +654,7 @@ reg       sub;
   lsum = ai[3:0] + ibi[3:0] + {3'b0, addc ^ sub};
   hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
   alu_co = {hsum[3:0], lsum[3:0]};
-  // TODO: SW emulators say one thing, while the UCOM-87AD user
-  // manual says another. Who's right?
-  // alu_cho = lsum[4] ^ sub;      // What the user manual says
-  alu_cho = sub ? lsum[3:0] > ai[3:0]
-            : lsum[3:0] < ai[3:0]; // What the SW emulators say
+  alu_cho = sub ? lsum[3:0] > ai[3:0] : lsum[3:0] < ai[3:0];
   alu_cco = hsum[4] ^ sub;
 end
 
@@ -690,10 +691,12 @@ always @(posedge CLK) begin
   if (cp1p & ~t2_wait_d) begin
     uabi <= ab;
 
-    if (cl_idb_abil)
-      uabi[7:0] <= idb;
-    if (cl_idb_abih)
-      uabi[15:8] <= idb;
+    if (~cl_skip) begin
+      if (cl_idb_abil)
+        uabi[7:0] <= idb;
+      if (cl_idb_abih)
+        uabi[15:8] <= idb;
+    end
   end
 end
 
@@ -714,7 +717,7 @@ end
 // Skip flag source
 always @* begin
   case (cl_pswsk)
-    USKS_PSW_SK: skso = `psw_sk;
+    USKS_0: skso = 1'b0;
     USKS_1: skso = 1'b1;
     USKS_C: skso = cco;
     USKS_NC: skso = ~cco;
@@ -722,7 +725,6 @@ always @* begin
     USKS_NZ: skso = |co;
     USKS_I: skso = irf1;
     USKS_NI: skso = ~irf1;
-    USKS_0: skso = 1'b0;
     USKS_PSW_C: skso = `psw_cy;
     USKS_PSW_NC: skso = ~`psw_cy;
     USKS_PSW_Z: skso = `psw_z;
@@ -783,11 +785,9 @@ always_ff @(posedge CLK) begin
   end
 end
 
-assign of_skip = `psw_sk & ~intg;
 assign oft0_next = (m1_next & ~|oft[2:0]) | (~resg & m1 & |of_prefix);
 assign m1_overlap = of_done & ird.m1_overlap;
-assign m1_skip = of_done & (of_skip & (ird.skipn == 0));
-assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap | m1_skip)));
+assign m1_next = (resg & ~resp) | (~resg & ((m1 & ~oft[3]) | (uc.m1 | m1_overlap)));
 
 // Handle fetching a prefix opcode (1st of 2-byte opcode)
 always @* begin
@@ -849,26 +849,19 @@ end
 
 always_ff @(posedge CLK) begin
   if (cp2n & (resg | ~t2_wait)) begin
+    uptr_p <= uptr;
     uc <= ucp;
     nc <= ncp;
   end
 end
 
+assign uc_done = (uptr_p != UA_IDLE) & (uc.bm == UBM_END);
+
 always @* begin
   uptr_next = uptr;
 
   if (of_done) begin
-    if (of_skip) begin
-      case (ird.skipn)
-        2'd0: uptr_next = UA_IDLE;
-        2'd1: uptr_next = UA_SKIP_OP1;
-        2'd2: uptr_next = UA_SKIP_OP2;
-        default: ;
-      endcase
-    end
-    else begin
-      uptr_next = ird.uaddr;
-    end
+    uptr_next = ird.uaddr;
   end
   else begin
     case (uc.bm)
@@ -887,7 +880,7 @@ always @(posedge CLK) begin
     uptr <= uptr_next;
 
 `ifndef VIVADO
-    if (of_done & ~of_skip) begin
+    if (of_done) begin
       assert (ir == 0 || uptr_next != UA_IDLE);
       else begin
         $error("%t: Illegal opcode", $time);
@@ -945,6 +938,9 @@ function e_abs resolve_abs_ir(e_abs in);
         default: ;
       endcase
     end
+    // Skipping 'JB' needs a little help.
+    if (cl_skip)
+      out = UABS_PC;
     resolve_abs_ir = out;
   end
 endfunction
@@ -963,15 +959,16 @@ function e_spr resolve_sprs(e_sprs in);
   end
 endfunction
 
+always @* cl_skip = `psw_sk & ~intg;
 always @* cl_idb_psw = (cl_rfts == URFS_PSW);
 always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;
 always @* cl_zero_c = (nc.lts == ULTS_PSW_CY) & (nc.idx[0] == 1'b0);
 always @* cl_one_c = (nc.lts == ULTS_PSW_CY) & (nc.idx[0] == 1'b1);
 always @* cl_cho_hc = nc.pswhc;
-always @* cl_sks_sk = (of_done & ~intg) | (nc.pswsk != USKS_PSW_SK);
-always @* cl_pswsk = e_sks'((of_done & ~intg) ? USKS_0 : nc.pswsk);
-always @* cl_sefs_psw = nc.pswsef;
+always @* cl_sks_sk = uc_done;
+always @* cl_pswsk = e_sks'(cl_skip ? USKS_0 : nc.pswsk);
+always @* cl_sefs_psw = uc_done;
 always @* cl_sefm = ird.sefm;
 always @* cl_zero_irf = (nc.pswsk == USKS_I) | (nc.pswsk == USKS_NI);
 always @* cl_irf = ir[2:0];
@@ -980,8 +977,8 @@ initial cl_abl_aor = 0;
 initial cl_abh_aor = 0;
 always @* cl_ab_aor = oft[0] | nc.aout;
 always @* cl_idb_dor = (nc.lts == ULTS_DOR);
-always @* cl_store_dor = nc.store;
-always @* cl_load_db = oft[1] | nc.load;
+always @* cl_store_dor = nc.store & ~cl_skip;
+always @* cl_load_db = oft[1] | (nc.load & ~cl_skip);
 always @* cl_rfos = resolve_rfs_ir(nc.rfos);
 always @* cl_rfts = resolve_rfs_ir(nc.rfts);
 always @* cl_spr = resolve_sprs(nc.sprs);
@@ -989,8 +986,8 @@ always @* cl_idbs = nc.idbs;
 always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
 always @* cl_pc_inc = of_pc_inc | nc.pc_inc;
-always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec;
-always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec | (nc.ab_inc & nc.ab_dec);
+always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec & ~cl_skip;
+always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec | (nc.ab_inc & nc.ab_dec & ~cl_skip);
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
 always @* cl_ui_ie = (nc.lts == ULTS_IE) | (intg & of_done);
@@ -1023,7 +1020,7 @@ always @* cl_rors = nc.aluop == UAO_ROR;
 always @* cl_dils = nc.aluop == UAO_DIL;
 always @* cl_dihs = nc.aluop == UAO_DIH;
 always @* cl_diss = nc.aluop == UAO_DIS;
-always @* cl_stm = (ir == `IR_STM) & of_done & ~of_skip;
+always @* cl_stm = (ir == `IR_STM) & of_done & ~cl_skip;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1046,7 +1043,7 @@ always @(posedge CLK) begin
     mb <= 8'hff;
     mc <= 8'hff;
   end
-  else if (cp2n & ~t2_wait) begin
+  else if (cp2n & ~(t2_wait | cl_skip)) begin
     if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_PA: pao <= idb;
@@ -1093,7 +1090,7 @@ end
 always_ff @(posedge CLK) begin
   if (resg) begin
   end
-  else if (cp2n & ~t2_wait) begin
+  else if (cp2n & ~(t2_wait | cl_skip)) begin
     if (cl_lts == ULTS_SPR) begin
       case (cl_spr)
         USPR_TM0: tm[7:0] <= idb;

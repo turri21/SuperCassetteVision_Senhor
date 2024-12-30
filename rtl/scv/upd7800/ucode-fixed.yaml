@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 11
+    width: 10
     prefix: UA_
     # values will come from the ucode.rows list
 
@@ -183,7 +183,7 @@ types:
     width: 4
     prefix: USKS_
     values:
-      - PSW_SK                  # (default) no change
+      - 0                       # (default) reset
       - 1                       # set (for RETS)
       - C                       # ALU CCO
       - NC
@@ -191,7 +191,6 @@ types:
       - NZ
       - I                       # INT*F set
       - NI                      # INT*F clear
-      - 0                       # reset
       - PSW_C
       - PSW_NC
       - PSW_Z
@@ -321,6 +320,3 @@ nrom:
     - name: rpir
       width: 1
       desc: IR[2:0] selects reg. pair and inc/dec
-    - name: pswsef
-      width: 1
-      desc: Update PSW.L0/L1

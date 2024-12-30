@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sat Dec 28 23:08:33 2024
+[*] Mon Dec 30 06:23:27 2024
 [*]
 [dumpfile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/bootrom_tb.vcd"
-[dumpfile_mtime] "Sat Dec 28 22:49:01 2024"
-[dumpfile_size] 125358200
+[dumpfile_mtime] "Mon Dec 30 06:22:13 2024"
+[dumpfile_size] 127031748
 [savefile] "/Users/dhunter/src/mister/SuperCassetteVision_MiSTer/rtl/scv/upd7800/tb/bootrom_tb.gtkw"
-[timestart] 0
+[timestart] 85230020000
 [size] 1288 687
-[pos] 59 -1
-*-34.982391 85264750000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[pos] 59 0
+*-23.982391 85278625000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [markername] AA
 [markername] BB
 [markername] CC
@@ -41,7 +41,7 @@
 [sst_width] 253
 [signals_width] 181
 [sst_expanded] 1
-[sst_vpaned_height] 236
+[sst_vpaned_height] 281
 @28
 bootrom_tb.dut.core.CLK
 bootrom_tb.dut.core.CP1_POSEDGE
@@ -150,24 +150,26 @@ bootrom_tb.dut.core.oft[3:0]
 @28
 bootrom_tb.dut.core.of_prefix[2:0]
 bootrom_tb.dut.core.of_done
-bootrom_tb.dut.core.of_skip
 bootrom_tb.dut.core.m1_overlap
-bootrom_tb.dut.core.m1_skip
 bootrom_tb.dut.core.m1_next
 bootrom_tb.dut.core.m1
 @1401200
 -of
-@c00200
+@800200
 -uc
 @22
-bootrom_tb.dut.core.uptr[10:0]
-bootrom_tb.dut.core.uptr_next[10:0]
+bootrom_tb.dut.core.uptr[9:0]
+bootrom_tb.dut.core.uptr_next[9:0]
+@28
+bootrom_tb.dut.core.uc_done
+@22
 bootrom_tb.dut.core.nptr[7:0]
-@1401200
+@1000200
 -uc
-@c00200
+@800200
 -cl
 @28
+bootrom_tb.dut.core.cl_skip
 bootrom_tb.dut.core.cl_ab_aor
 bootrom_tb.dut.core.cl_abh_aor
 bootrom_tb.dut.core.cl_abi_dec
@@ -222,7 +224,7 @@ bootrom_tb.dut.core.cl_ui_ie
 bootrom_tb.dut.core.cl_zero_bi
 bootrom_tb.dut.core.cl_zero_c
 bootrom_tb.dut.core.cl_zero_irf
-@1401200
+@1000200
 -cl
 @800200
 -timer

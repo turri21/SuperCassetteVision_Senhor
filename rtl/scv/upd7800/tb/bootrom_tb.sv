@@ -148,38 +148,38 @@ initial #0 begin
   dut.core.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #44 @(posedge clk) ;
+  #40 @(posedge clk) ;
   assert(dut.core.pc == 16'h0018);
   dut.core.b = 0;
   dut.core.c = 1;
   #1 ;
 
   // Double 'block' in ClearScreen
-  #339 @(posedge clk) ;
+  #340 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hF8;
   dut.core.e += 8'hF8;
   dut.core.l += 8'hF8;
-  #21 @(posedge clk) ;
+  #27 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a26);
   dut.core.c -= 8'hFD;
   dut.core.e += 8'hFD;
   dut.core.l += 8'hFD;
 
   // Double 'block' in ClearSpriteAttrs
-  #999 @(posedge clk) ;
+  #1005 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hFC;
   dut.core.e += 8'hFC;
   dut.core.l += 8'hFC;
-  #21 @(posedge clk) ;
+  #27 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a26);
   dut.core.c -= 8'hFD;
   dut.core.e += 8'hFD;
   dut.core.l += 8'hFD;
 
   // 16x 'block' in ClearSpritePatterns
-  #75 @(posedge clk) ;
+  #79 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a55);
   dut.core.b -= 8'h0F;
   dut.core.c -= 8'hF8;

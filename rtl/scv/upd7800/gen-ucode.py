@@ -52,10 +52,12 @@ class ucode_seq():
                 ucrow['m1'] = 1
             if i == steps_len - 1:
                 ucrow['bm'] = 'END'
-                nc = dict(nc) | {'pswsef': 1}
 
             naddr = nc_row(nc)
             ucrow['naddr'] = naddr
+
+            if 'pswsk' in nc:
+                assert(ucrow['bm'] == 'END')
 
             uc_row(ucrow)
 
@@ -639,7 +641,7 @@ def jmp(ir, nsteps):
     ucs.step(nc_pc_out_inc)                       # Fetch word lo
     ucs.step(nc_load)
     ucs.step(nc_write_db_to_w)
-    ucs.step(aor_wr('PC'))                        # Fetch word hi
+    ucs.step(nc_pc_out_inc)                       # Fetch word hi
     # W -> idb -> PCL
     ucs.step(idb_rd('RF_W') | idb_wr('RF_PCL') | nc_load)
     # DB -> idb -> PCH
@@ -757,13 +759,9 @@ def softi(ir, nsteps):
     ucs.step(nc_store)
     # effective naddr lo. -> idb -> W
     ucs.step({'idx': 0} | idb_rd('SDG_CALT') | idb_wr('RF_W'))
-    # PCH <- 0
+    # PCH <- 0, PCL <- int. vector
     ucs.step(idb_rd(0) | idb_wr('RF_PCH'))
-    ucs.step(nc_idle)
-    ucs.step(nc_idle)
-    # PCL <- 'h60, PSW.SK <- 0 (not auto-cleared)
     ucs.step(idb_rd('SDG_INTVA') | idb_wr('RF_PCL'))
-    ucs.step({'pswsk': 0})
     ucs.step(nc_idle)
     ird_row(ir, nsteps, 0, ucs)
 
@@ -846,14 +844,6 @@ def bit(ir, nsteps):
 # Pre-populate urom rows
 
 uc_row({'uaddr': 'IDLE', 'naddr': nc_row(nc_idle), 'bm': 'END'})
-
-# Idle cycles for skipping instructions w/ 1-2 operands
-uc_row({'uaddr': 'SKIP_OP2', 'naddr': nc_row(nc_pc_out_inc)})
-uc_row({'naddr': nc_row(nc_load)})
-uc_row({'naddr': nc_row(nc_idle)})
-uc_row({'uaddr': 'SKIP_OP1', 'naddr': nc_row(nc_pc_out_inc)})
-uc_row({'naddr': nc_row(nc_load)})
-uc_row({'naddr': nc_row(nc_idle), 'm1': 1, 'bm': 'END'})
 
 ######################################################################
 # no prefix opcode
@@ -939,7 +929,7 @@ call(0x44, 16)                                    # CALL word
 calb(0x63, 13)                                    # CALB
 calf([0x78, 0x7f], 16)                            # CALF word
 calt([0x80, 0xbf], 19)                            # CALT
-softi(0x72, 22)                                   # SOFTI / INT
+softi(0x72, 19)                                   # SOFTI / INT
 # Note: Data sheet says 15 cycles, but I think that's a typo.
 ret(0x08, 10, 'RET')                              # RET
 ret(0x18, 10, 'RETS')                             # RETS

@@ -165,10 +165,10 @@ cputest_tb.dut.core.m1
 @c00200
 -uc
 @22
-cputest_tb.dut.core.uptr[10:0]
+cputest_tb.dut.core.uptr[9:0]
 cputest_tb.dut.core.uc[9:0]
 cputest_tb.dut.core.nptr[7:0]
-cputest_tb.dut.core.nc[53:0]
+cputest_tb.dut.core.nc[52:0]
 @28
 cputest_tb.dut.core.t2_wait
 cputest_tb.dut.core.t2_wait_d
