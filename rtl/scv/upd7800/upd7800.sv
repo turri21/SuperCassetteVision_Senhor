@@ -68,8 +68,7 @@ typedef enum reg [2:0]
 } e_int_idx;
 
 wire         resp;
-wire         cp1p, cp2p, cp2n;
-wire         cke_div12;
+wire         cp1p, cp1n, cp2p, cp2n;
 wire [7:0]   pcl, pch;
 wire [7:0]   pboe, pcoe;
 wire         irf1;
@@ -84,7 +83,6 @@ reg [4:0]    irfm;              // Mask selected by SK(N)IT operand
 reg          intg;
 reg [7:0]    intva;
 reg          cp2;
-reg [3:0]    cnt_div12;
 reg [7:0]    v, a, b, c, d, e, h, l;
 reg [7:0]    v2, a2, b2, c2, d2, e2, h2, l2; // secondary GP reg. set
 reg [7:0]    w;
@@ -161,25 +159,17 @@ reg          cl_stm;
 // Clocking
 
 assign cp1p = CP1_POSEDGE;
+assign cp1n = CP1_NEGEDGE;
 assign cp2p = CP2_POSEDGE;
 assign cp2n = CP2_NEGEDGE;
 
 initial begin
   cp2 = 0;
-  cnt_div12 = 0;
 end
 
 always_ff @(posedge CLK) begin
   cp2 <= (cp2 & ~cp2n) | cp2p;
 end
-
-// Internal /12 clock (from CP1/2)
-always_ff @(posedge CLK) begin
-  if (cp1p)
-    cnt_div12 <= cke_div12 ? 0 : cnt_div12 + 1'd1;
-end
-
-assign cke_div12 = cp1p & (cnt_div12 == 4'd11);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -200,12 +190,12 @@ always_ff @(posedge CLK) begin
   end
 end
 
-// Interrupt sampling: Edge-triggered INT1/2 are sampled at /12
-// clock. Interrupt deemed asserted after 3 consecutive asserted
-// samples following at least 1 deasserted sample.
+// Interrupt sampling: Edge-triggered INT1/2 are sampled at
+// CP1. Interrupt deemed asserted after 3 consecutive asserted samples
+// following at least 1 deasserted sample.
 
 always_ff @(posedge CLK) begin
-  if (cke_div12) begin
+  if (cp1n) begin
     intv1 <= {intv1[2:0], INT1};
     intv2 <= {intv2[2:0], INT2 ^ ~mk[5]};
   end
@@ -215,9 +205,9 @@ always @* begin
   intps = 0;
   if (INT0)
     intps[II_INT0] = ~intp[II_INT0];
-  if (cke_div12 & (intv1 == 4'b0111))
+  if (cp1n & (intv1 == 4'b0111))
     intps[II_INT1] = 1'b1;
-  if (cke_div12 & (intv2 == 4'b0111))
+  if (cp1n & (intv2 == 4'b0111))
     intps[II_INT2] = 1'b1;
   if (tc_uf)
     intps[II_INTT] = 1'b1;

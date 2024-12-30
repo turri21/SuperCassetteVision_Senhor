@@ -167,12 +167,12 @@ initial #0 begin
   dut.core.l += 8'hFD;
 
   // Double 'block' in ClearSpriteAttrs
-  #1005 @(posedge clk) ;
+  #982 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hFC;
   dut.core.e += 8'hFC;
   dut.core.l += 8'hFC;
-  #27 @(posedge clk) ;
+  #26 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a26);
   dut.core.c -= 8'hFD;
   dut.core.e += 8'hFD;
