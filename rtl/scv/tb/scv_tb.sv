@@ -86,7 +86,7 @@ initial begin
 end
 
 initial forever begin :ckgen
-  #(0.25/14.318181) clk = ~clk; // 2 * 14.318181 MHz
+  #(0.25/14.3181818) clk = ~clk; // 2 * 14.3181818 MHz
 end
 
 always @(posedge clk) if (rominit_active) begin
@@ -164,9 +164,9 @@ always @(negedge vs) begin
   $sformat(fname, "frames/render-%03d", frame);
   pice = 0;
 `ifdef VERILATOR
-  if (frame == 10)
+  if (frame == 290)
     $dumpvars();
-  if (frame == 30)
+  if (frame == 320)
     $finish();
 `endif
   if ((frame % 10) == 0) begin
@@ -210,7 +210,7 @@ initial #0 begin
   dut.cpu.core.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #42 @(posedge clk) ;
+  #43 @(posedge clk) ;
   assert(dut.cpu.core.pc == 16'h0018);
   dut.cpu.core.b = 0;
   dut.cpu.core.c = 1;

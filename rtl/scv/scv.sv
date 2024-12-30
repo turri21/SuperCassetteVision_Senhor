@@ -279,7 +279,7 @@ module clkgen
    // CLK: 2 * video XTAL = 2 * 14.318181 MHz
    input  CLK,
 
-   // 2-phase CPU clock: CLK / 14 = 2.045454 MHz
+   // 2-phase CPU clock: (CLK * 88 / 315) / 4 = 2.000000 MHz
    output CP1_POSEDGE, // clock phase 1, +ve edge
    output CP1_NEGEDGE, //  "             -ve edge
    output CP2_POSEDGE, // clock phase 2, +ve edge
@@ -287,34 +287,49 @@ module clkgen
 
    // VDC clock: CLK / 7 = 4.090909 MHz
    output VDC_CE,
+
    // Audio clock: CLK * 22 / 105 = 6.000000 MHz
    output AUD_CE
    );
 
-reg [3:0] ccnt;
+reg [8:0] c4cnt, c4cntn;        // 8.0 MHz
+reg [1:0] ccnt;                 // 2.0 MHz
+reg [2:0] vcnt;
 reg [6:0] acnt, acntn;
+wire      cpu4_ce;
 
+localparam [8:0] CPU4_MUL = 9'd88;
+localparam [8:0] CPU4_DIV = 9'd315;
 localparam [6:0] AUD_MUL = 7'd22;
 localparam [6:0] AUD_DIV = 7'd105;
 
 initial begin
+  c4cnt = 0;
   ccnt = 0;
+  vcnt = 0;
   acnt = 0;
 end
 
+assign c4cntn = c4cnt + CPU4_MUL;
 assign acntn = acnt + AUD_MUL;
 
 always_ff @(posedge CLK) begin
-  ccnt <= (ccnt == 4'd13) ? 0 : ccnt + 1'd1;
+  c4cnt <= cpu4_ce ? (c4cntn - CPU4_DIV) : c4cntn;
   acnt <= AUD_CE ? (acntn - AUD_DIV) : acntn;
+
+  ccnt <= cpu4_ce ? ccnt + 1'd1 : ccnt;
+
+  vcnt <= VDC_CE ? 0 : vcnt + 1'd1;
 end
 
-assign CP2_NEGEDGE = ccnt == 4'd0;
-assign CP1_POSEDGE = ccnt == 4'd2;
-assign CP1_NEGEDGE = ccnt == 4'd4;
-assign CP2_POSEDGE = ccnt == 4'd6;
-
-assign VDC_CE = (ccnt == 4'd2) | (ccnt == 4'd9);
+assign cpu4_ce = c4cntn >= CPU4_DIV;
 assign AUD_CE = acntn >= AUD_DIV;
+
+assign CP2_NEGEDGE = cpu4_ce & (ccnt == 2'd0);
+assign CP1_POSEDGE = cpu4_ce & (ccnt == 2'd1);
+assign CP1_NEGEDGE = cpu4_ce & (ccnt == 2'd2);
+assign CP2_POSEDGE = cpu4_ce & (ccnt == 2'd3);
+
+assign VDC_CE = vcnt == 3'd6;
 
 endmodule
