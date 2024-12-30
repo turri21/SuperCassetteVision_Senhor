@@ -1,0 +1,30 @@
+NEC uPD1771C-017
+================
+
+References
+----------
+https://github.com/mamedev/mame/blob/07cc2cf76ab85656a11aee05c308176e4e1c9105/src/devices/sound/upd1771.cpp - MAME's high-level emulation
+https://siliconpr0n.org/map/nec/d1771c-017/mcmaster_mz_mit20x/ - photomicrograph of D1771C-017 die
+http://reverendgumby.gitlab.io/visuald1771c - JavaScript simulator derived from above die shot
+https://oura.oguchi-rd.com - original LSI design docs
+
+
+Pinout
+------
+. 9,10    XI,XO
+. 6       \AC (\RESET)
+. 15      CH1
+. 17      CH2
+. 16      \EXINT
+. 7       \PWON
+. 18-25   PA[0:7]
+. 26      PB0 (A0)
+. 27      PB1 (A1)
+. 28      PB2 (\READY)
+. 1       PB3
+. 2       PB4 (ALE)
+. 3       PB5 (\RD)
+. 4       PB6 (\WR)
+. 5       PB7 (\CS)
+. 11      SOUND2 (DA OUT+)
+. 13      SOUND1 (DA OUT-)
