@@ -1179,7 +1179,6 @@ typedef struct packed
 {
     e_uaddr uaddr;    // microcode entry point
     reg [0:0] m1_overlap;    // New M1 starts immediately
-    reg [1:0] skipn;    // Number of operands to skip when ins. is skipped
     e_sefm sefm;    // String effect flag (L0/L1) mode
 } s_ird;
 

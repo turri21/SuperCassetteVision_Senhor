@@ -78,8 +78,6 @@ def ird_row(ir, nsteps, noper, ucs):
     irdrow = {'_at': ats, 'at': ir, 'uaddr': ucname}
     if nsteps == 0:
         irdrow['m1_overlap'] = 1
-    if noper:
-        irdrow['skipn'] = noper
     irdrow['sefm'] = ucs.str_effect
 
     ird_rows.append(irdrow)

@@ -812,7 +812,7 @@ int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++) begin
     // default for illegal opcodes
-    ird_lut[i] = { UA_IDLE, 1'd1, 2'd0, ISEFM_NONE };
+    ird_lut[i] = { UA_IDLE, 1'd1, ISEFM_NONE };
   end
 
 `include "uc-ird.svh"

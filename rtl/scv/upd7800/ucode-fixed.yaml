@@ -217,9 +217,6 @@ ird:
     - name: m1_overlap
       width: 1
       desc: New M1 starts immediately
-    - name: skipn
-      width: 2
-      desc: Number of operands to skip when ins. is skipped
     - name: sefm
       type: e_sefm
       desc: String effect flag (L0/L1) mode
