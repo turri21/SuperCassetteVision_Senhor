@@ -1042,15 +1042,11 @@ urom:
     naddr: 0
     bm: END
   - uaddr: MOV_A_RF_IR210
+    bm: END
     naddr: 4
-  - naddr: 0
-  - bm: END
-    naddr: 0
   - uaddr: MOV_RF_IR210_A
+    bm: END
     naddr: 5
-  - naddr: 0
-  - bm: END
-    naddr: 0
   - uaddr: MOV_RF_IR210_IMM
     naddr: 1
   - naddr: 2
@@ -1842,15 +1838,11 @@ urom:
   - bm: END
     naddr: 148
   - uaddr: MOV_A_SPR_IR3
+    bm: END
     naddr: 151
-  - naddr: 0
-  - bm: END
-    naddr: 0
   - uaddr: MOV_SPR_IR3_A
+    bm: END
     naddr: 152
-  - naddr: 0
-  - bm: END
-    naddr: 0
   - uaddr: ADDNC_RF_IR210_A
     naddr: 153
   - naddr: 154

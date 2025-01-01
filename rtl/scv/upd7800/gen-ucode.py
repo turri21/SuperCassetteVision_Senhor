@@ -160,8 +160,6 @@ def move(ir, nsteps, dst, src, str_effect=''):
         ucs.step({'idbs': 'DB'} | idb_wr(dst))
     else:
         ucs.step(idb_rd(src) | idb_wr(dst))
-        ucs.step(nc_idle)
-        ucs.step(nc_idle)
 
     ird_row(ir, nsteps, noper, ucs)
 
