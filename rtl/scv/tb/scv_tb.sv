@@ -210,7 +210,7 @@ initial #0 begin
   dut.cpu.core.c = 1;
 
   // We're also looping until B reaches 0 (outer loop).
-  #43 @(posedge clk) ;
+  #40 @(posedge clk) ;
   assert(dut.cpu.core.pc == 16'h0018);
   dut.cpu.core.b = 0;
   dut.cpu.core.c = 1;

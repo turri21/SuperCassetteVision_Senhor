@@ -395,6 +395,7 @@ def math_logic_test(ir, nsteps, op, dst, src, skip=''):
     ind = src == 'IND'
     swa = src == 'WA'
     dwa = dst == 'WA'
+    spr = dst == 'SPR_IR2'
     noper = imm + (swa or dwa)
 
     ucname = f'{op}{skip}_{dst}_{src}'
@@ -453,6 +454,14 @@ def math_logic_test(ir, nsteps, op, dst, src, skip=''):
         # Second operand is imm
         ucs.step(nc_pc_out_inc)
         ucs.step(nc_load)
+    elif imm and spr:
+        # Read special reg. (takes a full M-cycle)
+        ucs.step(nc_idle)
+        ucs.step(nc_idle)
+        ucs.step(nc_write_dst_to_ai)
+        # Fetch immediate data
+        ucs.step(nc_pc_out_inc)
+        ucs.step(nc_load)
     elif imm:
         ucs.step(nc_pc_out_inc | nc_write_dst_to_ai)
         ucs.step(nc_load)
@@ -469,6 +478,7 @@ def math_logic_test(ir, nsteps, op, dst, src, skip=''):
     else:
         ucs.step(nc_write_dst_to_ai)
     ucs.step(nc_write_src_to_bi | ncop)
+
     if test:
         ucs.step(ncpsw | ncsk)
     else:
@@ -476,6 +486,11 @@ def math_logic_test(ir, nsteps, op, dst, src, skip=''):
             ucs.step(nc_store_co_to_vw)
             ucs.step(nc_store)
             ucs.step(ncpsw | ncsk)
+        elif spr:
+            # Write special reg. (takes a full M-cycle)
+            ucs.step(nc_idle)
+            ucs.step(nc_idle)
+            ucs.step({'idbs': 'CO'} | idb_wr(dst) | ncpsw | ncsk)
         else:
             ucs.step({'idbs': 'CO'} | idb_wr(dst) | ncpsw | ncsk)
     ird_row(ir, nsteps, noper, ucs)
@@ -1031,18 +1046,16 @@ logic_imm([0x508, 0x50f], 11, 'AND', 'RF_IR210')  # ANI r, byte
 logic_imm([0x510, 0x517], 11, 'XOR', 'RF_IR210')  # XRI r, byte
 logic_imm([0x518, 0x51f], 11, 'OR',  'RF_IR210')  # ORI r, byte
 
-# TODO: These should be 17 steps
-math_imm([0x5a0, 0x5a3], 11, 'ADD', 'SPR_IR2', 'NC') # ADINC sr2, byte
-math_imm([0x5b0, 0x5b3], 11, 'SUB', 'SPR_IR2', 'NB') # SUINB sr2, byte
-math_imm([0x5c0, 0x5c3], 11, 'ADD', 'SPR_IR2')       # ADI sr2, byte
-math_imm([0x5d0, 0x5d3], 11, 'ADC', 'SPR_IR2')       # ACI sr2, byte
-math_imm([0x5e0, 0x5e3], 11, 'SUB', 'SPR_IR2')       # SUI sr2, byte
-math_imm([0x5f0, 0x5f3], 11, 'SBB', 'SPR_IR2')       # SBI sr2, byte
+math_imm([0x5a0, 0x5a3], 17, 'ADD', 'SPR_IR2', 'NC') # ADINC sr2, byte
+math_imm([0x5b0, 0x5b3], 17, 'SUB', 'SPR_IR2', 'NB') # SUINB sr2, byte
+math_imm([0x5c0, 0x5c3], 17, 'ADD', 'SPR_IR2')       # ADI sr2, byte
+math_imm([0x5d0, 0x5d3], 17, 'ADC', 'SPR_IR2')       # ACI sr2, byte
+math_imm([0x5e0, 0x5e3], 17, 'SUB', 'SPR_IR2')       # SUI sr2, byte
+math_imm([0x5f0, 0x5f3], 17, 'SBB', 'SPR_IR2')       # SBI sr2, byte
 
-# TODO: These should be 17 steps
-logic_imm([0x588, 0x58b], 11, 'AND', 'SPR_IR2')   # ANI sr2, byte
-logic_imm([0x590, 0x593], 11, 'XOR', 'SPR_IR2')   # XRI sr2, byte
-logic_imm([0x598, 0x59b], 11, 'OR',  'SPR_IR2')   # ORI sr2, byte
+logic_imm([0x588, 0x58b], 17, 'AND', 'SPR_IR2')   # ANI sr2, byte
+logic_imm([0x590, 0x593], 17, 'XOR', 'SPR_IR2')   # XRI sr2, byte
+logic_imm([0x598, 0x59b], 17, 'OR',  'SPR_IR2')   # ORI sr2, byte
 
 test_imm([0x528, 0x52f], 11, 'GT',  'RF_IR210')   # GTI r, byte
 test_imm([0x538, 0x53f], 11, 'LT',  'RF_IR210')   # LTI r, byte
@@ -1051,13 +1064,12 @@ test_imm([0x558, 0x55f], 11, 'OFF', 'RF_IR210')   # OFFI r, byte
 test_imm([0x568, 0x56f], 11, 'NEQ', 'RF_IR210')   # NEI r, byte
 test_imm([0x578, 0x57f], 11, 'EQ',  'RF_IR210')   # EQI r, byte
 
-# TODO: These should be 14 steps
-test_imm([0x5a8, 0x5ab], 11, 'GT',  'SPR_IR2')    # GTI sr2, byte
-test_imm([0x5b8, 0x5bb], 11, 'LT',  'SPR_IR2')    # LTI sr2, byte
-test_imm([0x5c8, 0x5cb], 11, 'ON',  'SPR_IR2')    # ONI sr2, byte
-test_imm([0x5d8, 0x5db], 11, 'OFF', 'SPR_IR2')    # OFFI sr2, byte
-test_imm([0x5e8, 0x5eb], 11, 'NEQ', 'SPR_IR2')    # NEI sr2, byte
-test_imm([0x5f8, 0x5fb], 11, 'EQ',  'SPR_IR2')    # EQI sr2, byte
+test_imm([0x5a8, 0x5ab], 14, 'GT',  'SPR_IR2')    # GTI sr2, byte
+test_imm([0x5b8, 0x5bb], 14, 'LT',  'SPR_IR2')    # LTI sr2, byte
+test_imm([0x5c8, 0x5cb], 14, 'ON',  'SPR_IR2')    # ONI sr2, byte
+test_imm([0x5d8, 0x5db], 14, 'OFF', 'SPR_IR2')    # OFFI sr2, byte
+test_imm([0x5e8, 0x5eb], 14, 'NEQ', 'SPR_IR2')    # NEI sr2, byte
+test_imm([0x5f8, 0x5fb], 14, 'EQ',  'SPR_IR2')    # EQI sr2, byte
 
 ######################################################################
 # 0x6xx: prefix 0x70

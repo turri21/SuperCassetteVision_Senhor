@@ -189,9 +189,9 @@ initial #0 begin
 
   // Double 'block' in ClearScreen
 `ifdef TEST_WAIT
-  #82 ;
+  #81 ;
 `endif
-  #338 @(posedge clk) ;
+  #341 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hF8;
   dut.core.e += 8'hF8;

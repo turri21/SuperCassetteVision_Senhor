@@ -155,7 +155,7 @@ initial #0 begin
   #1 ;
 
   // Double 'block' in ClearScreen
-  #340 @(posedge clk) ;
+  #343 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hF8;
   dut.core.e += 8'hF8;
@@ -167,7 +167,7 @@ initial #0 begin
   dut.core.l += 8'hFD;
 
   // Double 'block' in ClearSpriteAttrs
-  #982 @(posedge clk) ;
+  #993 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a25);
   dut.core.c -= 8'hFC;
   dut.core.e += 8'hFC;
@@ -179,7 +179,7 @@ initial #0 begin
   dut.core.l += 8'hFD;
 
   // 16x 'block' in ClearSpritePatterns
-  #79 @(posedge clk) ;
+  #80 @(posedge clk) ;
   assert(dut.core.pc == 16'h0a55);
   dut.core.b -= 8'h0F;
   dut.core.c -= 8'hF8;

@@ -2047,67 +2047,112 @@ urom:
   - bm: END
     naddr: 165
   - uaddr: ADDNC_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 55
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 55
-  - bm: END
+    bm: END
     naddr: 177
   - uaddr: SUBNB_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 57
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 57
-  - bm: END
+    bm: END
     naddr: 177
   - uaddr: ADD_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 55
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 55
-  - bm: END
+    bm: END
     naddr: 178
   - uaddr: ADC_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 59
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 59
-  - bm: END
+    bm: END
     naddr: 178
   - uaddr: SUB_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 57
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 57
-  - bm: END
+    bm: END
     naddr: 178
   - uaddr: SBB_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 60
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 60
-  - bm: END
+    bm: END
     naddr: 178
   - uaddr: AND_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 41
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 41
-  - bm: END
+    bm: END
     naddr: 179
   - uaddr: XOR_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 46
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 46
-  - bm: END
+    bm: END
     naddr: 179
   - uaddr: OR_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
+  - naddr: 43
+  - naddr: 0
+  - naddr: 0
   - m1: 1
-    naddr: 43
-  - bm: END
+    bm: END
     naddr: 179
   - uaddr: CMPBNB_RF_IR210_IMM
     naddr: 175
@@ -2152,42 +2197,60 @@ urom:
   - bm: END
     naddr: 54
   - uaddr: CMPBNB_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 47
   - bm: END
     naddr: 48
   - uaddr: CMPB_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 49
   - bm: END
     naddr: 50
   - uaddr: BITNZ_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 41
   - bm: END
     naddr: 51
   - uaddr: BITZ_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 41
   - bm: END
     naddr: 52
   - uaddr: CMPNZ_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 49
   - bm: END
     naddr: 53
   - uaddr: CMPZ_SPR_IR2_IMM
-    naddr: 176
+    naddr: 0
+  - naddr: 0
+  - naddr: 176
+  - naddr: 1
   - naddr: 2
   - m1: 1
     naddr: 49
@@ -3424,8 +3487,6 @@ nrom:
     rfos: IR210
     lts: AI
   - naddr: 176
-    aout: 1
-    pc_inc: 1
     idbs: SPR
     sprs: IR2
     lts: AI

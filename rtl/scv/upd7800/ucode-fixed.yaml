@@ -8,7 +8,7 @@ types:
   - name: e_uaddr
     desc: ucode address
     type: enum
-    width: 10
+    width: 11
     prefix: UA_
     # values will come from the ucode.rows list
 
