@@ -54,7 +54,6 @@ module upd7800
 `define psw_cy psw[0]           // Carry
 
 `define IR_SOFTI    11'h072
-`define IR_STM      11'h019
 
 `include "uc-types.svh"
 
@@ -119,7 +118,7 @@ wire         m1_overlap;
 s_ird        ird;
 
 s_uc         ucp, uc;
-e_uaddr      uptr, uptr_next, uptr_p;
+e_uaddr      uptr_p, uptr_next, uptr;
 wire         uc_done;
 s_nc         ncp, nc;
 t_naddr      nptr;
@@ -828,7 +827,7 @@ always @* ird = ird_lut[ir];
 `include "nrom.svh"
 
 always_ff @(posedge CLK) begin
-  ucp <= urom[uptr];
+  ucp <= urom[uptr_p];
 end
 
 assign nptr = ucp.naddr;
@@ -839,16 +838,16 @@ end
 
 always_ff @(posedge CLK) begin
   if (cp2n & (resg | ~t2_wait)) begin
-    uptr_p <= uptr;
+    uptr <= uptr_p;
     uc <= ucp;
     nc <= ncp;
   end
 end
 
-assign uc_done = (uptr_p != UA_IDLE) & (uc.bm == UBM_END);
+assign uc_done = (uptr != UA_IDLE) & (uc.bm == UBM_END);
 
 always @* begin
-  uptr_next = uptr;
+  uptr_next = uptr_p;
 
   if (of_done) begin
     uptr_next = ird.uaddr;
@@ -864,10 +863,10 @@ end
 
 always @(posedge CLK) begin
   if (resg) begin
-    uptr <= UA_IDLE;
+    uptr_p <= UA_IDLE;
   end
   else if (cp1p & ~t2_wait_d) begin
-    uptr <= uptr_next;
+    uptr_p <= uptr_next;
 
 `ifndef VIVADO
     if (of_done) begin
@@ -1018,7 +1017,7 @@ always @* cl_rors = nc.aluop == UAO_ROR;
 always @* cl_dils = nc.aluop == UAO_DIL;
 always @* cl_dihs = nc.aluop == UAO_DIH;
 always @* cl_diss = nc.aluop == UAO_DIS;
-always @* cl_stm = (ir == `IR_STM) & of_done & ~cl_skip;
+always @* cl_stm = (uptr == UA_STM) & ~cl_skip;
 
 
 //////////////////////////////////////////////////////////////////////
