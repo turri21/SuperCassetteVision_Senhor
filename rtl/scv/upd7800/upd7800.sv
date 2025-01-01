@@ -949,7 +949,15 @@ function e_spr resolve_sprs(e_sprs in);
   end
 endfunction
 
-always @* cl_skip = `psw_sk & ~intg;
+always @(posedge CLK) begin
+  if (resg) begin
+    cl_skip <= 0;
+  end
+  else if (cp2n & of_done) begin
+    cl_skip <= `psw_sk & ~intg;
+  end
+end
+
 always @* cl_idb_psw = (cl_rfts == URFS_PSW);
 always @* cl_co_z = nc.pswz;
 always @* cl_cco_c = nc.pswcy;

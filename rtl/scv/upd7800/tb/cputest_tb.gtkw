@@ -155,9 +155,7 @@ cputest_tb.dut.core.oft[3:0]
 @28
 cputest_tb.dut.core.of_prefix[2:0]
 cputest_tb.dut.core.of_done
-cputest_tb.dut.core.of_skip
 cputest_tb.dut.core.m1_overlap
-cputest_tb.dut.core.m1_skip
 cputest_tb.dut.core.m1_next
 cputest_tb.dut.core.m1
 @1401200
