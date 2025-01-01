@@ -272,6 +272,9 @@ nrom:
     - name: ab_dec
       width: 1
       desc: decrement ab
+    - name: ab_dec_if_nb
+      width: 1
+      desc: decrement ab if no borrow
     - name: aout
       width: 1
       desc: ab -> AOR

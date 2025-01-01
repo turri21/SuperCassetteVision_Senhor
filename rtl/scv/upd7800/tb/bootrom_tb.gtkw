@@ -158,8 +158,8 @@ bootrom_tb.dut.core.m1
 @800200
 -uc
 @22
-bootrom_tb.dut.core.uptr[9:0]
-bootrom_tb.dut.core.uptr_next[9:0]
+bootrom_tb.dut.core.uptr[10:0]
+bootrom_tb.dut.core.uptr_next[10:0]
 @28
 bootrom_tb.dut.core.uc_done
 @22

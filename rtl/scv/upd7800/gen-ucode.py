@@ -353,7 +353,7 @@ def table(ir, nsteps):
     ucs.step(idb_rd('DB') | idb_wr('B'))
     ird_row(ir, nsteps, 0, ucs)
 
-# BLOCK: (DE)+ <- (HL)+, C <- C - 1, end if borrow
+# BLOCK: (DE)+ <- (HL)+, C <- C - 1, repeat until borrow
 def block(ir, nsteps):
     ucs = ucode_seq('BLOCK')
     # HL -> ab -> aor
@@ -371,8 +371,8 @@ def block(ir, nsteps):
     ucs.step({'rfos': 'C', 'idbs': 'RF', 'lts': 'AI', 'aluop': 'DEC'})
     # CO -> idb -> C
     ucs.step({'rfts': 'C', 'idbs': 'CO', 'lts': 'RF'})
-    # !CCO -> PSW.SK, repeat ins. until skipped
-    ucs.step({'pswsk': 'C', 'abs': 'PC', 'ab_dec': 1})
+    # Decrement PC if no borrow
+    ucs.step({'abs': 'PC', 'ab_dec_if_nb': 1})
     ird_row(ir, nsteps, 0, ucs)
 
 # EX: Exchange V, A and V', A'

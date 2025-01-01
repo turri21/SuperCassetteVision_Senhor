@@ -984,7 +984,7 @@ always @* cl_idbs = nc.idbs;
 always @* cl_idb_pcl = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCL);
 always @* cl_idb_pch = (nc.lts == ULTS_RF) & (nc.rfts == URFS_PCH);
 always @* cl_pc_inc = of_pc_inc | nc.pc_inc;
-always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec & ~cl_skip;
+always @* cl_pc_dec = (nc.abs == UABS_PC) & cl_abi_dec;
 always @* cl_abi_pc = cl_idb_pcl | cl_idb_pch | cl_pc_inc | cl_pc_dec | (nc.ab_inc & nc.ab_dec & ~cl_skip);
 always @* cl_idb_ir = oft[2];
 always @* cl_of_prefix_ir = oft[2];
@@ -994,7 +994,7 @@ always @* cl_abits = resolve_abs_ir(nc.abits);
 always @* cl_idb_abil = cl_idb_pcl;
 always @* cl_idb_abih = cl_idb_pch;
 always @* cl_abi_inc = cl_pc_inc | (nc.ab_inc & ~nc.ab_dec) | cl_rpir_inc;
-always @* cl_abi_dec = (nc.ab_dec & ~nc.ab_inc) | cl_rpir_dec;
+always @* cl_abi_dec = ((nc.ab_dec & ~nc.ab_inc) | cl_rpir_dec | (nc.ab_dec_if_nb & ~cco)) & ~cl_skip;
 always @* cl_rpir_inc = nc.rpir & (ir[2:1] == 2'b10); // 3'd4-3'd5
 always @* cl_rpir_dec = nc.rpir & (ir[2:1] == 2'b11); // 3'd6-3'd7
 always @* cl_carry = nc.cis == UCIS_CCO;

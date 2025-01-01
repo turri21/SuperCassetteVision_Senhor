@@ -2822,9 +2822,8 @@ nrom:
     idbs: CO
     lts: RF
   - naddr: 37
-    pswsk: C
     abs: PC
-    ab_dec: 1
+    ab_dec_if_nb: 1
   - naddr: 38
     lts: SEC
     rfts: V

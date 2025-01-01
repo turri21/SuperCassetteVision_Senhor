@@ -1256,6 +1256,7 @@ typedef struct packed
     reg [0:0] pc_inc;    // increment PC
     reg [0:0] ab_inc;    // increment ab
     reg [0:0] ab_dec;    // decrement ab
+    reg [0:0] ab_dec_if_nb;    // decrement ab if no borrow
     reg [0:0] aout;    // ab -> AOR
     reg [0:0] load;    // assert RDB (read operation)
     reg [0:0] store;    // dor -> DB
