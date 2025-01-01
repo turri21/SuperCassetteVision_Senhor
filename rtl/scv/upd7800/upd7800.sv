@@ -240,8 +240,8 @@ always_ff @(posedge CLK) begin
     intpm <= 0;
   end
   else begin
-    if (cp2n & of_start_d) begin
-      // Latch interrupt state at start of opcode fetch
+    if (cp2n & of_start) begin
+      // Latch interrupt state just before M1 (opcode fetch)
       intpm <= intp & imsk;     // pending and non-masked
     end
   end
@@ -762,7 +762,7 @@ always_ff @(posedge CLK) begin
       oft[3:1] <= oft[2:0];
     end
     if (cp1p) begin
-      m1ext <= m1 & |oft[2:0];
+      m1ext <= (m1 & |oft[2:0]) & ~intg;
     end
   end
 end
