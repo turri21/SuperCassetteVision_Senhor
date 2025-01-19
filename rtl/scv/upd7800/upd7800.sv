@@ -643,7 +643,7 @@ reg       sub;
   lsum = ai[3:0] + ibi[3:0] + {3'b0, addc ^ sub};
   hsum = ai[7:4] + ibi[7:4] + {3'b0, lsum[4]};
   alu_co = {hsum[3:0], lsum[3:0]};
-  alu_cho = sub ? lsum[3:0] > ai[3:0] : lsum[3:0] < ai[3:0];
+  alu_cho = lsum[4] ^ sub;
   alu_cco = hsum[4] ^ sub;
 end
 
