@@ -220,6 +220,9 @@ ird:
     - name: sefm
       type: e_sefm
       desc: String effect flag (L0/L1) mode
+    - name: no_skip
+      width: 1
+      desc: These instructions ignore the SK flag
 
 
 ######################################################################

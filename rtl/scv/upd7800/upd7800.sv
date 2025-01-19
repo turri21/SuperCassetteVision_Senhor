@@ -110,7 +110,7 @@ reg          t2_wait_d;
 
 reg [3:0]    oft;
 reg [2:0]    of_prefix;
-wire         of_start, of_start_d, of_done, of_pc_inc;
+wire         of_start, of_start_d, of_done, of_pc_inc, of_no_skip;
 reg          m1, m1ext;
 wire         m1_next, oft0_next;
 wire         m1_overlap;
@@ -799,6 +799,7 @@ assign of_start = m1_next & oft0_next;
 assign of_start_d = m1 & oft[0];
 assign of_done = oft[3] & ~(m1 & |of_prefix);
 assign of_pc_inc = oft[3] & ~intg;
+assign of_no_skip = ird.no_skip;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -811,7 +812,7 @@ int i;
   // Illegal opcode default: fetch new opcode
   for (i = 0; i < 2048; i++) begin
     // default for illegal opcodes
-    ird_lut[i] = { UA_IDLE, 1'd1, ISEFM_NONE };
+    ird_lut[i] = { UA_IDLE, 1'd1, ISEFM_NONE, 1'd0 };
   end
 
 `include "uc-ird.svh"
@@ -953,7 +954,7 @@ always @(posedge CLK) begin
     cl_skip <= 0;
   end
   else if (cp2n & of_done) begin
-    cl_skip <= `psw_sk & ~intg;
+    cl_skip <= `psw_sk & ~(intg | of_no_skip);
   end
 end
 

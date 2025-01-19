@@ -62,7 +62,7 @@ class ucode_seq():
             uc_row(ucrow)
 
 
-def ird_row(ir, nsteps, noper, ucs):
+def ird_row(ir, nsteps, noper, ucs, no_skip=False):
     if isinstance(ir, list):
         ir0, ir1 = ir
         ats = f'[0x{ir0:02x}, 0x{ir1:02x}]'
@@ -78,6 +78,8 @@ def ird_row(ir, nsteps, noper, ucs):
     irdrow = {'_at': ats, 'at': ir, 'uaddr': ucname}
     if nsteps == 0:
         irdrow['m1_overlap'] = 1
+    if no_skip:
+        irdrow['no_skip'] = 1
     irdrow['sefm'] = ucs.str_effect
 
     ird_rows.append(irdrow)
@@ -373,7 +375,7 @@ def block(ir, nsteps):
     ucs.step({'rfts': 'C', 'idbs': 'CO', 'lts': 'RF'})
     # Decrement PC if no borrow
     ucs.step({'abs': 'PC', 'ab_dec_if_nb': 1})
-    ird_row(ir, nsteps, 0, ucs)
+    ird_row(ir, nsteps, 0, ucs, no_skip=True)
 
 # EX: Exchange V, A and V', A'
 def ex(ir, nsteps):
@@ -774,7 +776,7 @@ def softi(ir, nsteps):
     ucs.step(idb_rd(0) | idb_wr('RF_PCH'))
     ucs.step(idb_rd('SDG_INTVA') | idb_wr('RF_PCL'))
     ucs.step(nc_idle)
-    ird_row(ir, nsteps, 0, ucs)
+    ird_row(ir, nsteps, 0, ucs, no_skip=True)
 
 # RET / RETI (Return from Subroutine / Interrupt)
 def ret(ir, nsteps, ucname):

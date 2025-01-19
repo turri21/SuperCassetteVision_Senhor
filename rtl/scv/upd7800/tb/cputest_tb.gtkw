@@ -158,7 +158,8 @@ cputest_tb.dut.core.of_done
 cputest_tb.dut.core.m1_overlap
 cputest_tb.dut.core.m1_next
 cputest_tb.dut.core.m1
-@1401200
+cputest_tb.dut.core.of_no_skip
+@1000200
 -of
 @c00200
 -uc
@@ -225,6 +226,7 @@ cputest_tb.dut.core.cl_rpir_dec
 cputest_tb.dut.core.cl_rpir_inc
 cputest_tb.dut.core.cl_sefm[1:0]
 cputest_tb.dut.core.cl_sefs_psw
+cputest_tb.dut.core.cl_skip
 cputest_tb.dut.core.cl_sks_sk
 @22
 cputest_tb.dut.core.cl_spr[3:0]

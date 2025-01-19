@@ -81,6 +81,7 @@ ird:
   - _at: '0x31'
     at: 49
     uaddr: BLOCK
+    no_skip: 1
     sefm: NONE
   - _at: '0x10'
     at: 16
@@ -289,6 +290,7 @@ ird:
   - _at: '0x72'
     at: 114
     uaddr: INT
+    no_skip: 1
     sefm: NONE
   - _at: '0x08'
     at: 8
