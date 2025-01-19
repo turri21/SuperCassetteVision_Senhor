@@ -101,7 +101,7 @@ reg [15:0]   ab;
 reg [7:0]    ai, bi, ibi, co;
 reg [7:0]    alu_co;
 reg          alu_cho, alu_cco;
-reg          addc, notbi, pdah, pdal, pdac, cco, cho;
+reg          addc, notbi, pdah, pdal, cco, cho;
 reg [15:0]   uabi, nabi;
 reg          skso;
 reg [7:0]    sdg;
@@ -621,7 +621,6 @@ always @* notbi = cl_bi_not | cl_decs;
 always @* pdah = `psw_cy | (ai[7:4] > 4'h9) |
                  (~`psw_hc & (ai[3:0] > 4'h9) & (ai[7:4] == 4'h9));
 always @* pdal = `psw_hc | (ai[3:0] > 4'h9);
-always @* pdac = `psw_cy | pdah;
 
 always @* begin
   ibi = bi;
@@ -650,8 +649,8 @@ end
 always @(posedge CLK) if (cp2n & ~t2_wait) begin
   if (cl_sums | cl_subs | cl_incs | cl_decs) begin
     co <= alu_co;
-    cho <= alu_cho;
-    cco <= (cl_bi_daa) ? pdac : alu_cco;
+    cho <= (cl_bi_daa) ? pdal : alu_cho;
+    cco <= (cl_bi_daa) ? pdah : alu_cco;
   end
   else if (cl_ors)
     co <= ai | ibi;
