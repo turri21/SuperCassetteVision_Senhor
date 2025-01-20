@@ -73,14 +73,17 @@ localparam [8:0] LAST_ROW_VSYNC = 9'd262;
 localparam [8:0] FIRST_COL_HSYNC = 9'd240;
 localparam [8:0] LAST_COL_HSYNC = 9'd259;
 
-// Visible window: 192 x 222
-localparam [8:0] FIRST_ROW_VISIBLE = 9'd24;
-localparam [8:0] LAST_ROW_VISIBLE = FIRST_ROW_VISIBLE + 9'd222 - 1'd1;
-localparam [8:0] FIRST_COL_VISIBLE = 9'd24;
-localparam [8:0] LAST_COL_VISIBLE = FIRST_COL_VISIBLE + 9'd192 - 1'd1;
-
 localparam [8:0] FIRST_ROW_PRE_RENDER = FIRST_ROW_RENDER - 'd2;
 localparam [8:0] FIRST_ROW_BOC_START = LAST_ROW_RENDER + 'd2;
+
+// Visible window: 204 x 230 = (1,2)-(204,231)
+//
+// Hide render window edges, which would normally be hidden by
+// overscan.
+localparam [8:0] FIRST_ROW_VISIBLE = FIRST_ROW_RENDER + 'd2;
+localparam [8:0] LAST_ROW_VISIBLE = LAST_ROW_RENDER;
+localparam [8:0] FIRST_COL_VISIBLE = FIRST_COL_RENDER + 'd1;
+localparam [8:0] LAST_COL_VISIBLE = LAST_COL_RENDER - 'd3;
 
 `ifdef EPOCHTV1_BORDERS
 // left/right borders
@@ -856,23 +859,23 @@ assign sbofp_px = olb_rd[(sbofp_rrs*4)+:4];
 // Sync generator
 
 reg  de, hsync, vsync, vbl;
-reg  visible;
+reg  de_p;
 
 always_comb begin
-  // Enable DE for visible region...
-  visible = visible_px;
+  // Enable DE for render region...
+  de_p = render_px;
 `ifdef EPOCHTV1_BORDERS
   // plus right border...
-  if (visible_row)
-    visible = visible | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
+  if (render_row)
+    de_p = de_p | ((col >= FIRST_COL_RIGHT) & (col <= LAST_COL_RIGHT));
   // plus left border.
-  if (visible_row)
-    visible = visible | ((col >= FIRST_COL_LEFT) & (col <= LAST_COL_LEFT));
+  if (render_row)
+    de_p = de_p | ((col >= FIRST_COL_LEFT) & (col <= LAST_COL_LEFT));
 `endif
 end
 
 always_ff @(posedge CLK) if (CE) begin
-  de <= visible;
+  de <= de_p;
 /* verilator lint_off UNSIGNED */
   hsync <= (col >= FIRST_COL_HSYNC) & (col <= LAST_COL_HSYNC);
 /* verilator lint_on UNSIGNED */
@@ -890,15 +893,15 @@ assign VS = vsync;
 // Render pipeline
 
 reg [3:0] pd;
-reg       render_px_d;
+reg       render_visible;
 
 always_ff @(posedge CLK) if (CE) begin
-  render_px_d <= render_px;
+  render_visible <= visible_px;
 end
 
 always @* begin
   pd = 4'd1; // black borders
-  if (render_px_d) begin
+  if (render_visible) begin
     pd = sbofp_px[3:0];
   end
 end

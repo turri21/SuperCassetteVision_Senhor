@@ -2,7 +2,7 @@ import sys
 import re
 from PIL import Image, ImageColor, ImageDraw
 
-img = Image.new('RGB', (192, 222))
+img = Image.new('RGB', (208, 232))
 d = ImageDraw.Draw(img)
 
 with open(sys.argv[1], "r") as fin:
