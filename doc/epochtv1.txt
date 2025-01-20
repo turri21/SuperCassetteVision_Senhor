@@ -24,7 +24,7 @@ Overview
       . HIGH (XOR w/ HSYNC) at VSYNC
   . Timing
     . Full frame (incl. blanking): 260 cols x 263 rows
-    . Render area: 208 cols x 232 rows
+    . Render area (incl. overscan): 208 cols x 232 rows
     . Pixel rate: 4.090909 MHz (XTAL / 3.5)
     . Line rate (horizontal refresh): 15734 kHz
     . Frame rate (vertical refresh): 59.826 Hz
@@ -38,8 +38,8 @@ Pinout
 . 21      AGND
 . 22      CHROMA      50mV +/-270mV-p @ 3.58MHz
 . 23-25   R,G,B
-. 26      \CSYNC
-. 27      AVCC (5V)
+. 26      \CSYNC/LUMA
+. 27      VMODE       CVBS=0V, RGB=5V
 . 28      \VWE        VRAM write en.
 . 29      \SCPU       uPD1771C chip select
 . 30,31   \VCS[1:0]   VRAM chip selects
@@ -120,6 +120,21 @@ extending T2 by one T-cycle. This includes uPD1771C accesses (for
 which the TV-1 decodes address).
 
 
+Screen size
+-----------
+
+The active render area, including overscan, is 208 cols x 232 rows.
+Borders outside this area contain black pixels.
+
+The character screen edges are used by some games for internal state.
+(For example, a character on the right edge of the Lupin III title
+screen "follows" the music.)  This is fine, as analog TV/monitor
+overscan hides the edges.
+
+My LCD TV with NTSC tuner, hooked up to the console's RF output, shows
+only the area (1,2)-(204,231).
+
+
 Background
 ----------
 
@@ -130,7 +145,8 @@ Screen is divided into character and graphics areas.
 
   32x16 tilemap, 8x16 tiles
   Character pattern is 8x8, drawn in top half of tile
-  Tile @ (tx, ty) draws at visible coord. (tx*8 - 24, ty*16 - 23)
+  Tile @ (tx, ty) draws at screen coord. (tx*8 - 17, ty*16 - 16)
+    Characters in tiles (2,1)-(28,15) fall within the render area
 
 
   Bitmapped graphics
@@ -157,6 +173,33 @@ Sprite pattern
 E   1C[7,6,5,4] 1D[7,6,5,4] 1E[7,6,5,4] 1F[7,6,5,4]
 F   1C[3,2,1,0] 1D[3,2,1,0] 1E[3,2,1,0] 1F[3,2,1,0]
 Row
+
+
+Sprite attributes
+-----------------
+
+Sprite #sidx is described by 4 bytes:
+
+B0 ($0200 + sidx * 4)
+. bit 7-1:  Y position (sy)
+. bit 0:    link Y
+
+B1 ($0201 + sidx * 4)
+. bit 7-4:  start line
+. bit 3-0:  color
+
+B2 ($0202 + sidx * 4)
+. bit 7-1:  X position (sx)
+. bit 0:    link X
+
+B3 ($0203 + sidx * 4)
+. bit 7:    split
+. bit 6-0:  pattern index
+
+
+Sprite @ (sx, sy) draws at render coord. (sx*2 - 23, sy*2 - 14)
+
+[TODO: Lots of details, double/half-wide/high, 2-color, etc.]
 
 
 
