@@ -243,14 +243,16 @@ Video timing
 HSYNC period: 63.556us -- 15734 kHz
 VSYNC period: 16.7151ms -- 59.826 Hz
 
-Row 0 starts on VSYNC falling edge. (Actual row counter value is unknown.)
+(Rows and columns are 0-indexed.)
+
+Row 260 starts on VSYNC falling edge. (Actual row counter value is unknown.)
 - VBL is HIGH during rows 251-18.
 - VSYNC is HIGH (\CSYNC is inverted) during rows 260-262.
 
-Rows  19-250: VBL = 0, VSYNC = 0
-Rows 251-259: VBL = 1, VSYNC = 0
-Rows 260-262: VBL = 1, VSYNC = 1
-Rows   0- 18: VBL = 1, VSYNC = 0
+Rows 260- 15: VBL = 1, VSYNC = 0
+Rows  16-247: VBL = 0, VSYNC = 0
+Rows 248-256: VBL = 1, VSYNC = 0
+Rows 257-259: VBL = 1, VSYNC = 1
 
  -0.010us / v  -18q / ~-3p: VBL falling edge
   0.614us / v    0q /   0p: \CSYNC falling edge
@@ -281,3 +283,16 @@ Columns   0- 22: HBL = 1, HSYNC = 0
 Columns  23-230: HBL = 0, HSYNC = 0
 Columns 231-239: HBL = 1, HSYNC = 0
 Columns 240-259: HBL = 1, HSYNC = 1
+
+
+Reset behavior
+--------------
+
+Following \RESET de-assertion, there are 247 positive \CSYNC (HSYNC)
+pulses. VBL asserts during the 248th pulse.
+
+VBL is not de-asserted by \RESET. If VBL was going into \RESET, it
+remains asserted, and then de-asserts during the 16th \CSYNC pulse.
+
+The above behaviors suggest that the row counter is cleared on \RESET,
+and that the first rendered row is row=16.

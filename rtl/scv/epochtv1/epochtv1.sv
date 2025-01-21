@@ -64,12 +64,12 @@ localparam [8:0] NUM_ROWS = 9'd263;
 localparam [8:0] NUM_COLS = 9'd260;
 
 // Actual render window (incl. overscan): 208 x 232
-localparam [8:0] FIRST_ROW_RENDER = 9'd19;
-localparam [8:0] LAST_ROW_RENDER = 9'd250;
+localparam [8:0] FIRST_ROW_RENDER = 9'd16;
+localparam [8:0] LAST_ROW_RENDER = 9'd247;
 localparam [8:0] FIRST_COL_RENDER = 9'd23;
 localparam [8:0] LAST_COL_RENDER = 9'd230;
-localparam [8:0] FIRST_ROW_VSYNC = 9'd260;
-localparam [8:0] LAST_ROW_VSYNC = 9'd262;
+localparam [8:0] FIRST_ROW_VSYNC = 9'd257;
+localparam [8:0] LAST_ROW_VSYNC = 9'd259;
 localparam [8:0] FIRST_COL_HSYNC = 9'd240;
 localparam [8:0] LAST_COL_HSYNC = 9'd259;
 
@@ -419,6 +419,7 @@ assign nVBWR = ~(cpu_sel_vram & cpu_wr & A[0]);
 //////////////////////////////////////////////////////////////////////
 // Background (character / bitmap) pipeline
 
+wire [8:0] bgr_row;
 wire [4:0] bgr_tx;
 wire [4:0] bgr_ty;
 wire       bgr_tx_valid;
@@ -438,8 +439,10 @@ reg [7:0]  bgr_pxp, bgr_px;
 reg [4:0]  bgr_wa;
 reg [7:0]  bgr_we;
 
+assign bgr_row = row + 1; // +1 aligns BG w/ render window top
+
 assign bgr_tx = sbofp_bgr_idx[4:0];
-assign bgr_ty = row[7:3];
+assign bgr_ty = bgr_row[7:3];
 assign bgr_tx_valid = ~sbofp_bgr_idx[5];
 
 assign bgr_xwin = (bgr_tx[4:1] < bm_xmax) ^ bm_invx;
@@ -453,14 +456,14 @@ assign bgm2_ra = {bgr_ty[4:1], bgr_tx[4:2]};
 assign bgr_bgm_rd = bgm2_rbuf[(bgr_tx[1:0]*8)+:8];
 
 // Read character pattern from ROM
-assign chr_a = {bgr_bgm_rd[6:0], row[2:0]};
+assign chr_a = {bgr_bgm_rd[6:0], bgr_row[2:0]};
 assign bgr_ch_bgc = ch_clr_bg;
 assign bgr_ch_fgc = ch_clr_fg;
 assign bgr_ch_pat = bgr_ty[0] ? 0 : chr_rbuf;
 
 // Interpret BGM data as bitmap data
-wire [2:0] bgr_bm_hipat_sel = {~row[3:2], 1'b0};
-wire [2:0] bgr_bm_lopat_sel = {~row[3], 2'b0};
+wire [2:0] bgr_bm_hipat_sel = {~bgr_row[3:2], 1'b0};
+wire [2:0] bgr_bm_lopat_sel = {~bgr_row[3], 2'b0};
 wire [1:0] bgr_bm_hipat = bgr_bgm_rd[bgr_bm_hipat_sel+:2];
 wire [3:0] bgr_bm_lopat = bgr_bgm_rd[bgr_bm_lopat_sel+:4];
 
@@ -557,7 +560,7 @@ assign spr_vram_addr = {1'b0, spr_tile, spr_y[3:1], spr_dr};
 
 assign spr_w = spr_half_w ? 5'd7 : spr_dbl_w ? 5'd31 : 5'd15;
 assign spr_h = spr_half_h ? 5'd7 : spr_dbl_h ? 5'd31 : 5'd15;
-assign spr_y0 = spr_oa.y*2 + 2; // +2 aligns sprites w/ background
+assign spr_y0 = spr_oa.y*2 + 1; // +1 aligns sprites w/ BG
 assign spr_y_in_range = row >= spr_y0 + 9'(spr_vs) &&
                         row <= spr_y0 + 9'(spr_h);
 assign spr_visible = |spr_oa.color & |spr_oa.y & spr_y_in_range;
@@ -627,7 +630,7 @@ always_ff @(posedge CLK) if (CE) begin
 
     spr_dact_d <= spr_dact;
     if (spr_d0) begin
-      spr_dsx <= spr_oa.x*2 - 4; // -4 aligns sprites w/ background
+      spr_dsx <= spr_oa.x*2 - 6; // -6 aligns sprites w/ background
       spr_dclr <= spr_color;
     end
     else if (spr_dact_d) begin
@@ -843,7 +846,7 @@ wire       sbofp_rsel;
 wire [3:0] sbofp_px;
 
 assign sbofp_rsel = row[0];
-assign sbofp_rx = col[7:0];
+assign sbofp_rx = col[7:0] - 6; // -6 aligns BG+SPR w/ render window left
 
 assign olb_ra = {sbofp_rsel, sbofp_rx[7:3]};
 assign olb_re = ~|sbofp_rx[2:0];
