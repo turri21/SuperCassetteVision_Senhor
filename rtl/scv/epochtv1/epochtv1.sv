@@ -925,24 +925,28 @@ assign visible_px = visible_row & visible_col;
 
 reg [23:0] cg;
 
+// RGB connector signal level is observed to fall off as R+G+B increases.
+
+// TODO: RF modulator colors are notably different from RGB.
+
 always @* begin
   case (pd)
-	4'd0 : cg = { 8'd0  , 8'd0  , 8'd155 };
+	4'd0 : cg = { 8'd0  , 8'd0  , 8'd160 };
 	4'd1 : cg = { 8'd0  , 8'd0  , 8'd0   };
-	4'd2 : cg = { 8'd0  , 8'd0  , 8'd255 };
-	4'd3 : cg = { 8'd161, 8'd0  , 8'd255 };
-	4'd4 : cg = { 8'd0  , 8'd255, 8'd0   };
-	4'd5 : cg = { 8'd160, 8'd255, 8'd157 };
-	4'd6 : cg = { 8'd0  , 8'd255, 8'd255 };
-	4'd7 : cg = { 8'd0  , 8'd161, 8'd0   };
-	4'd8 : cg = { 8'd255, 8'd0  , 8'd0   };
-	4'd9 : cg = { 8'd255, 8'd161, 8'd0   };
-	4'd10: cg = { 8'd255, 8'd0  , 8'd255 };
-	4'd11: cg = { 8'd255, 8'd160, 8'd159 };
-	4'd12: cg = { 8'd255, 8'd255, 8'd0   };
-	4'd13: cg = { 8'd163, 8'd160, 8'd0   };
-	4'd14: cg = { 8'd161, 8'd160, 8'd157 };
-	4'd15: cg = { 8'd255, 8'd255, 8'd255 };
+	4'd2 : cg = { 8'd0  , 8'd0  , 8'd245 };
+	4'd3 : cg = { 8'd160, 8'd0  , 8'd235 };
+	4'd4 : cg = { 8'd0  , 8'd245, 8'd0   };
+	4'd5 : cg = { 8'd150, 8'd235, 8'd150 };
+	4'd6 : cg = { 8'd0  , 8'd235, 8'd235 };
+	4'd7 : cg = { 8'd0  , 8'd160, 8'd0   };
+	4'd8 : cg = { 8'd245, 8'd0  , 8'd0   };
+	4'd9 : cg = { 8'd235, 8'd160, 8'd0   };
+	4'd10: cg = { 8'd235, 8'd0  , 8'd235 };
+	4'd11: cg = { 8'd235, 8'd150, 8'd150 };
+	4'd12: cg = { 8'd235, 8'd235, 8'd0   };
+	4'd13: cg = { 8'd160, 8'd160, 8'd0   };
+	4'd14: cg = { 8'd150, 8'd150, 8'd150 };
+	4'd15: cg = { 8'd225, 8'd225, 8'd225 };
     default: cg = 'X;
   endcase
 end
