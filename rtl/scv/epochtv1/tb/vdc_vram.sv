@@ -31,6 +31,8 @@ epochtv1 vdc
    .CLK(clk),
    .CE(ce),
 
+   .CFG_PALETTE('0),
+
    .A(a),
    .DB_I(db_i),
    .DB_O(db_o),

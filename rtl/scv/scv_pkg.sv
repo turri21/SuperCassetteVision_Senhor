@@ -35,4 +35,11 @@ typedef enum bit [3:0]
  MAPPER_ROM128K_RAM4K
 } mapper_t;
 
+// VDC palette selection
+typedef enum bit [0:0]
+{
+ PALETTE_RGB = 1'd0,
+ PALETTE_RF
+} palette_t;
+
 endpackage

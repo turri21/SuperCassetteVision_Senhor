@@ -13,6 +13,8 @@
 
 `timescale 1us / 1ns
 
+import scv_pkg::*;
+
 module epochtv1
   (
    input         CLK, // clock (XTAL * 2)
@@ -23,6 +25,9 @@ module epochtv1
    input [9:0]   ROMINIT_ADDR,
    input [7:0]   ROMINIT_DATA,
    input         ROMINIT_VALID,
+
+   // Emulator configuration
+   input         palette_t CFG_PALETTE,
 
    // CPU address / data bus
    input         CP1_POSEDGE, // for CPU bus timing
@@ -925,30 +930,53 @@ assign visible_px = visible_row & visible_col;
 
 reg [23:0] cg;
 
-// RGB connector signal level is observed to fall off as R+G+B increases.
-
-// TODO: RF modulator colors are notably different from RGB.
-
 always @* begin
-  case (pd)
-	4'd0 : cg = { 8'd0  , 8'd0  , 8'd160 };
-	4'd1 : cg = { 8'd0  , 8'd0  , 8'd0   };
-	4'd2 : cg = { 8'd0  , 8'd0  , 8'd245 };
-	4'd3 : cg = { 8'd160, 8'd0  , 8'd235 };
-	4'd4 : cg = { 8'd0  , 8'd245, 8'd0   };
-	4'd5 : cg = { 8'd150, 8'd235, 8'd150 };
-	4'd6 : cg = { 8'd0  , 8'd235, 8'd235 };
-	4'd7 : cg = { 8'd0  , 8'd160, 8'd0   };
-	4'd8 : cg = { 8'd245, 8'd0  , 8'd0   };
-	4'd9 : cg = { 8'd235, 8'd160, 8'd0   };
-	4'd10: cg = { 8'd235, 8'd0  , 8'd235 };
-	4'd11: cg = { 8'd235, 8'd150, 8'd150 };
-	4'd12: cg = { 8'd235, 8'd235, 8'd0   };
-	4'd13: cg = { 8'd160, 8'd160, 8'd0   };
-	4'd14: cg = { 8'd150, 8'd150, 8'd150 };
-	4'd15: cg = { 8'd225, 8'd225, 8'd225 };
-    default: cg = 'X;
-  endcase
+  cg = 'X;
+  if (CFG_PALETTE == PALETTE_RGB) begin
+    // RGB connector signal level is observed to fall off as R+G+B increases.
+    case (pd)
+	  4'd0 : cg = { 8'd0  , 8'd0  , 8'd160 };
+	  4'd1 : cg = { 8'd0  , 8'd0  , 8'd0   };
+	  4'd2 : cg = { 8'd0  , 8'd0  , 8'd245 };
+	  4'd3 : cg = { 8'd160, 8'd0  , 8'd235 };
+	  4'd4 : cg = { 8'd0  , 8'd245, 8'd0   };
+	  4'd5 : cg = { 8'd150, 8'd235, 8'd150 };
+	  4'd6 : cg = { 8'd0  , 8'd235, 8'd235 };
+	  4'd7 : cg = { 8'd0  , 8'd160, 8'd0   };
+	  4'd8 : cg = { 8'd245, 8'd0  , 8'd0   };
+	  4'd9 : cg = { 8'd235, 8'd160, 8'd0   };
+	  4'd10: cg = { 8'd235, 8'd0  , 8'd235 };
+	  4'd11: cg = { 8'd235, 8'd150, 8'd150 };
+	  4'd12: cg = { 8'd235, 8'd235, 8'd0   };
+	  4'd13: cg = { 8'd160, 8'd160, 8'd0   };
+	  4'd14: cg = { 8'd150, 8'd150, 8'd150 };
+	  4'd15: cg = { 8'd225, 8'd225, 8'd225 };
+      default: ;
+    endcase
+  end
+  else if (CFG_PALETTE == PALETTE_RF) begin
+    // RF modulator colors are notably different from RGB. Copied from
+    // Takeda-san's eSCV emulator [source/src/vm/scv/vdp.cpp].
+    case (pd)
+	  4'd0 : cg = { 8'd0  , 8'd90 , 8'd156 };
+	  4'd1 : cg = { 8'd0  , 8'd0  , 8'd0   };
+	  4'd2 : cg = { 8'd58 , 8'd148, 8'd255 };
+	  4'd3 : cg = { 8'd0  , 8'd0  , 8'd255 };
+	  4'd4 : cg = { 8'd16 , 8'd214, 8'd0   };
+	  4'd5 : cg = { 8'd66 , 8'd255, 8'd16  };
+	  4'd6 : cg = { 8'd123, 8'd230, 8'd197 };
+	  4'd7 : cg = { 8'd0  , 8'd173, 8'd0   };
+	  4'd8 : cg = { 8'd255, 8'd41 , 8'd148 };
+	  4'd9 : cg = { 8'd255, 8'd49 , 8'd16  };
+	  4'd10: cg = { 8'd255, 8'd58 , 8'd255 };
+	  4'd11: cg = { 8'd239, 8'd156, 8'd255 };
+	  4'd12: cg = { 8'd255, 8'd206, 8'd33  };
+	  4'd13: cg = { 8'd74 , 8'd123, 8'd16  };
+	  4'd14: cg = { 8'd165, 8'd148, 8'd165 };
+	  4'd15: cg = { 8'd255, 8'd255, 8'd255 };
+      default: ;
+    endcase
+  end
 end
 
 assign RGB = cg;

@@ -27,6 +27,7 @@ module scv
    input         ROMINIT_VALID,
 
    input         mapper_t MAPPER,
+   input         palette_t VDC_PALETTE,
 
    input         hmi_t HMI,
 
@@ -121,6 +122,8 @@ epochtv1 vdc
   (
    .CLK(CLK),
    .CE(vdc_ce),
+
+   .CFG_PALETTE(VDC_PALETTE),
 
    .ROMINIT_SEL_CHR(ROMINIT_SEL_CHR),
    .ROMINIT_ADDR(ROMINIT_ADDR[9:0]),

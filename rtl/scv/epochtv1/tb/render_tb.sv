@@ -37,6 +37,8 @@ epochtv1 dut
    .CLK(clk),
    .CE(ce),
 
+   .CFG_PALETTE('0),
+
    .A(a),
    .DB_I(din),
    .DB_O(dout),
@@ -230,5 +232,5 @@ end
 endmodule
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s render_tb -o render_tb.vvp ../epochtv1.sv ../dpram.sv render_tb.sv && ./render_tb.vvp && make render.png"
+// compile-command: "iverilog -g2012 -grelative-include -s render_tb -o render_tb.vvp ../../scv_pkg.sv ../epochtv1.sv ../dpram.sv render_tb.sv && ./render_tb.vvp && make render.png"
 // End:

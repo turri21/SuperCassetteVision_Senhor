@@ -57,6 +57,7 @@ scv dut
    .ROMINIT_VALID(rominit_valid),
 
    .MAPPER(mapper),
+   .VDC_PALETTE('0),
 
    .HMI(hmi),
 

@@ -36,5 +36,5 @@ initial #17000 $finish;
 endmodule
 
 // Local Variables:
-// compile-command: "iverilog -g2012 -grelative-include -s cpu_bgm_tb -o cpu_bgm_tb.vvp ../epochtv1.sv ../dpram.sv vdc_vram.sv cpu_bgm_tb.sv && ./cpu_bgm_tb.vvp"
+// compile-command: "iverilog -g2012 -grelative-include -s cpu_bgm_tb -o cpu_bgm_tb.vvp ../../scv_pkg.sv ../epochtv1.sv ../dpram.sv vdc_vram.sv cpu_bgm_tb.sv && ./cpu_bgm_tb.vvp"
 // End:
