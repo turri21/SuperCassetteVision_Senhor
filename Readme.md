@@ -1,3 +1,8 @@
+-=(SCV_Senhor notes)=-
+
+Tested: Working Video 720p, 1080p & sound.
+
+___
 # [Epoch Super Cassette Vision](https://en.wikipedia.org/wiki/Super_Cassette_Vision) core for [MISTer Platform](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
 
 This is an emulator of the Epoch Super Cassette Vision.
